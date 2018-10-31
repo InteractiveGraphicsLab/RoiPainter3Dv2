@@ -16,7 +16,6 @@
 #pragma once
 
 
-#define TRANS_FUNC_SIZE 256
 #define HIST_BIN_SIZE   256
 
 
@@ -103,8 +102,6 @@ public:
 	OglImage3D          m_volFlg   ; // Flg 
 	OglImage3D          m_volMsk   ; // mask 
 	OglImage3D          m_volGmag  ; // gradient magnitude 
-	OglImage1D<CH_RGBA> m_imgTf    ; // 1st ch(intensity-->trans), 2nd (grad mag-->trans) 
-	OglImage1D<CH_RGBA> m_imgPsu   ; // func: intensity --> psude color 
 	OglImage1D<CH_RGBA> m_imgMskCol; // func: maskID    --> color
 
 	int                 m_maskActiveId;

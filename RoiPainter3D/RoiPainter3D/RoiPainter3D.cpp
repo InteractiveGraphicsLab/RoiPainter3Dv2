@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "ImageCore.h"
 #include "ModeCore.h"
+#include "CrsSecCore.h"
 
 using namespace System;
 using namespace RoiPainter3D;
@@ -18,11 +19,11 @@ int main()
   //非managedなシングルトンはここで初期化
   //だたしこのタイミングでは、Formを生成しshowしてはだめ．
     
-  ImageCore::getInst();
-  ModeCore ::getInst();
+  ModeCore  ::getInst();
+  ImageCore ::getInst();
+  CrssecCore::GetInst();
 
   /*
-  CrssecCore::GetInst();
   ModeVizMask::getInst();
   ModeVizNormal::getInst();
   ModeSegRGrow::getInst();
@@ -35,6 +36,8 @@ int main()
 
   printf("FormMain::getInst()->ShowDialog() \n");
   FormMain::getInst()->ShowDialog();
+  
+  printf("aaaa \ FormMain::getInst()->ShowDialog() \n");
 
   return 0;
 }

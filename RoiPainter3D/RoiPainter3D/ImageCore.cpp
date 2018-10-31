@@ -14,12 +14,7 @@ ImageCore::ImageCore()
 
 	loadVolume("init","init");
 
-	m_imgTf.Allocate(TRANS_FUNC_SIZE);
-	for (int i = 0; i < TRANS_FUNC_SIZE; ++i) m_imgTf[4 * i] = m_imgTf[4 * i + 1] = i;
-
-	m_imgPsu   .AllocateHeuImg(256);
 	m_imgMskCol.Allocate(256);
-
 
   fprintf(stderr, "CONSTRUCTOR ImageCore ...DONE !\n");
 }

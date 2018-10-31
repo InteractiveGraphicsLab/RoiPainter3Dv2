@@ -19,6 +19,9 @@
     <Filter Include="3rdparty">
       <UniqueIdentifier>{b402f975-588f-4288-9e8e-3ed617a0b641}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MODE">
+      <UniqueIdentifier>{85da7aa4-af01-4158-8024-0a85f558024b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -72,6 +75,18 @@
     <ClInclude Include="FormVisParam.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="mode\ModeVizNormal.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="mode\GlslShader.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="CrsSecCore.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FormVisNorm.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -108,6 +123,18 @@
     </ClCompile>
     <ClCompile Include="FormVisParam.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="mode\ModeVizNormal.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="mode\GlslShader.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="CrsSecCore.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FormVisNorm.cpp">
+      <Filter>MODE</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

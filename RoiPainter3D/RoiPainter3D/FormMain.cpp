@@ -2,6 +2,7 @@
 #include "ImageCore.h"
 #include "ModeCore.h"
 #include "FormVisParam.h"
+#include "FormVisNorm.h"
 
 
 using namespace RoiPainter3D;
@@ -9,9 +10,9 @@ using namespace RoiPainter3D;
 
 
 #pragma comment( lib, "opengl32.lib" )
-#pragma comment( lib, "glu32.lib" )
-#pragma comment( lib, "gdi32.lib" )
-#pragma comment( lib, "User32.lib" )
+#pragma comment( lib, "glu32.lib"    )
+#pragma comment( lib, "gdi32.lib"    )
+#pragma comment( lib, "User32.lib"   )
 
 
 
@@ -141,13 +142,14 @@ System::Void FormMain::FormMain_Move  (System::Object^  sender, System::EventArg
 //managedƒNƒ‰ƒX‚Í‚±‚±‚Å‰Šú‰»‚·‚é
 void FormMain::initializeOtherForms()
 {
-  /*
   FormVisParam::getInst()->initAllItemsForNewImg();
   FormVisParam::getInst()->Show();
   FormVisParam::getInst()->Location = Point(this->Location.X + this->Width, this->Location.Y);
 
   //ˆê“xShow‚µ Hide‚·‚é(‚»‚¤‚µ‚È‚¢‚ÆˆÚ“®‚ªŒø‚©‚È‚¢)
   FormVisNorm::getInst()->Show();
+
+  /*
   FormVisMask::getInst()->Show();
   FormSegRGrow::getInst()->Show();
   FormSegPixPaint::getInst()->Show();

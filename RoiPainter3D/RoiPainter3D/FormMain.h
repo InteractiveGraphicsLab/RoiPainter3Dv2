@@ -335,4 +335,8 @@ namespace RoiPainter3D {
       System::Void FormMain_Resize(System::Object^  sender, System::EventArgs^  e);
       System::Void FormMain_Move  (System::Object^  sender, System::EventArgs^  e);
   };
+
+  inline void formMain_redrawMainPanel(){
+    FormMain::getInst()->redrawMainPanel();
+  }
 }
