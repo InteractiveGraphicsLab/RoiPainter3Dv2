@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -24,7 +24,7 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>RoiPainter3D</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -53,7 +53,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CLRSupport>true</CLRSupport>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -102,7 +102,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>./;./3rdparty/glew/include;./3rdparty/Eigen;./3rdparty/dcmtk/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies />
@@ -124,11 +125,16 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>./;./3rdparty/glew/include;./3rdparty/Eigen;./3rdparty/dcmtk/include</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
-      <AdditionalDependencies />
+      <AdditionalDependencies>glew32.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
+      <AdditionalLibraryDirectories>./3rdparty/dcmtk/staticlibMD;./3rdparty/glew/lib/Release/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -142,25 +148,41 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3rdparty\dcmtk\tdcmtk.h" />
+    <ClInclude Include="3rdparty\vvv\ddsbase.h" />
+    <ClInclude Include="COMMON\kcurves.h" />
+    <ClInclude Include="COMMON\OglForCLI.h" />
+    <ClInclude Include="COMMON\OglImage.h" />
+    <ClInclude Include="COMMON\timageloader.h" />
+    <ClInclude Include="COMMON\tmarchingcubes.h" />
+    <ClInclude Include="COMMON\tmath.h" />
+    <ClInclude Include="COMMON\tmesh.h" />
+    <ClInclude Include="COMMON\tqueue.h" />
     <ClInclude Include="FormMain.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="FormVisParam.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="ImageCore.h" />
+    <ClInclude Include="ModeCore.h" />
+    <ClInclude Include="ModeInterface.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="3rdparty\dcmtk\tdcmtk.cpp" />
+    <ClCompile Include="3rdparty\vvv\ddsbase.cpp" />
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="COMMON\tmarchingcubes.cpp" />
     <ClCompile Include="FormMain.cpp" />
+    <ClCompile Include="FormVisParam.cpp" />
+    <ClCompile Include="ImageCore.cpp" />
+    <ClCompile Include="ModeCore.cpp" />
+    <ClCompile Include="ModeInterface.cpp" />
     <ClCompile Include="RoiPainter3D.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="app.ico" />

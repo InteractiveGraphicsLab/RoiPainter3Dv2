@@ -7,6 +7,9 @@
 #include "./3rdparty/Eigen/Geometry"
 #include "./3rdparty/Eigen/Sparse"
 
+#include <stdio.h>
+
+
 typedef Eigen::Vector2i EVec2i;
 typedef Eigen::Vector2d EVec2d;
 

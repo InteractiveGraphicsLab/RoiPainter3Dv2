@@ -13,18 +13,63 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="COMMON">
+      <UniqueIdentifier>{6ef14bfd-5299-4fa5-92b8-64d58be571f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdparty">
+      <UniqueIdentifier>{b402f975-588f-4288-9e8e-3ed617a0b641}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="FormMain.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMON\kcurves.h">
+      <Filter>COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMON\OglForCLI.h">
+      <Filter>COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMON\OglImage.h">
+      <Filter>COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMON\timageloader.h">
+      <Filter>COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMON\tmarchingcubes.h">
+      <Filter>COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMON\tmath.h">
+      <Filter>COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMON\tmesh.h">
+      <Filter>COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMON\tqueue.h">
+      <Filter>COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="ModeCore.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageCore.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdparty\dcmtk\tdcmtk.h">
+      <Filter>COMMON</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdparty\vvv\ddsbase.h">
+      <Filter>3rdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="ModeInterface.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FormVisParam.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
@@ -40,10 +85,28 @@
     <ClCompile Include="AssemblyInfo.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="FormMain.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="FormMain.cpp">
+    <ClCompile Include="COMMON\tmarchingcubes.cpp">
+      <Filter>COMMON</Filter>
+    </ClCompile>
+    <ClCompile Include="ModeCore.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageCore.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdparty\dcmtk\tdcmtk.cpp">
+      <Filter>COMMON</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdparty\vvv\ddsbase.cpp">
+      <Filter>3rdparty</Filter>
+    </ClCompile>
+    <ClCompile Include="ModeInterface.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FormVisParam.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -51,5 +114,10 @@
     <Image Include="app.ico">
       <Filter>リソース ファイル</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="FormMain.resx">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

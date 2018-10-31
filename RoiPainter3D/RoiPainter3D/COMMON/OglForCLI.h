@@ -3,7 +3,7 @@
 // All rights reserved.
 //
 //
-// This file is released under GNU GPLv3.
+// This file is released under GNU GPL v3.
 //
 //
 // This class uses Eigen 3.2.8 released under MPL2 without any modification.
@@ -33,21 +33,23 @@
 class OglForCLI
 {
 private:
-  HDC   hdc_;
-  HGLRC hglrc_;
+  HDC   m_hdc;
+  HGLRC m_hglrc;
 
   // Camera position/center/Up direction 
-  EVec3f cam_position_, camcenter_, cam_updir_;
+  EVec3f m_cam_position;
+  EVec3f m_cam_center;
+  EVec3f m_cam_updir;
 
   // View Size
-  bool   is_rendering_;
-  EVec2i mouse_position_;
-  EVec4f background_color_;
+  bool   m_is_rendering;
+  EVec2i m_mouse_position;
+  EVec4f m_background_color;
 
 
   enum {
     BTN_NON, BTN_TRANS, BTN_ZOOM, BTN_ROT
-  } mousebtn_state_;
+  } m_mousebtn_state;
 
 
 public:
@@ -58,17 +60,17 @@ public:
   {
     if (dc == 0) return;
 
-    cam_position_     = EVec3f(0, 0, 10);
-    camcenter_        = EVec3f(0, 0, 0 );
-    cam_updir_        = EVec3f(0, 1, 0 );
-    background_color_ = EVec4f(0, 0, 0, 0.5);
+    m_cam_position     = EVec3f(0, 0, 10);
+    m_cam_center        = EVec3f(0, 0, 0 );
+    m_cam_updir        = EVec3f(0, 1, 0 );
+    m_background_color = EVec4f(0, 0, 0, 0.5);
 
-    is_rendering_ = false;
+    m_is_rendering = false;
 
     SetDefaultProperties();
 
 
-    hdc_ = dc;
+    m_hdc = dc;
     static PIXELFORMATDESCRIPTOR pfd =
     {
       sizeof(PIXELFORMATDESCRIPTOR),  // size of this pfd
@@ -92,13 +94,13 @@ public:
     };
 
 
-    int pfmt = ChoosePixelFormat(hdc_, &pfd);
+    int pfmt = ChoosePixelFormat(m_hdc, &pfd);
     if (pfmt == 0) return;
-    if (!SetPixelFormat(hdc_, pfmt, &pfd)) return;
+    if (!SetPixelFormat(m_hdc, pfmt, &pfd)) return;
 
     // pure Managed だとランタイムでエラーに 
-    if ( (hglrc_ = wglCreateContext(hdc_) ) == 0) return;
-    if ( (wglMakeCurrent(hdc_, hglrc_)    ) == 0) return;
+    if ( (m_hglrc = wglCreateContext(m_hdc) ) == 0) return;
+    if ( (wglMakeCurrent(m_hdc, m_hglrc)    ) == 0) return;
 
 
 
@@ -115,7 +117,7 @@ public:
 
   void oglMakeCurrent() const
   {
-    wglMakeCurrent(hdc_, hglrc_);
+    wglMakeCurrent(m_hdc, m_hglrc);
   }
 
 
@@ -126,9 +128,9 @@ public:
     double view_near = 0.02, 
     double view_far = 700.0)
   {
-    if (is_rendering_) return;
+    if (m_is_rendering) return;
 
-    is_rendering_ = true;
+    m_is_rendering = true;
     oglMakeCurrent();
 
     glViewport(0, 0, viewW, viewH);
@@ -140,19 +142,19 @@ public:
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    gluLookAt(cam_position_[0], cam_position_[1], cam_position_[2],
-      camcenter_[0], camcenter_[1], camcenter_[2],
-      cam_updir_[0], cam_updir_[1], cam_updir_[2]);
-    glClearColor((float)background_color_[0], (float)background_color_[1], (float)background_color_[2], (float)background_color_[3]);
+    gluLookAt(m_cam_position[0], m_cam_position[1], m_cam_position[2],
+      m_cam_center[0], m_cam_center[1], m_cam_center[2],
+      m_cam_updir[0], m_cam_updir[1], m_cam_updir[2]);
+    glClearColor((float)m_background_color[0], (float)m_background_color[1], (float)m_background_color[2], (float)m_background_color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ACCUM_BUFFER_BIT);
   }
 
   void OnDrawEnd()
   {
     glFinish();
-    SwapBuffers(hdc_);
+    SwapBuffers(m_hdc);
     wglMakeCurrent(NULL, NULL);
-    is_rendering_ = false;
+    m_is_rendering = false;
   }
 
 
@@ -162,35 +164,35 @@ public:
 
 
 
-  inline bool   isDrawing() const { return is_rendering_; }
-  inline EVec3f GetCamPos() const { return cam_position_; }
-  inline EVec3f GetCamCnt() const { return camcenter_; }
-  inline EVec3f GetCamUp()  const { return cam_updir_; }
-  inline void   SetCam(const EVec3f &pos, const EVec3f &cnt, const EVec3f &up) { cam_position_ = pos; camcenter_ = cnt; cam_updir_ = up; }
-  inline void   SetBgColor(EVec4f bg) { background_color_ = bg; }
-  inline void   SetBgColor(float r, float g, float b, float a) { background_color_ << r, g, b, a; }
+  inline bool   isDrawing() const { return m_is_rendering; }
+  inline EVec3f GetCamPos() const { return m_cam_position; }
+  inline EVec3f GetCamCnt() const { return m_cam_center; }
+  inline EVec3f GetCamUp()  const { return m_cam_updir; }
+  inline void   SetCam(const EVec3f &pos, const EVec3f &cnt, const EVec3f &up) { m_cam_position = pos; m_cam_center = cnt; m_cam_updir = up; }
+  inline void   SetBgColor(EVec4f bg) { m_background_color = bg; }
+  inline void   SetBgColor(float r, float g, float b, float a) { m_background_color << r, g, b, a; }
 
 
   //Mouse Listener for Camera manipuration
   void BtnDown_Trans(const EVec2i &p)
   {
-    mouse_position_ = p;
-    mousebtn_state_ = BTN_TRANS;
+    m_mouse_position = p;
+    m_mousebtn_state = BTN_TRANS;
   }
   void BtnDown_Zoom(const EVec2i &p)
   {
-    mouse_position_ = p;
-    mousebtn_state_ = BTN_ZOOM;
+    m_mouse_position = p;
+    m_mousebtn_state = BTN_ZOOM;
   }
   void BtnDown_Rot(const EVec2i &p)
   {
-    mouse_position_ = p;
-    mousebtn_state_ = BTN_ROT;
+    m_mouse_position = p;
+    m_mousebtn_state = BTN_ROT;
   }
 
   void BtnUp()
   {
-    mousebtn_state_ = BTN_NON;
+    m_mousebtn_state = BTN_NON;
     ReleaseCapture();
   }
 
@@ -198,36 +200,36 @@ public:
 
   void MouseMove(const EVec2i &p)
   {
-    if (mousebtn_state_ == BTN_NON) return;
+    if (m_mousebtn_state == BTN_NON) return;
 
-    float dX = (float)(p[0] - mouse_position_[0]);
-    float dY = (float)(p[1] - mouse_position_[1]);
+    float dX = (float)(p[0] - m_mouse_position[0]);
+    float dY = (float)(p[1] - m_mouse_position[1]);
 
-    if (mousebtn_state_ == BTN_ROT)
+    if (m_mousebtn_state == BTN_ROT)
     {
       float theta = -dX / 200.0f;
       float phi = -dY / 200.0f;
 
-      EVec3f axis = ((camcenter_ - cam_position_).cross(cam_updir_)).normalized();
-      Eigen::AngleAxisf rotTheta = Eigen::AngleAxisf(theta, cam_updir_);
+      EVec3f axis = ((m_cam_center - m_cam_position).cross(m_cam_updir)).normalized();
+      Eigen::AngleAxisf rotTheta = Eigen::AngleAxisf(theta, m_cam_updir);
       Eigen::AngleAxisf rotPhi = Eigen::AngleAxisf(phi, axis);
-      cam_updir_ = rotPhi * rotTheta * cam_updir_;
-      cam_position_ = rotPhi * rotTheta * (cam_position_ - camcenter_) + camcenter_;
+      m_cam_updir = rotPhi * rotTheta * m_cam_updir;
+      m_cam_position = rotPhi * rotTheta * (m_cam_position - m_cam_center) + m_cam_center;
     }
-    else if (mousebtn_state_ == BTN_ZOOM)
+    else if (m_mousebtn_state == BTN_ZOOM)
     {
-      EVec3f newEyeP = cam_position_ + dY / 80.0f * (camcenter_ - cam_position_);
-      if ((newEyeP - camcenter_).norm() > 0.02f) cam_position_ = newEyeP;
+      EVec3f newEyeP = m_cam_position + dY / 80.0f * (m_cam_center - m_cam_position);
+      if ((newEyeP - m_cam_center).norm() > 0.02f) m_cam_position = newEyeP;
     }
-    else if (mousebtn_state_ == BTN_TRANS)
+    else if (m_mousebtn_state == BTN_TRANS)
     {
-      float c = (cam_position_ - camcenter_).norm() / 900.0f;
-      EVec3f Xdir = ((cam_position_ - camcenter_).cross(cam_updir_)).normalized();
-      EVec3f t = c * dX * Xdir + c * dY * cam_updir_;
-      cam_position_ += t;
-      camcenter_ += t;
+      float c = (m_cam_position - m_cam_center).norm() / 900.0f;
+      EVec3f Xdir = ((m_cam_position - m_cam_center).cross(m_cam_updir)).normalized();
+      EVec3f t = c * dX * Xdir + c * dY * m_cam_updir;
+      m_cam_position += t;
+      m_cam_center += t;
     }
-    mouse_position_ = p;
+    m_mouse_position = p;
   }
 
   /*
@@ -242,12 +244,12 @@ public:
 */
   void ZoomCam(float distance)
   {
-    EVec3f rayD = (camcenter_ - cam_position_);
+    EVec3f rayD = (m_cam_center - m_cam_position);
     float  len = rayD.norm();
 
     if (distance > len) return;
     rayD /= len;
-    cam_position_ = cam_position_ + distance * rayD;
+    m_cam_position = m_cam_position + distance * rayD;
   }
 
 
@@ -259,7 +261,7 @@ public:
     double &y, 
     double &z) const
   {
-    if (!is_rendering_) oglMakeCurrent();
+    if (!m_is_rendering) oglMakeCurrent();
     double modelMat[16], projMat[16];
     int vp[4];
     glGetDoublev(GL_MODELVIEW_MATRIX, modelMat);
@@ -268,20 +270,20 @@ public:
 
     gluUnProject(cx, vp[3] - cy, depth, modelMat, projMat, vp, &x, &y, &z);
 
-    if (!is_rendering_) wglMakeCurrent(NULL, NULL);
+    if (!m_is_rendering) wglMakeCurrent(NULL, NULL);
   }
 
 
 
   void Project(
-    const double   inX, 
-    const double   inY, 
-    const double   inZ,
-    double &outX, 
-    double &outY,
-    double &outZ) const
+    const double inX, 
+    const double inY, 
+    const double inZ,
+          double &outX, 
+          double &outY,
+          double &outZ) const
   {
-    if (!is_rendering_) oglMakeCurrent();
+    if (!m_is_rendering) oglMakeCurrent();
     double model[16], proj[16];
     int vp[4];
     glGetDoublev(GL_MODELVIEW_MATRIX, model);
@@ -289,7 +291,7 @@ public:
     glGetIntegerv(GL_VIEWPORT, vp);
 
     gluProject(inX, inY, inZ, model, proj, vp, &outX, &outY, &outZ);
-    if (!is_rendering_) wglMakeCurrent(NULL, NULL);
+    if (!m_is_rendering) wglMakeCurrent(NULL, NULL);
   }
 
 

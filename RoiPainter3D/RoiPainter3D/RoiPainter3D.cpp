@@ -1,9 +1,9 @@
 // RoiPainter3D.cpp : メイン プロジェクト ファイルです。
 
-#include "stdafx.h"
-
 #include "FormMain.h"
 #include <stdio.h>
+#include "ImageCore.h"
+#include "ModeCore.h"
 
 using namespace System;
 using namespace RoiPainter3D;
@@ -14,15 +14,15 @@ int main()
 {
   printf("start main function\n");
 
-
   //Initialize non-managed Singletons
   //非managedなシングルトンはここで初期化
   //だたしこのタイミングでは、Formを生成しshowしてはだめ．
     
-  /*
   ImageCore::getInst();
+  ModeCore ::getInst();
+
+  /*
   CrssecCore::GetInst();
-  ModeCore::getInst();
   ModeVizMask::getInst();
   ModeVizNormal::getInst();
   ModeSegRGrow::getInst();
@@ -40,7 +40,13 @@ int main()
 }
 
 // todo 2018/10/31
-// mode manager
+// important Core classes
+// ImageCore
+// ModeCore
+// 
+// event handler
+// 
+// 
 // mode_vis_mask
 // mode_vis_norm
 // mode_seg_rgrow

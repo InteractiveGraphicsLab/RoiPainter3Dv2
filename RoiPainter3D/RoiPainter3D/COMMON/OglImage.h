@@ -795,10 +795,10 @@ typedef OglImage2D<CH_INTES> OGLImage2D1;
 
 
 
-template<class T>
-void t_sobel3D(const int W, const int H, const int D, const T* vol, T* res)
+template<class T1, class T2>
+void t_sobel3D(const int W, const int H, const int D, const T1* vol, T2* res)
 {
-  const T sblX[3][3][3] = { 
+  const T1 sblX[3][3][3] = { 
     { {-1,  0, +1},
       {-2,  0, +2},
       {-1,  0, +1} }, { {-2,  0,  2},
@@ -806,7 +806,7 @@ void t_sobel3D(const int W, const int H, const int D, const T* vol, T* res)
                         {-2,  0,  2} }, { {-1,  0,  1},
                                           {-2,  0,  2},
                                           {-1,  0,  1}} };
-  static T sblY[3][3][3] = { 
+  static T1 sblY[3][3][3] = { 
     {{-1, -2, -1},
     { 0,  0,  0},
     { 1,  2,  1}},   {{-2, -4, -2},
@@ -814,7 +814,7 @@ void t_sobel3D(const int W, const int H, const int D, const T* vol, T* res)
                      { 2,  4,  2}}, {{-1, -2, -1},
                                     { 0,  0,  0},
                                     { 1,  2,  1}} };
-  static T sblZ[3][3][3] = { 
+  static T1 sblZ[3][3][3] = { 
     {{-1, -2, -1},
     {-2, -4, -2},
     {-1, -2, -1}},  {{ 0,  0,  0},
@@ -832,7 +832,7 @@ void t_sobel3D(const int W, const int H, const int D, const T* vol, T* res)
     const int y = (i - z * WH) / W;
     const int x = (i - z * WH - y * W);
 
-    T gx = 0, gy = 0, gz = 0;
+    double gx = 0, gy = 0, gz = 0;
 
     for (int zz = -1; zz < 2; ++zz) if (0 <= z + zz && z + zz < D)
       for (int yy = -1; yy < 2; ++yy) if (0 <= y + yy && y + yy < H)
@@ -848,9 +848,9 @@ void t_sobel3D(const int W, const int H, const int D, const T* vol, T* res)
     if (x == 0 || x == W - 1) gx = 0;
     if (y == 0 || y == H - 1) gy = 0;
     if (z == 0 || z == D - 1) gz = 0;
-    res[i] = (T)sqrt((double)gx * gx + gy * gy + gz * gz) / 16.0f;
+    res[i] = (T2)sqrt(gx * gx + gy * gy + gz * gz) / 16.0f;
 
-    if (res[i] > 40000) fprintf(stderr, "%d %d %d\n", x, y, z);
+    if (res[i] > 40000) printf("%d %d %d\n", x, y, z);
   }
 }
 

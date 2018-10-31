@@ -17,37 +17,37 @@
 #pragma comment(lib, "wsock32.lib" )
 class Tdcmtk
 {
-    DcmFileFormat* m_FileFormat;
-    DcmDataset*	   m_dataSet;
+  DcmFileFormat* m_FileFormat;
+  DcmDataset*	   m_dataSet;
 
-    int m_W, m_H, m_fNum   ;
+  int m_W, m_H, m_fNum   ;
 
-	int m_bitsStored;
-    int m_bitsAlloc ;
-	int m_highBit   ;
-    int m_smplPerPix; //1:gray 3 rgb
-    int m_plnConfig ;//0:normal (rgba rgba), > 1 (rrrr... gggg... bbb...)
-	int m_pixRepres ;
-	double m_RescaleIntercept;
-	double m_RescaleSlope    ;
+  int m_bitsStored;
+  int m_bitsAlloc ;
+  int m_highBit   ;
+  int m_smplPerPix; //1:gray 3 rgb
+  int m_plnConfig ;//0:normal (rgba rgba), > 1 (rrrr... gggg... bbb...)
+  int m_pixRepres ;
+  double m_RescaleIntercept;
+  double m_RescaleSlope    ;
 
 
-    double m_pitch[2]; //pixel pitch (x,y)
-    double m_pos[3]  ; //slice pos (x,y,z)
+  double m_pitch[2]; //pixel pitch (x,y)
+  double m_pos[3]  ; //slice pos (x,y,z)
 
 public:
-    Tdcmtk( const char *fname );
-    bool isOpened(){ return m_dataSet != 0; }
+  Tdcmtk( const char *fname );
+  bool isOpened(){ return m_dataSet != 0; }
 
-    void getSize  ( int &W, int &H, int &fNum );
+  void getSize  ( int &W, int &H, int &fNum );
 
 
-    // if failed return -1
-    double getPitchX ( ){ return m_pitch[0]; }
-    double getPitchY ( ){ return m_pitch[1]; }
-    double getZPos   ( ){ return m_pos  [2]; }
+  // if failed return -1
+  double getPitchX ( ){ return m_pitch[0]; }
+  double getPitchY ( ){ return m_pitch[1]; }
+  double getZPos   ( ){ return m_pos  [2]; }
 
-    //void getFormat( int &chNum, int &bitNum, int &bSigned );
+  //void getFormat( int &chNum, int &bitNum, int &bSigned );
 
 
 	//data should be allocated
