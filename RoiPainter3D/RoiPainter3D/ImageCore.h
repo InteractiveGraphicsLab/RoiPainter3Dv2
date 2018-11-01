@@ -16,9 +16,6 @@
 #pragma once
 
 
-#define HIST_BIN_SIZE   256
-
-
 #include "./COMMON/OglForCLI.h"
 #include "./COMMON/OglImage.h"
 #include "./COMMON/tmesh.h"
@@ -87,7 +84,7 @@ private:
 	//volume info 
 	EVec3i  m_Reso ;
 	EVec3f  m_Pitch;
-	short   m_winLvMin, m_winLvMax;
+  EVec2i  m_volMinMax;
 
 	string  m_filePath;
 
@@ -107,9 +104,7 @@ public:
 	int                 m_maskActiveId;
 	vector<MaskData>    m_maskData    ;
 
-	float m_histVol [ HIST_BIN_SIZE ];
-	float m_histGmag[ HIST_BIN_SIZE ];
-
+	
 
 
   //singleton
@@ -120,7 +115,7 @@ public:
 
 
   //functions
-	void UpdateWindowLevel(float minV, float maxV);
+	void updateVisVolume(short minV, short maxV);
 
 	//I/O Loaders volume 
 	bool loadVolume   (vector<string> fnames, string fext);
@@ -136,17 +131,17 @@ public:
 
 	//getter/setter for pitch 
 	EVec3f getPitch()  { return m_Pitch; }
-	void   setPitchW(const float &pW) { m_Pitch[0] = pW; }
-	void   setPitchH(const float &pH) { m_Pitch[1] = pH; }
-	void   setPitchD(const float &pD) { m_Pitch[2] = pD; }
-	double getPitchW() { return m_Pitch[0]; }
-	double getPitchH() { return m_Pitch[1]; }
-	double getPitchD() { return m_Pitch[2]; }
+	float getPitchW() { return m_Pitch[0]; }
+	float getPitchH() { return m_Pitch[1]; }
+	float getPitchD() { return m_Pitch[2]; }
+
+  void  setPitch (const EVec3f pitch){ m_Pitch = pitch;}
+  void  setPitchW(const float &pW) { m_Pitch[0] = pW; }
+	void  setPitchH(const float &pH) { m_Pitch[1] = pH; }
+	void  setPitchD(const float &pD) { m_Pitch[2] = pD; }
 
 	//volume min/mac
-	short getVolMin() { return m_winLvMin; }
-	short getVolMax() { return m_winLvMax; }
-
+	EVec2i getVolMinMax() { return m_volMinMax; }
 
   /*
 	//get Value 
@@ -177,7 +172,6 @@ public:
 */
 
 private:
-	void updateHistogram();
 	void updateGradVolume();
 
 

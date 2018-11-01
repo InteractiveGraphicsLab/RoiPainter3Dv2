@@ -39,7 +39,8 @@ namespace RoiPainter3D {
 
   private:
     void initializeOtherForms();
-
+    void replaceOtherForms();
+    bool pickViewAngleIndicator(const EVec2i p);
 
 
 	protected:
@@ -315,8 +316,9 @@ namespace RoiPainter3D {
       this->Margin = System::Windows::Forms::Padding(2);
       this->Name = L"FormMain";
       this->Text = L"FormMain";
-      this->Move += gcnew System::EventHandler(this, &FormMain::FormMain_Move);
-      this->Resize += gcnew System::EventHandler(this, &FormMain::FormMain_Resize);
+      this->Move       += gcnew System::EventHandler(this, &FormMain::FormMain_Move);
+      this->Resize     += gcnew System::EventHandler(this, &FormMain::FormMain_Resize);
+      this->MouseWheel += gcnew System::Windows::Forms::MouseEventHandler(this, &FormMain::FormMain_MouseWheel);
       this->menuStrip1->ResumeLayout(false);
       this->menuStrip1->PerformLayout();
       this->ResumeLayout(false);
@@ -332,11 +334,15 @@ namespace RoiPainter3D {
       System::Void FormMainPanel_Paint    (System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e);
       System::Void FormMainPanel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
 
+      System::Void FormMain_MouseWheel(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
       System::Void FormMain_Resize(System::Object^  sender, System::EventArgs^  e);
       System::Void FormMain_Move  (System::Object^  sender, System::EventArgs^  e);
   };
+
+
 
   inline void formMain_redrawMainPanel(){
     FormMain::getInst()->redrawMainPanel();
   }
 }
+

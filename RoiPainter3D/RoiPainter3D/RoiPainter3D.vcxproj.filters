@@ -87,6 +87,9 @@
     <ClInclude Include="FormVisNorm.h">
       <Filter>MODE</Filter>
     </ClInclude>
+    <ClInclude Include="ViewAngleCore.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -136,6 +139,9 @@
     <ClCompile Include="FormVisNorm.cpp">
       <Filter>MODE</Filter>
     </ClCompile>
+    <ClCompile Include="ViewAngleCore.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="app.ico">
@@ -144,6 +150,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FormMain.resx">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormVisNorm.resx">
       <Filter>リソース ファイル</Filter>
     </EmbeddedResource>
   </ItemGroup>

@@ -411,9 +411,9 @@ public:
 
   inline void SetUpdated() { is_updated_ = true; }
 
-  const int GetW() { return resolution_[0]; }
-  const int GetH() { return resolution_[1]; }
-  const int GetD() { return resolution_[2]; }
+  int GetW() const { return resolution_[0]; }
+  int GetH() const { return resolution_[1]; }
+  int GetD() const { return resolution_[2]; }
   GLubyte* GetVolumePtr() { return volume_; }
 
   void FlipInZ() {

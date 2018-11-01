@@ -70,7 +70,7 @@ void ModeVizNormal::LBtnUp(const EVec2i &p, OglForCLI *ogl)
   if (m_bDrawStr)
   {
     EVec3f cube = ImageCore::getInst()->getCuboidF();
-    CrssecCore::GetInst()->GenerateCurvedCrssec(cube, ogl->GetCamPos(), m_stroke);
+    CrssecCore::getInst()->GenerateCurvedCrssec(cube, ogl->GetCamPos(), m_stroke);
   }
 
   m_bDrawStr = false;
@@ -149,8 +149,8 @@ void ModeVizNormal::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
   const bool bYZ = formVisParam_bPlaneYZ();
   const bool bZX = formVisParam_bPlaneZX();
 
-  CRSSEC_ID id = CrssecCore::GetInst()->PickCrssec(bXY, bYZ, bZX, cuboid, eyePos, eyeRay);
-  if (id != CRSSEC_NON) CrssecCore::GetInst()->MoveCrssec(reso, pitch, id, zDelta);
+  CRSSEC_ID id = CrssecCore::getInst()->PickCrssec(bXY, bYZ, bZX, cuboid, eyePos, eyeRay);
+  if (id != CRSSEC_NON) CrssecCore::getInst()->MoveCrssec(reso, pitch, id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
   formMain_redrawMainPanel();
@@ -223,7 +223,7 @@ void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
   const bool bZX = formVisParam_bPlaneZX();
   glColor3d(1, 1, 1);
   m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, false);
-  CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
+  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.unbind();
 
   if (bDrawVol)

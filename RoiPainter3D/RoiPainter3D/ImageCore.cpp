@@ -382,6 +382,9 @@ bool ImageCore::loadVolume(string fname, string fext)
 	return loadVolume( fnames, fext );
 }
 
+
+
+
 bool ImageCore::loadVolume(vector<string> fnames, string fext)
 {
 	if (fnames.size() == 0) return false;
@@ -462,12 +465,9 @@ bool ImageCore::loadVolume(vector<string> fnames, string fext)
 	m_maskData.clear();
 	m_maskData.push_back( MaskData("bckGrnd", EVec3i(0,0,0), 0, 0 ) );
 
-	m_winLvMin = minV;
-	m_winLvMax = maxV;
+  m_volMinMax  << minV, maxV;
 
 	updateGradVolume();
-	updateHistogram ();
-
 
   System::Windows::Forms::MessageBox::Show("TODO UPDATE_VIS_PARAM_DLG"); 
 	//m_dlg.NewVolumeLoaded(m_Reso, m_Pitch, EVec2d(minV, maxV));
@@ -482,7 +482,7 @@ bool ImageCore::loadVolume(vector<string> fnames, string fext)
 
 
 
-
+/*
 
 void ImageCore::updateHistogram()
 {
@@ -509,7 +509,7 @@ void ImageCore::updateHistogram()
 	for (int i = 0; i < HIST_BIN_SIZE  ; ++i) m_histGmag[i] /= maxG;
 
 }
-
+*/
 
 void ImageCore::updateGradVolume()
 {
@@ -530,3 +530,14 @@ void ImageCore::updateGradVolume()
 
 	m_volGmag.SetUpdated();
 }
+
+
+void ImageCore::updateVisVolume(short winLvMin,  short winLvMax)
+{
+  m_vol.SetValue( m_volOrig, (short)winLvMin, (short)winLvMax);
+}
+
+
+
+
+

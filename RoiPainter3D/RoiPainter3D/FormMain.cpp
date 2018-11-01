@@ -1,6 +1,10 @@
 #include "FormMain.h"
+
 #include "ImageCore.h"
 #include "ModeCore.h"
+#include "ViewAngleCore.h"
+
+
 #include "FormVisParam.h"
 #include "FormVisNorm.h"
 
@@ -57,13 +61,11 @@ System::Void FormMain::FormMainPanel_MouseDoubleClick(System::Object^  sender, S
 {
   if (e->Button == System::Windows::Forms::MouseButtons::Left)
   {
-    //TODO INDICATOR
-    //if (!pickViewIndicator(EVec2i(e->X, e->Y))) ModeCore::getInst()->LBtnDblClk(EVec2i(e->X, e->Y), m_ogl);
-    ModeCore::getInst()->LBtnDblClk(EVec2i(e->X, e->Y), m_ogl);
+    EVec2i cursorP(e->X, e->Y);
+    if (!pickViewAngleIndicator(cursorP) ) ModeCore::getInst()->LBtnDblClk( cursorP, m_ogl);
   }
   if (e->Button == System::Windows::Forms::MouseButtons::Middle) ModeCore::getInst()->MBtnDblClk(EVec2i(e->X, e->Y), m_ogl);
   if (e->Button == System::Windows::Forms::MouseButtons::Right) ModeCore::getInst()->RBtnDblClk(EVec2i(e->X, e->Y), m_ogl);
-
 }
 
 
@@ -72,13 +74,15 @@ System::Void FormMain::FormMainPanel_MouseDoubleClick(System::Object^  sender, S
 
 System::Void FormMain::FormMainPanel_Resize   (System::Object^  sender, System::EventArgs^  e)
 {
-  if (m_ogl != 0) redrawMainPanel();
+  if (m_ogl == 0) return;
+  redrawMainPanel();
 }
 
 
 System::Void FormMain::FormMainPanel_Paint    (System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e)
 {
-  if (m_ogl != 0) redrawMainPanel();
+  if (m_ogl == 0) return;
+  redrawMainPanel();
 }
 
 
@@ -88,23 +92,59 @@ System::Void FormMain::FormMain_Resize(System::Object^  sender, System::EventArg
 
 System::Void FormMain::FormMain_Move  (System::Object^  sender, System::EventArgs^  e)
 {
+  if (m_ogl == 0) return;
+  replaceOtherForms();
+}
+
+
+
+System::Void FormMain::FormMain_MouseWheel(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
+{
+  int x = e->X - this->FormMainPanel->Location.X;
+  int y = e->Y - this->FormMainPanel->Location.Y;
+
+  ModeCore::getInst()->MouseWheel(EVec2i(x, y), e->Delta, m_ogl);
 }
 
 
 
 
 
+bool FormMain::pickViewAngleIndicator(const EVec2i p)
+{
+  if (!FormVisParam::getInst()->bRendIndi()) return false;
+
+  int curViewW = FormMainPanel->Width;
+  int curViewH = FormMainPanel->Height;
+  EVec3f  camP = m_ogl->GetCamPos();
+  EVec3f  camC = m_ogl->GetCamCnt();
+  EVec3f  camY = m_ogl->GetCamUp();
+
+  int flg = ViewAngleCore::getInst()->pickIndicator(*m_ogl, curViewW, curViewH, camP, camC, camY, p);
+
+  bool tf = false;
+  if      (flg == 1) { camP << 0,-1, 0;  camY << 0, 0, 1; tf = true; }
+  else if (flg == 2) { camP << 1, 0, 0;  camY << 0, 0, 1; tf = true; }
+  else if (flg == 3) { camP << 0, 1, 0;  camY << 0, 0, 1; tf = true; }
+  else if (flg == 4) { camP <<-1, 0, 0;  camY << 0, 0, 1; tf = true; }
+  else if (flg == 5) { camP << 0, 0, 1;  camY << 0,-1, 0; tf = true; }
+  else if (flg == 6) { camP << 0, 0,-1;  camY << 0,-1, 0; tf = true; }
+
+  if (!tf) return false;
+
+  EVec3f cuboid = ImageCore::getInst()->getCuboidF();
+  double  D = cuboid.norm() * 1.0;
+  camC = 0.5 * cuboid;
+  camP = camC + ((float)D) * camP;
+  m_ogl->SetCam(camP, camC, camY);
+  formMain_redrawMainPanel();
+  return true;
+}
+
+
+
+
 /*
-
-
-    System::Void FormMain_MouseWheel(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
-    {
-      int x = e->X - this->FormMainPanel->Location.X;
-      int y = e->Y - this->FormMainPanel->Location.Y;
-
-      ModeCore::getInst()->MouseWheel(EVec2i(x, y), e->Delta, m_ogl);
-    }
-
     System::Void FormMainPanel_MouseWheel(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {}
 
     System::Void FormMain_Move(System::Object^  sender, System::EventArgs^  e);
@@ -127,14 +167,32 @@ System::Void FormMain::FormMain_Move  (System::Object^  sender, System::EventArg
     System::Void FormMain_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e);
     System::Void FormMain_KeyUp(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e);
     System::Void FormMain_KeyPress(System::Object^  sender, System::Windows::Forms::KeyPressEventArgs^  e);
-
-
 */
 
 
 
 
 
+void FormMain::replaceOtherForms()
+{
+  const int thisX = this->Location.X;
+  const int thisY = this->Location.Y;
+  const int thisW = this->Width;
+  const int dlgH = FormVisParam::getInst()->Height;
+  FormVisParam::getInst()->Location = Point(thisX + thisW, thisY);
+  FormVisNorm ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+
+  /*
+  FormVisMask::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegRGrow::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegPixPaint::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegRigidICP::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegClosestPix::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegParaConts::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegLocalRGrow::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormRefStrokeTrim::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  */
+}
 
 
 
@@ -142,12 +200,19 @@ System::Void FormMain::FormMain_Move  (System::Object^  sender, System::EventArg
 //managedƒNƒ‰ƒX‚Í‚±‚±‚Å‰Šú‰»‚·‚é
 void FormMain::initializeOtherForms()
 {
+  printf("--------initialize form(dialogs)...\n");
   FormVisParam::getInst()->initAllItemsForNewImg();
   FormVisParam::getInst()->Show();
   FormVisParam::getInst()->Location = Point(this->Location.X + this->Width, this->Location.Y);
 
+
   //ˆê“xShow‚µ Hide‚·‚é(‚»‚¤‚µ‚È‚¢‚ÆˆÚ“®‚ªŒø‚©‚È‚¢)
   FormVisNorm::getInst()->Show();
+  
+  replaceOtherForms();
+  
+  FormVisNorm::getInst()->Hide();
+  printf("--------initialize form(dialogs)...DONE\n");
 
   /*
   FormVisMask::getInst()->Show();
@@ -157,7 +222,6 @@ void FormMain::initializeOtherForms()
   FormSegClosestPix::getInst()->Show();
   FormSegLocalRGrow::getInst()->Show();
   FormRefStrokeTrim::getInst()->Show();
-  replaceOtherForms();
   FormVisNorm::getInst()->Hide();
   FormVisMask::getInst()->Hide();
   FormSegRGrow::getInst()->Hide();
@@ -238,12 +302,13 @@ void FormMain::redrawMainPanel()
     ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
   }
 
-  EVec3f cuboid   = ImageCore::getInst()->getCuboidF();
-  float  nearDist = (cuboid[0] + cuboid[1] + cuboid[2]) / 3.0f * 0.01f;
-  float  farDist  = (cuboid[0] + cuboid[1] + cuboid[2]) / 3.0f * 8;
+  const EVec3f cuboid   = ImageCore::getInst()->getCuboidF();
+  const float  nearDist = (cuboid[0] + cuboid[1] + cuboid[2]) / 3.0f * 0.01f;
+  const float  farDist  = (cuboid[0] + cuboid[1] + cuboid[2]) / 3.0f * 8;
+  const int    viewW    = FormMainPanel->Width;
+  const int    viewH    = FormMainPanel->Height;
 
-
-  m_ogl->OnDrawBegin(FormMainPanel->Width, FormMainPanel->Height, 45.0, nearDist, farDist);
+  m_ogl->OnDrawBegin(viewW, viewH, 45.0, nearDist, farDist);
   initializeLights();
 
   if (FormVisParam::getInst()->bRendFrame()) t_drawFrame(cuboid);
@@ -252,8 +317,7 @@ void FormMain::redrawMainPanel()
 
   if (FormVisParam::getInst()->bRendIndi())
   {
-    printf("Support indicator");
-    //ViewIndiCore::getInst()->drawIndicator( FormMainPanel->Width, FormMainPanel->Height, m_ogl->GetCamPos(), m_ogl->GetCamCnt(), m_ogl->GetCamUp());
+    ViewAngleCore::getInst()->drawIndicator(viewW, viewH, m_ogl->GetCamPos(), m_ogl->GetCamCnt(), m_ogl->GetCamUp());
   }
   m_ogl->OnDrawEnd();
 }

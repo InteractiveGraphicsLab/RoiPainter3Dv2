@@ -21,7 +21,7 @@ int main()
     
   ModeCore  ::getInst();
   ImageCore ::getInst();
-  CrssecCore::GetInst();
+  CrssecCore::getInst();
 
   /*
   ModeVizMask::getInst();
@@ -42,16 +42,18 @@ int main()
   return 0;
 }
 
-// todo 2018/10/31
-// important Core classes
+
+
+// done 2018/11/1
+// mode_vis_norm
 // ImageCore
 // ModeCore
-// 
+// event handler : Wheeling hander
+//
+//
+//TODO  
 // event handler
-// 
-// 
 // mode_vis_mask
-// mode_vis_norm
 // mode_seg_rgrow
 //
 // IO --> 2D slices bmp

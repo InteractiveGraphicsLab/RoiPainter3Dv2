@@ -40,7 +40,7 @@ class CrssecCore
 public:
   ~CrssecCore();
 
-  static CrssecCore *GetInst()
+  static CrssecCore *getInst()
   {
     static CrssecCore p;
     return &p;
