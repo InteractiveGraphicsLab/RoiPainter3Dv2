@@ -36,7 +36,7 @@ namespace RoiPainter3D {
   public:
     void redrawMainPanel();
     void initCameraPosition(EVec3f &cuboid);
-
+    void setBkColor(float r, float g, float b){ m_ogl->SetBgColor(r,g,b,0);}
   private:
     void initializeOtherForms();
     void replaceOtherForms();
@@ -344,5 +344,9 @@ namespace RoiPainter3D {
   inline void formMain_redrawMainPanel(){
     FormMain::getInst()->redrawMainPanel();
   }
+  inline void formMain_setBkColor(float r, float g, float b){
+    FormMain::getInst()->setBkColor(r,g,b);
+  }
+
 }
 

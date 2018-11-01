@@ -14,6 +14,8 @@ FormVisParam::FormVisParam(void)
   this->MaximizeBox = false;
   m_isMouseOn = false;
 
+  isGray->Checked = true;
+
   m_imgTf  = new OglImage1D<CH_RGBA>();
   m_imgPsu = new OglImage1D<CH_RGBA>();
   m_imgTf->Allocate(TRANS_FUNC_SIZE);
@@ -149,69 +151,6 @@ void FormVisParam::redrawTransFuncPictBox()
 
 
 
-//TODO TODO TODO 
-
-/*
-
-System::Void FormVisParam::pictBox_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
-void FormVisParam::redrawTransFuncPictBox()
-System::Void FormVisParam::pictBox_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
-System::Void FormVisParam::pictBox_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
-*/
-
-
-
-/*
-System::Void FormVisParam::pictBox_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
-{
-  m_isMouseOn = true;
-  m_mouseX = e->Location.X;
-  m_mouseY = e->Location.Y;
-}
-
-System::Void FormVisParam::pictBox_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
-{
-  if (!m_isMouseOn) return;
-
-  const int W = pictBox->Width;
-  const int H = pictBox->Height;
-
-  int x1 = t_crop(0, TRANS_FUNC_SIZE, (int)(m_mouseX / (double)W * TRANS_FUNC_SIZE));
-  int x2 = t_crop(0, TRANS_FUNC_SIZE, (int)(e->Location.X / (double)W * TRANS_FUNC_SIZE));
-  int y1 = t_crop(0, 255, (int)((H - m_mouseY) / (double)H * 255));
-  int y2 = t_crop(0, 255, (int)((H - e->Location.Y) / (double)H * 255));
-
-
-  if (x1 > x2) {
-    swap(x1, x2);
-    swap(y1, y2);
-  }
-
-  for (int i = x1; i < x2; ++i) {
-
-    double y = (double)(i - x1) / (double)(x2 - x1) * (y2 - y1) + y1;
-
-    (*m_imgTf)[4 * i] = (int)y;
-  }
-
-  m_mouseX = e->Location.X;
-  m_mouseY = e->Location.Y;
-
-
-  m_imgTf->SetUpdated();
-  redrawTransFuncPictBox();
-  FormMain::getInst()->RedrawMainPanel();
-}
-
-
-System::Void FormVisParam::pictBox_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
-{
-  printf("up %d %d\n", e->Location.X, e->Location.Y);
-  m_mouseX, m_mouseY;
-  m_isMouseOn = false;
-}
-
-*/
 
 
 
@@ -287,12 +226,108 @@ System::Void FormVisParam::isRendIndi_CheckedChanged(System::Object^  sender, Sy
 System::Void FormVisParam::isRendPlaneXY_CheckedChanged(System::Object^  sender, System::EventArgs^  e){formMain_redrawMainPanel();}
 System::Void FormVisParam::isRendPlaneYZ_CheckedChanged(System::Object^  sender, System::EventArgs^  e){formMain_redrawMainPanel();}
 System::Void FormVisParam::isRendPlaneZX_CheckedChanged(System::Object^  sender, System::EventArgs^  e){formMain_redrawMainPanel();}
-System::Void FormVisParam::isWhite_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {formMain_redrawMainPanel();}
-System::Void FormVisParam::isBlack_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {formMain_redrawMainPanel();}
-System::Void FormVisParam::isGray_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {formMain_redrawMainPanel();}
 System::Void FormVisParam::isRendGradMag_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {formMain_redrawMainPanel();}
 System::Void FormVisParam::transBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {formMain_redrawMainPanel();}
 System::Void FormVisParam::sliceBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {formMain_redrawMainPanel();}
 
+System::Void FormVisParam::isWhite_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+  formMain_setBkColor(1,1,1);
+  formMain_redrawMainPanel();
+}
+System::Void FormVisParam::isBlack_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+  formMain_setBkColor(  0,  0,  0);
+  formMain_redrawMainPanel();
+}
+System::Void FormVisParam::isGray_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {
+  formMain_setBkColor(0.5f,0.5f,0.5f);
+  formMain_redrawMainPanel();
+}
 
+
+
+// mouse downの瞬間から，downが起きたpanelのみに対してmoveイベントが飛ぶので，
+// 対象panelを明示する必要はない
+
+System::Void FormVisParam::pictBox1_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) 
+{
+  m_isMouseOn = true;
+  m_mouseX = e->Location.X;
+  m_mouseY = e->Location.Y;
+}
+
+System::Void FormVisParam::pictBox2_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+  m_isMouseOn = true;
+  m_mouseX = e->Location.X;
+  m_mouseY = e->Location.Y;
+}
+
+
+System::Void FormVisParam::pictBox1_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+  m_isMouseOn = false;
+}
+System::Void FormVisParam::pictBox2_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+  m_isMouseOn = false;
+}
+
+
+System::Void FormVisParam::pictBox1_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) 
+{
+ if (!m_isMouseOn) return;
+
+  const int W = pictBox1->Width;
+  const int H = pictBox1->Height;
+
+  int x1 = t_crop(0, TRANS_FUNC_SIZE, (int)(m_mouseX / (double)W * TRANS_FUNC_SIZE));
+  int x2 = t_crop(0, TRANS_FUNC_SIZE, (int)(e->Location.X / (double)W * TRANS_FUNC_SIZE));
+  int y1 = t_crop(0, 255            , (int)((H - m_mouseY) / (double)H * 255));
+  int y2 = t_crop(0, 255            , (int)((H - e->Location.Y) / (double)H * 255));
+
+  if (x1 > x2) {
+    swap(x1, x2);
+    swap(y1, y2);
+  }
+
+  for (int i = x1; i < x2; ++i) {
+    double y = (double)(i - x1) / (double)(x2 - x1) * (y2 - y1) + y1;
+    (*m_imgTf)[4 * i] = (int)y;
+  }
+
+  m_mouseX = e->Location.X;
+  m_mouseY = e->Location.Y;
+
+  m_imgTf->SetUpdated();
+  redrawTransFuncPictBox();
+  FormMain::getInst()->redrawMainPanel();
+}
+
+
+System::Void FormVisParam::pictBox2_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+ if (!m_isMouseOn) return;
+
+  const int W = pictBox2->Width;
+  const int H = pictBox2->Height;
+
+  int x1 = t_crop(0, TRANS_FUNC_SIZE, (int)(m_mouseX / (double)W * TRANS_FUNC_SIZE));
+  int x2 = t_crop(0, TRANS_FUNC_SIZE, (int)(e->Location.X / (double)W * TRANS_FUNC_SIZE));
+  int y1 = t_crop(0, 255            , (int)((H - m_mouseY) / (double)H * 255));
+  int y2 = t_crop(0, 255            , (int)((H - e->Location.Y) / (double)H * 255));
+
+  if (x1 > x2) {
+    swap(x1, x2);
+    swap(y1, y2);
+  }
+
+  for (int i = x1; i < x2; ++i) {
+    double y = (double)(i - x1) / (double)(x2 - x1) * (y2 - y1) + y1;
+    (*m_imgTf)[4 * i+1] = (int)y;
+  }
+
+  m_mouseX = e->Location.X;
+  m_mouseY = e->Location.Y;
+
+  m_imgTf->SetUpdated();
+  redrawTransFuncPictBox();
+  FormMain::getInst()->redrawMainPanel();
+
+}
 

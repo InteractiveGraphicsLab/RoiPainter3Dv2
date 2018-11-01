@@ -37,18 +37,30 @@ int main()
   printf("FormMain::getInst()->ShowDialog() \n");
   FormMain::getInst()->ShowDialog();
   
-  printf("aaaa \ FormMain::getInst()->ShowDialog() \n");
+  printf("aaaa FormMain::getInst()->ShowDialog() \n");
 
   return 0;
 }
 
 
 
-// done 2018/11/1
-// mode_vis_norm
-// ImageCore
-// ModeCore
-// event handler : Wheeling hander
+// UPDATE Memo
+// mode_vis_norm   
+//   implement overall workflow
+//   support pixel val vis
+//   support gradient magnitude
+//   support gradient magnitude tf
+//
+// ImageCore     OK 
+// CrssecCore    OK
+// ViewAngleCore OK
+// ModeCore      50%
+//
+// event handler (MainForm): 
+//    Wheeling OK
+//    mouse    OK
+//    resize   80% --> set dialog position when resizing
+//    repaint  OK
 //
 //
 //TODO  
@@ -59,8 +71,9 @@ int main()
 // IO --> 2D slices bmp
 // IO --> 2D slices tif
 // IO --> 2D slices dcm
-// IO --> 3D slices traw3D
-// IO --> 3D slices dcm
+// IO --> 3D traw3D
+// IO --> 3D dcm
+// IO --> 3D fav
 // etc...
 
 
