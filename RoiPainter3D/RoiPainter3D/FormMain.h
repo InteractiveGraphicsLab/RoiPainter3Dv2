@@ -172,30 +172,35 @@ namespace RoiPainter3D {
       this->open2DSlicesToolStripMenuItem->Name = L"open2DSlicesToolStripMenuItem";
       this->open2DSlicesToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open2DSlicesToolStripMenuItem->Text = L"open 2D slices (bmp, tif)";
+      this->open2DSlicesToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open2DSlicesToolStripMenuItem_Click);
       // 
       // open2DSlicesdcmToolStripMenuItem
       // 
       this->open2DSlicesdcmToolStripMenuItem->Name = L"open2DSlicesdcmToolStripMenuItem";
       this->open2DSlicesdcmToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open2DSlicesdcmToolStripMenuItem->Text = L"open 2D slices (dcm)";
+      this->open2DSlicesdcmToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open2DSlicesdcmToolStripMenuItem_Click);
       // 
       // open3DVolumetraw3DToolStripMenuItem
       // 
       this->open3DVolumetraw3DToolStripMenuItem->Name = L"open3DVolumetraw3DToolStripMenuItem";
       this->open3DVolumetraw3DToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open3DVolumetraw3DToolStripMenuItem->Text = L"open 3D volume (traw3D)";
+      this->open3DVolumetraw3DToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DVolumetraw3DToolStripMenuItem_Click);
       // 
       // open3DColumedcmToolStripMenuItem
       // 
       this->open3DColumedcmToolStripMenuItem->Name = L"open3DColumedcmToolStripMenuItem";
       this->open3DColumedcmToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open3DColumedcmToolStripMenuItem->Text = L"open 3D volume (dcm)";
+      this->open3DColumedcmToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DColumedcmToolStripMenuItem_Click);
       // 
       // open3DVolumefavToolStripMenuItem
       // 
       this->open3DVolumefavToolStripMenuItem->Name = L"open3DVolumefavToolStripMenuItem";
       this->open3DVolumefavToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open3DVolumefavToolStripMenuItem->Text = L"open 3D volume (fav)";
+      this->open3DVolumefavToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DVolumefavToolStripMenuItem_Click);
       // 
       // toolStripSeparator1
       // 
@@ -207,18 +212,21 @@ namespace RoiPainter3D {
       this->saveMaskmskToolStripMenuItem->Name = L"saveMaskmskToolStripMenuItem";
       this->saveMaskmskToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->saveMaskmskToolStripMenuItem->Text = L"save mask (msk)";
+      this->saveMaskmskToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::saveMaskmskToolStripMenuItem_Click);
       // 
       // loadMaskmskToolStripMenuItem
       // 
       this->loadMaskmskToolStripMenuItem->Name = L"loadMaskmskToolStripMenuItem";
       this->loadMaskmskToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->loadMaskmskToolStripMenuItem->Text = L"load mask (msk)";
+      this->loadMaskmskToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::loadMaskmskToolStripMenuItem_Click);
       // 
       // saveMaskfavbToolStripMenuItem
       // 
       this->saveMaskfavbToolStripMenuItem->Name = L"saveMaskfavbToolStripMenuItem";
       this->saveMaskfavbToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->saveMaskfavbToolStripMenuItem->Text = L"save mask (fav)";
+      this->saveMaskfavbToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::saveMaskfavbToolStripMenuItem_Click);
       // 
       // toolStripSeparator2
       // 
@@ -230,6 +238,7 @@ namespace RoiPainter3D {
       this->exportVolumeAsTraw3dssToolStripMenuItem->Name = L"exportVolumeAsTraw3dssToolStripMenuItem";
       this->exportVolumeAsTraw3dssToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->exportVolumeAsTraw3dssToolStripMenuItem->Text = L"export volume as traw3d_ss";
+      this->exportVolumeAsTraw3dssToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click);
       // 
       // modeToolStripMenuItem
       // 
@@ -316,9 +325,9 @@ namespace RoiPainter3D {
       this->Margin = System::Windows::Forms::Padding(2);
       this->Name = L"FormMain";
       this->Text = L"FormMain";
-      this->Move       += gcnew System::EventHandler(this, &FormMain::FormMain_Move);
-      this->Resize     += gcnew System::EventHandler(this, &FormMain::FormMain_Resize);
       this->MouseWheel += gcnew System::Windows::Forms::MouseEventHandler(this, &FormMain::FormMain_MouseWheel);
+      this->Move += gcnew System::EventHandler(this, &FormMain::FormMain_Move);
+      this->Resize += gcnew System::EventHandler(this, &FormMain::FormMain_Resize);
       this->menuStrip1->ResumeLayout(false);
       this->menuStrip1->PerformLayout();
       this->ResumeLayout(false);
@@ -337,7 +346,16 @@ namespace RoiPainter3D {
       System::Void FormMain_MouseWheel(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
       System::Void FormMain_Resize(System::Object^  sender, System::EventArgs^  e);
       System::Void FormMain_Move  (System::Object^  sender, System::EventArgs^  e);
-  };
+      System::Void open2DSlicesToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e) ;
+      System::Void open2DSlicesdcmToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e) ;
+      System::Void open3DVolumetraw3DToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
+      System::Void open3DColumedcmToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e) ;
+      System::Void open3DVolumefavToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e) ;
+      System::Void saveMaskmskToolStripMenuItem_Click       (System::Object^  sender, System::EventArgs^  e);
+      System::Void loadMaskmskToolStripMenuItem_Click       (System::Object^  sender, System::EventArgs^  e) ;
+      System::Void saveMaskfavbToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e);
+      System::Void exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
+};
 
 
 

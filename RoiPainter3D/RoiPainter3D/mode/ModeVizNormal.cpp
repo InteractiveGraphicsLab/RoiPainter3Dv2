@@ -226,6 +226,8 @@ void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
   }
+
+
 }
 
 #pragma managed

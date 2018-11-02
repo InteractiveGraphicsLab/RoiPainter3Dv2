@@ -469,47 +469,12 @@ bool ImageCore::loadVolume(vector<string> fnames, string fext)
 
 	updateGradVolume();
 
-  System::Windows::Forms::MessageBox::Show("TODO UPDATE_VIS_PARAM_DLG"); 
-	//m_dlg.NewVolumeLoaded(m_Reso, m_Pitch, EVec2d(minV, maxV));
-	//m_dlg.HistogramUpdated(HIST_BIN_SIZE, m_histVol, m_histGmag);
-
-  System::Windows::Forms::MessageBox::Show("TODO INIT_CAMERA_POS / UPDATE GRAPHCUT"); 
-	//CRoiPaintView::getInst()->initCameraPos( getCuboidF() );
+  System::Windows::Forms::MessageBox::Show("TODO UPDATE GRAPHCUT"); 
 	//ModeSegGCut::getInst()->newVolLoaded();
 
   return true;
 }
 
-
-
-/*
-
-void ImageCore::updateHistogram()
-{
-	const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
-
-	for (int i = 0; i < HIST_BIN_SIZE; ++i) m_histGmag[i] = 0;
-	for (int i = 0; i < HIST_BIN_SIZE; ++i) m_histVol [i] = 0;
-	
-	for (int i = 0; i < N; ++i) 
-	{
-		m_histGmag[ m_volGmag[i] ] += 1;
-		m_histVol [ m_vol    [i] ] += 1;
-	}
-
-	for (int i = 0; i < HIST_BIN_SIZE  ; ++i) 
-	{
-		m_histGmag[i] = (float) log( 1.0 + m_histGmag[i] );
-	}
-
-	float maxV = 0, maxG = 0;
-	for (int i = 5; i < HIST_BIN_SIZE-5; ++i) maxV = max(maxV , m_histVol [i]);
-	for (int i = 5; i < HIST_BIN_SIZE-5; ++i) maxG = max(maxG , m_histGmag[i]);
-	for (int i = 0; i < HIST_BIN_SIZE  ; ++i) m_histVol [i] /= maxV;
-	for (int i = 0; i < HIST_BIN_SIZE  ; ++i) m_histGmag[i] /= maxG;
-
-}
-*/
 
 void ImageCore::updateGradVolume()
 {

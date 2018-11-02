@@ -45,35 +45,50 @@ int main()
 
 
 // UPDATE Memo
-// mode_vis_norm   
+// mode_vis_norm   OK
+//   implement overall workflow    OK
+//   support pixel val vis         OK
+//   support gradient magnitude    OK
+//   support gradient magnitude tf OK
+//
+// modeVisMask
 //   implement overall workflow
-//   support pixel val vis
-//   support gradient magnitude
-//   support gradient magnitude tf
+//   formVisMask
+//   maskManipulations   
+//   I/O
 //
-// ImageCore     OK 
-// CrssecCore    OK
-// ViewAngleCore OK
-// ModeCore      50%
+// modeSegRgrow
 //
+//
+//
+// CORE_CLASSES
+//   ImageCore     OK 
+//   CrssecCore    OK
+//   ViewAngleCore OK
+//   ModeCore      50%
+//
+// 
 // event handler (MainForm): 
 //    Wheeling OK
 //    mouse    OK
 //    resize   80% --> set dialog position when resizing
 //    repaint  OK
 //
+// 
 //
-//TODO  
-// event handler
-// mode_vis_mask
-// mode_seg_rgrow
 //
-// IO --> 2D slices bmp
-// IO --> 2D slices tif
-// IO --> 2D slices dcm
-// IO --> 3D traw3D
-// IO --> 3D dcm
-// IO --> 3D fav
+// IO
+//   initial volume    OK
+//   2D slices bmp/tif OK
+//   2D slices dcm     OK
+//   3D traw3D         OK
+//   3D dcm            OK
+//   save / load mask  
+//   export traw3d_ss  
+//   open fav          
+//   save fav          
+//   show_dlg for stack orientation
+//   
 // etc...
 
 

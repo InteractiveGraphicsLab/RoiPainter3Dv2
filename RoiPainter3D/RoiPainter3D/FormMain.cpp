@@ -9,8 +9,12 @@
 #include "FormVisNorm.h"
 
 
-using namespace RoiPainter3D;
 
+
+using namespace System;
+using namespace System::IO;
+using namespace System::Runtime::InteropServices;
+using namespace RoiPainter3D;
 
 
 #pragma comment( lib, "opengl32.lib" )
@@ -333,3 +337,153 @@ void FormMain::initCameraPosition(EVec3f &cuboid)
 }
 
 
+
+
+
+
+static void n_marshalString(String ^ s, string& os) {
+  const char* chars = (const char*)(Marshal::StringToHGlobalAnsi(s)).ToPointer();
+  os = chars;
+  Marshal::FreeHGlobal(IntPtr((void*)chars));
+}
+
+
+static bool t_showDlgToGetMultiFilePaths
+(
+  const char* filter,
+  vector<string> &fNames,
+  vector<string> &fDates
+)
+{
+  OpenFileDialog^ dlg = gcnew OpenFileDialog();
+  dlg->Filter = gcnew System::String(filter);
+  dlg->Multiselect = true;
+
+  if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return false;
+
+  fNames.clear();
+  fDates.clear();
+
+  for each (auto it in  dlg->FileNames)
+  {
+    string fName, fTime;
+    n_marshalString(it, fName);
+    n_marshalString(File::GetCreationTime(it).ToString(), fTime);
+    fNames.push_back(fName);
+    fDates.push_back(fTime);
+  }
+
+  return true;
+}
+
+
+static bool t_showDlgToGetSingleFilePath
+(
+  const char* filter,
+  string &fname
+)
+{
+  OpenFileDialog^ dlg = gcnew OpenFileDialog();
+  dlg->Filter = gcnew System::String(filter);
+  dlg->Multiselect = false;
+
+  if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return false;
+
+  IntPtr mptr = Marshal::StringToHGlobalAnsi(dlg->FileName);
+  fname = static_cast<const char*>(mptr.ToPointer());
+
+  return true;
+}
+
+
+
+// bmp/tif slices
+System::Void FormMain::open2DSlicesToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e) 
+{
+  vector<string> fNames;
+  vector<string> fDates;
+  if( !t_showDlgToGetMultiFilePaths("2D slice files(*.bmp;*.tif)|*.bmp;*.tif", fNames, fDates) ) return;
+
+  if( fNames.size() == 0 || fNames.front().length() < 3) return;
+
+  string fext = fNames.front().substr(fNames.front().length()-3, 3);
+  printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
+
+  //load volume / update visParam / init camera / redraw 
+  ImageCore   ::getInst()->loadVolume(fNames,fext);
+  FormVisParam::getInst()->initAllItemsForNewImg();
+  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  redrawMainPanel();
+}
+
+//2d dcm slices 
+System::Void FormMain::open2DSlicesdcmToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e) 
+{
+  vector<string> fNames;
+  vector<string> fDates;
+  if( !t_showDlgToGetMultiFilePaths("2d dcm slices(*.dcm;*.DCM;*)|*.dcm;*.DCM;*", fNames, fDates) ) return;
+
+  if( fNames.size() == 0 || fNames.front().length() < 3) return;
+
+  //load volume / update visParam / init camera / redraw 
+  ImageCore   ::getInst()->loadVolume(fNames,string("dcm"));
+  FormVisParam::getInst()->initAllItemsForNewImg();
+  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  redrawMainPanel();
+}
+
+//to check
+//2d bmp / tif /dcms
+//3D traw3D_ss / dcm / fav
+
+
+System::Void FormMain::open3DVolumetraw3DToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
+{
+  string fname;
+  if( !t_showDlgToGetSingleFilePath("3d volume (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
+  if( fname.length() < 9) return;
+
+  string fext = fname.substr(fname.length()-9, 9);
+  printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
+
+  //load volume / update visParam / init camera / redraw 
+  ImageCore   ::getInst()->loadVolume(fname,fext);
+  FormVisParam::getInst()->initAllItemsForNewImg();
+  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  redrawMainPanel();
+}
+
+System::Void FormMain::open3DColumedcmToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e)
+{
+  string fname;
+  if( !t_showDlgToGetSingleFilePath("3d volume (*.dcm;*.DCM;*)|*.dcm;*.DCM;*", fname) ) return;
+  if( fname.length() < 3) return;
+
+  //load volume / update visParam / init camera / redraw 
+  ImageCore   ::getInst()->loadVolume(fname,string("dcm"));
+  FormVisParam::getInst()->initAllItemsForNewImg();
+  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  redrawMainPanel();
+}
+
+System::Void FormMain::open3DVolumefavToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e)
+{
+  string fname;
+  if( !t_showDlgToGetSingleFilePath("3d volume (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
+  if( fname.length() < 3) return;
+
+  string fext = fname.substr(fname.length()-3, 3);
+  printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
+
+  //load volume / update visParam / init camera / redraw 
+  ImageCore   ::getInst()->loadVolume(fname,fext);
+  FormVisParam::getInst()->initAllItemsForNewImg();
+  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  redrawMainPanel();
+}
+
+
+System::Void FormMain::saveMaskmskToolStripMenuItem_Click       (System::Object^  sender, System::EventArgs^  e){}
+System::Void FormMain::loadMaskmskToolStripMenuItem_Click       (System::Object^  sender, System::EventArgs^  e) {}
+System::Void FormMain::saveMaskfavbToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e){}
+System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {}
