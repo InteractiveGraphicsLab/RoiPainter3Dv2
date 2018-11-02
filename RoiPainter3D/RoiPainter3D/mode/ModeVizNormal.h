@@ -29,7 +29,6 @@ public:
     return &p; 
   }
 
-
   // overload functions ---------------------------------------------
   MODE_ID getModeID() { return MODE_VIS_NORMAL; }
 

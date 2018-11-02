@@ -124,6 +124,16 @@ void ModeVizNormal::MouseMove(const EVec2i &p, OglForCLI *ogl)
   EVec3f rayP, rayD, pos;
   ogl->GetCursorRay(p, rayP, rayD);
 
+  EVec3f cuboid = ImageCore::getInst()->getCuboidF();
+  const bool bXY = formVisParam_bPlaneXY();
+  const bool bYZ = formVisParam_bPlaneYZ();
+  const bool bZX = formVisParam_bPlaneZX();
+  CRSSEC_ID id = CrssecCore::getInst()->PickCrssec(bXY, bYZ, bZX, cuboid, rayP, rayD, pos);
+  if(id != CRSSEC_NON){
+    short v = ImageCore::getInst()->getVoxelValue(pos);
+    formVisNorm_setVoxelVis(v);
+  }
+
   if (m_bDrawStr)
   {
     m_stroke.push_back(rayP + 0.1f * rayD);
@@ -171,23 +181,22 @@ void ModeVizNormal::keyUp(int nChar) {}
 
 void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
 {
-
+  const bool   bXY      = formVisParam_bPlaneXY();
+  const bool   bYZ      = formVisParam_bPlaneYZ();
+  const bool   bZX      = formVisParam_bPlaneZX();
   const bool   bDrawVol = formVisParam_bRendVol();
   const bool   bGradMag = formVisParam_bGradMag();
   const bool   bPsuedo  = formVisParam_bDoPsued();
   const float  alpha    = formVisParam_getAlpha();
   const EVec3i reso     = ImageCore::getInst()->getResolution();
-
-
-  const bool isOnManip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-  const int  sliceN = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+  const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+  const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
   //bind volumes ---------------------------------------
   glActiveTextureARB(GL_TEXTURE0);
   ImageCore::getInst()->m_vol.BindOgl();
-
   glActiveTextureARB(GL_TEXTURE1);
-  //ImageCore::getInst()->m_volGmag.bindOgl();
+  ImageCore::getInst()->m_volGmag.BindOgl();
   glActiveTextureARB(GL_TEXTURE2);
   ImageCore::getInst()->m_volFlg.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE3);
@@ -200,36 +209,17 @@ void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
   ImageCore::getInst()->m_imgMskCol.BindOgl(false);
 
 
-  if (m_bDrawStr)
-  {
-    const int N = (int)m_stroke.size();
-    int *idx = new int[N];
-    for (int i = 0; i < N; ++i) idx[i] = i;
+  if (m_bDrawStr) t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
 
-    glColor3d(1, 1, 0);
-    glLineWidth(3);
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, m_stroke.data());
-    glDrawElements(GL_LINE_STRIP, (int)m_stroke.size(), GL_UNSIGNED_INT, idx);
-    glDisableClientState(GL_VERTEX_ARRAY);
-
-    delete[] idx;
-  }
-
-
-  const bool bXY = formVisParam_bPlaneXY();
-  const bool bYZ = formVisParam_bPlaneYZ();
-  const bool bZX = formVisParam_bPlaneZX();
   glColor3d(1, 1, 1);
-  m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, false);
+  m_crssecShader.bind(0, 1, 2, 3, 6, reso, bGradMag, false);
   CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.unbind();
 
   if (bDrawVol)
   {
     glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
+    glEnable (GL_BLEND);
     m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, false);
     t_drawSlices(sliceN, camP, camF, cuboid);
     m_volumeShader.unbind();

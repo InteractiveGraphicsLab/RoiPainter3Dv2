@@ -199,3 +199,31 @@ inline void t_drawCylinder
   glEnd();
 
 }
+
+
+
+inline void t_drawLineStrip(
+  const EVec3f color,
+  const float  width,
+  const std::vector<EVec3f> &points
+)
+{
+  const int N = (int)points.size();
+  int *idx = new int[N];
+  for (int i = 0; i < N; ++i) idx[i] = i;
+
+  glColor3d(color[0],color[1],color[2]);
+  glLineWidth(width);
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer(3, GL_FLOAT, 0, points.data());
+  glDrawElements(GL_LINE_STRIP, (int)points.size(), GL_UNSIGNED_INT, idx);
+  glDisableClientState(GL_VERTEX_ARRAY);
+
+  delete[] idx;
+}
+
+
+
+
+

@@ -143,9 +143,23 @@ public:
 	//volume min/mac
 	EVec2i getVolMinMax() { return m_volMinMax; }
 
+  int getVoxelIndex(const EVec3f& position)
+  {
+    const int x = min(m_Reso[0] - 1, (int)(position[0] / m_Pitch[0]));
+    const int y = min(m_Reso[1] - 1, (int)(position[1] / m_Pitch[1]));
+    const int z = min(m_Reso[2] - 1, (int)(position[2] / m_Pitch[2]));
+    return x + y * m_Reso[0] + z * m_Reso[0] * m_Reso[1];
+  }
+
+  short getVoxelValue(const EVec3f& position)
+  {
+    return m_volOrig[ getVoxelIndex(position)];
+  }
+
+
+
   /*
 	//get Value 
-	short getVolVal(const EVec3f &pos);
 
 
 	//mask manipuration

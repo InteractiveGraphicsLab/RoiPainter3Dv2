@@ -1,4 +1,5 @@
 #pragma once
+#include <stdio.h>
 
 namespace RoiPainter3D {
 
@@ -34,9 +35,8 @@ namespace RoiPainter3D {
 
     void setVolumeValVis(short v)
     {
-      String ^s = gcnew String("");
-      s->Format("v:%d", v);
-      textBox->Text = s;
+      textBox->Text = v.ToString();
+      textBox->Refresh();
     }
 
 
@@ -51,7 +51,7 @@ namespace RoiPainter3D {
 				delete components;
 			}
 		}
-  private: System::Windows::Forms::Label^  label;
+  private: System::Windows::Forms::Label^    label;
   private: System::Windows::Forms::TextBox^  textBox;
   protected:
 
@@ -75,26 +75,30 @@ namespace RoiPainter3D {
       // label
       // 
       this->label->AutoSize = true;
-      this->label->Location = System::Drawing::Point(12, 30);
+      this->label->Location = System::Drawing::Point(9, 24);
+      this->label->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->label->Name = L"label";
-      this->label->Size = System::Drawing::Size(90, 15);
+      this->label->Size = System::Drawing::Size(72, 12);
       this->label->TabIndex = 0;
       this->label->Text = L"volume value";
       // 
       // textBox
       // 
-      this->textBox->Location = System::Drawing::Point(109, 30);
+      this->textBox->Location = System::Drawing::Point(82, 24);
+      this->textBox->Margin = System::Windows::Forms::Padding(2, 2, 2, 2);
       this->textBox->Name = L"textBox";
-      this->textBox->Size = System::Drawing::Size(100, 22);
+      this->textBox->ReadOnly = true;
+      this->textBox->Size = System::Drawing::Size(76, 19);
       this->textBox->TabIndex = 1;
       // 
       // FormVisNorm
       // 
-      this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
+      this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(295, 136);
+      this->ClientSize = System::Drawing::Size(193, 66);
       this->Controls->Add(this->textBox);
       this->Controls->Add(this->label);
+      this->Margin = System::Windows::Forms::Padding(2, 2, 2, 2);
       this->Name = L"FormVisNorm";
       this->Text = L"FormVisNorm";
       this->ResumeLayout(false);
@@ -107,7 +111,12 @@ namespace RoiPainter3D {
   inline void formVisNorm_Show(){
     FormVisNorm::getInst()->Show();
   }
-
+  inline void formVisNorm_Hide(){
+    FormVisNorm::getInst()->Hide();    
+  }
+  inline void formVisNorm_setVoxelVis(short v){
+    FormVisNorm::getInst()->setVolumeValVis(v);
+  }
 
 
 }

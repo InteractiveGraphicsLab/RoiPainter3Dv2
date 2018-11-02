@@ -32,7 +32,7 @@ vec3  phogShading( const vec3 objPos, const vec3 baseColor, const vec3 N)
     vec3 L = normalize( lightPos - objPos );
     float diffK = abs( dot(N,L) )        ;
     
-	//高速化してみた　vec3 V = normalize( u_eyePos - objPos );
+    //高速化してみた　vec3 V = normalize( u_eyePos - objPos );
     //高速化してみた　vec3 R = normalize( 2 * dot( L, N ) * N - L );
     //高速化してみた　float specK = pow( abs( dot(R,V) ), Shin );
 
@@ -51,7 +51,7 @@ void main(void)
 	
     vec3 N = calcGradDir( imgI, gl_TexCoord[0].xyz ) ;
     gl_FragColor.xyz = phogShading( worldCoord, gl_FragColor.xyz, N );
-    gl_FragColor.w   = u_alpha * texture1D( u_img1_tf, imgI ).x ;//* texture1D( u_img1_tf, imgGM).y ;
+    gl_FragColor.w   = u_alpha * texture1D( u_img1_tf, imgI ).x * texture1D( u_img1_tf, imgGM).y ;
 }
 
 
