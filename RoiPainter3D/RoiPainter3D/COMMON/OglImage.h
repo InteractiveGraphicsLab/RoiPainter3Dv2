@@ -83,8 +83,8 @@ inline void t_dilate3D(
         int idx = x + y * W + z*WH;
         if (vol[idx] != 1) continue;
 
-        if ((x > 0 && vol[idx - 1] == 255) || (y > 0 && vol[idx - W] == 255) || (z > 0 && vol[idx - WH] == 255) ||
-          (x < W - 1 && vol[idx + 1] == 255) || (y < H - 1 && vol[idx + W] == 255) || (z < D - 1 && vol[idx + WH] == 255)) vol[idx] = 2;
+        if ((x >  0  && vol[idx-1] == 255) || (y >  0  && vol[idx-W] == 255) || (z >  0  && vol[idx-WH] == 255) ||
+            (x < W-1 && vol[idx+1] == 255) || (y < H-1 && vol[idx+W] == 255) || (z < D-1 && vol[idx+WH] == 255)) vol[idx] = 2;
       
       }
     }

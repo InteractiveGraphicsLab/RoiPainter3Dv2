@@ -1,6 +1,8 @@
 #include "ImageCore.h"
 
+#include "climessagebox.h"
 #include "./COMMON/tmath.h"
+#include "./COMMON/tmarchingcubes.h"
 #include "./3rdParty/dcmtk/tdcmtk.h"
 #include "./3rdparty/vvv/ddsbase.h"
 
@@ -9,13 +11,10 @@ ImageCore::ImageCore()
 {
   fprintf(stderr, "CONSTRUCTOR ImageCore ...\n");
 
-  
 	m_volOrig = 0;
-
 	loadVolume("init","init");
-
 	m_imgMskCol.Allocate(256);
-
+  m_maskSelectedId = -1;
   fprintf(stderr, "CONSTRUCTOR ImageCore ...DONE !\n");
 }
 
@@ -506,3 +505,156 @@ void ImageCore::updateVisVolume(short winLvMin,  short winLvMax)
 
 
 
+//////////////////////////////////////////////////////////
+//Mask Manipulation///////////////////////////////////////
+
+using namespace RoiPainter3D;
+
+
+void ImageCore::selectedMsk_delete  ()
+{
+  if (m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  if (m_maskSelectedId == 0)
+  {
+    CLI_MessageBox_OK_Show("0th region (background) cannot be removed", "caution");
+    return;
+  }
+
+  if (CLI_MessageBox_YESNO_Show("Do you want to DELETE the selected mask?", "caution") == false) return;
+
+
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  for (int i = 0; i < N; ++i)
+  {
+    if (     m_volMsk[i] >  m_maskSelectedId) m_volMsk[i]--;
+    else if (m_volMsk[i] == m_maskSelectedId) m_volMsk[i] = 0;
+  }
+
+  m_maskData.erase( m_maskData.begin() + m_maskSelectedId );
+  m_maskSelectedId = 0;
+}
+
+
+void ImageCore::selectedMsk_marge   (const int &trgtMaskID)
+{
+  if (m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  if (m_maskSelectedId == 0 || trgtMaskID == 0)
+  {
+    CLI_MessageBox_OK_Show("0th region (background) cannot be marged", "caution");
+    return;
+  }
+
+  if (trgtMaskID == m_maskSelectedId)
+  {
+    CLI_MessageBox_OK_Show("Cannot marge to it self", "caution");
+    return;
+  }
+
+
+  fprintf(stderr, "active %d, trgt, %d\n", m_maskSelectedId, trgtMaskID);
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  for (int i = 0; i < N; ++i) if ( m_volMsk[i] == trgtMaskID) m_volMsk[i] = m_maskSelectedId;
+  for (int i = 0; i < N; ++i) if ( m_volMsk[i] >  trgtMaskID) --m_volMsk[i];
+
+  if (m_maskSelectedId > trgtMaskID) --m_maskSelectedId;
+
+  m_maskData.erase(m_maskData.begin() + trgtMaskID);
+
+  m_maskData[ m_maskSelectedId ].surf.clear();
+  m_maskData[ m_maskSelectedId ].bRendSurf = false;
+}
+
+
+void ImageCore::selectedMsk_erode()
+{
+  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  printf( "mask erode...\n");
+  
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  byte* flgs = new byte[N];
+
+  for (int i = 0; i < N; ++i) flgs[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 : 1;
+  t_erode3D( m_Reso[0], m_Reso[1], m_Reso[2], flgs);
+  for (int i = 0; i < N; ++i) if (m_volMsk[i] == m_maskSelectedId && flgs[i] == 1) m_volMsk[i] = 0;
+
+  delete[] flgs;
+
+  printf( "mask erode...DONE\n");
+}
+
+
+
+void ImageCore::selectedMsk_dilate  ()
+{
+  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  printf( "mask dilate...\n");
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  byte* flgs = new byte[N];
+  for (int i = 0; i < N; ++i) {
+    flgs[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 :
+              (m_maskData[m_volMsk[i]].lock   ) ? 0 : 1;
+  }
+
+  t_dilate3D( m_Reso[0], m_Reso[1], m_Reso[2], flgs);
+
+  for (int i = 0; i < N; ++i) {
+    if (flgs[i] == 255) m_volMsk[i] = m_maskSelectedId;
+  }
+
+  delete[] flgs;
+  printf( "mask dilate...DONE\n");
+}
+
+
+
+void ImageCore::selectedMsk_fillHole()
+{
+  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  printf( "mask fillhole...\n");
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+  
+  byte* flgs = new byte[ N ]; //0:back, 255:trgt_mask_id
+
+  for (int i = 0; i < N; ++i){
+    flgs[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 : 0;
+  } 
+
+  t_fillHole3D(m_Reso[0], m_Reso[1], m_Reso[2], flgs);
+
+  for (int i = 0; i < N; ++i)
+  {
+    if (flgs[i] == 255 && m_volMsk[i] == 0 ) m_volMsk[i] = m_maskSelectedId;
+  }
+
+  delete[] flgs;
+
+  fprintf(stderr, "fillhole...DONE\n");
+}
+
+
+
+void ImageCore::selectedMsk_expObj  (const string &fname)
+{
+  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  short *v = new short[N];
+  for (int i = 0; i < N; ++i) v[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 : 0;
+
+  TMesh mesh;
+  marchingcubes::t_MarchingCubes(m_Reso, m_Pitch, v, 128, 0, 0, mesh);
+  mesh.smoothing(2);
+  mesh.exportObjNoTexCd(fname.c_str());
+
+  delete[] v;
+}

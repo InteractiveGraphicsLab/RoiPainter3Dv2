@@ -90,6 +90,15 @@
     <ClInclude Include="ViewAngleCore.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="mode\ModeVizMask.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="FormVisMask.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="climessagebox.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -142,6 +151,12 @@
     <ClCompile Include="ViewAngleCore.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="mode\ModeVizMask.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="FormVisMask.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="app.ico">
@@ -153,6 +168,9 @@
       <Filter>リソース ファイル</Filter>
     </EmbeddedResource>
     <EmbeddedResource Include="FormVisNorm.resx">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormVisParam.resx">
       <Filter>リソース ファイル</Filter>
     </EmbeddedResource>
   </ItemGroup>

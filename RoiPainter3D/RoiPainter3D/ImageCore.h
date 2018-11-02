@@ -85,13 +85,10 @@ private:
 	EVec3i  m_Reso ;
 	EVec3f  m_Pitch;
   EVec2i  m_volMinMax;
-
 	string  m_filePath;
 
   
 public:
-	//DlgVolInfo  m_dlg;
-
 	//volume 
 	short              *m_volOrig  ; // original image          [W,H,D]
 	float              *m_volOrigGM; // original image grad mag [W,H,D]
@@ -101,8 +98,8 @@ public:
 	OglImage3D          m_volGmag  ; // gradient magnitude 
 	OglImage1D<CH_RGBA> m_imgMskCol; // func: maskID    --> color
 
-	int                 m_maskActiveId;
-	vector<MaskData>    m_maskData    ;
+	  int               m_maskSelectedId; // -1:none, 0...:maskID
+	vector<MaskData>    m_maskData      ;
 
 	
 
@@ -131,9 +128,9 @@ public:
 
 	//getter/setter for pitch 
 	EVec3f getPitch()  { return m_Pitch; }
-	float getPitchW() { return m_Pitch[0]; }
-	float getPitchH() { return m_Pitch[1]; }
-	float getPitchD() { return m_Pitch[2]; }
+	float  getPitchW() { return m_Pitch[0]; }
+	float  getPitchH() { return m_Pitch[1]; }
+	float  getPitchD() { return m_Pitch[2]; }
 
   void  setPitch (const EVec3f pitch){ m_Pitch = pitch;}
   void  setPitchW(const float &pW) { m_Pitch[0] = pW; }
@@ -158,11 +155,19 @@ public:
 
 
 
-  /*
-	//get Value 
-
 
 	//mask manipuration
+  
+  void selectedMsk_delete  ();
+  void selectedMsk_marge   (const int &trgtMaskID);
+  void selectedMsk_erode   ();
+  void selectedMsk_dilate  ();
+  void selectedMsk_fillHole();
+  void selectedMsk_expObj  (const string &fname);
+
+
+  /*
+
 	void mask_storeCurrentForeGround();
 
 	void ActvMsk_SetLock    (const bool   tf    );
