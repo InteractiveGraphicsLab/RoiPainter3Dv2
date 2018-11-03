@@ -505,6 +505,103 @@ void ImageCore::updateVisVolume(short winLvMin,  short winLvMax)
 
 
 
+
+
+/////////////////////////////////////////////////////////////
+//MASK IO////////////////////////////////////////////////////
+
+
+void ImageCore::loadMask(const char *fname)
+{
+	FILE* fp = fopen(fname, "rb");
+	
+	//save mask image
+	int version, W,H,D;
+	fread(&version, sizeof(int), 1, fp);
+	fread(&W      , sizeof(int), 1, fp);
+	fread(&H      , sizeof(int), 1, fp);
+	fread(&D      , sizeof(int), 1, fp);
+
+	if(W != m_Reso[0] || H != m_Reso[1] || D != m_Reso[2] )
+	{
+		RoiPainter3D::CLI_MessageBox_OK_Show( "strange volume size\n", "caution");
+		fclose( fp );
+		return;
+	}
+
+  //read mask voxels
+	fread( &m_volMsk[0], sizeof(byte), W * H * D, fp);
+
+	RoiPainter3D::CLI_MessageBox_OK_Show( "TODO TODO show flip dialog\n", "caution");	
+	//DlgSetStackOrder dlg;
+	//if (IDOK != dlg.DoModal()) m_volMsk.flipVolumeInZ();
+
+	m_volMsk.SetUpdated();
+
+  //read mask status
+	int maskN;
+	fread(&maskN, sizeof(int), 1, fp);
+
+	m_maskData.clear();
+
+	for (int i=0; i < maskN; ++i)
+	{
+		int lock, nLen;
+		int col[3];
+		double alpha;
+		fread(&alpha, sizeof(double), 1, fp);
+		fread(col   , sizeof(int   ), 3, fp);
+		fread(&lock , sizeof(int   ), 1, fp);
+
+		fread(&nLen , sizeof(int   ), 1, fp);
+		char *name = new char[nLen + 1];
+		fread(name, sizeof(char), nLen + 1, fp);
+
+		printf("%d %s\n", nLen, name);
+
+		m_maskData.push_back( MaskData(string(name), EVec3i(col[0],col[1],col[2]), alpha, 0, lock?true:false) );
+
+		delete[] name; 
+	}
+	fclose(fp);
+}
+
+
+void ImageCore::saveMask( const char* fname)
+{
+  FILE* fp = fopen(fname, "wb");
+
+  //save mask image
+  int version = 0;
+  fwrite(&version  , sizeof(int), 1, fp);
+  fwrite(&m_Reso[0], sizeof(int), 1, fp);
+  fwrite(&m_Reso[1], sizeof(int), 1, fp);
+  fwrite(&m_Reso[2], sizeof(int), 1, fp);
+  fwrite(&m_volMsk[0], sizeof(byte), m_Reso[0] * m_Reso[1] * m_Reso[2], fp);
+
+	int maskN = (int)m_maskData.size();
+	fwrite(&maskN, sizeof(int), 1, fp);
+
+	for( const auto &it : m_maskData )
+	{
+		int iLock = it.lock;
+		fwrite(&it.alpha      , sizeof(double), 1, fp);
+		fwrite(it.color.data(), sizeof(int)   , 3, fp);
+		fwrite(&iLock, sizeof(int), 1, fp);
+
+		int nLen = (int)it.name.length();
+		fwrite(&nLen          , sizeof(int ),  1    , fp);
+		fwrite(it.name.c_str(), sizeof(char), nLen+1, fp);
+
+		printf("%d %s\n", nLen, it.name.c_str());
+	}
+	fclose(fp);
+}
+
+
+
+
+
 //////////////////////////////////////////////////////////
 //Mask Manipulation///////////////////////////////////////
 

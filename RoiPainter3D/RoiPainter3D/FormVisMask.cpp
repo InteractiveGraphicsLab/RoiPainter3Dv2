@@ -141,12 +141,12 @@ System::Void FormVisMask::btnDelete_Click       (System::Object^  sender, System
 
 System::Void FormVisMask::btnMargeTo_Click( System::Object^  sender, System::EventArgs^  e) 
 {
+  /*
   todo 
-    + mode switch visMaskì‚é
     + marge to ì‚é
     + marge to—p‚Ìselection dialogì‚é
     + stack orientation dialogì‚é
-    + IO for maskì‚é
+    */
   /*
 
   FormSelectMskId ^modal = gcnew FormSelectMskId();
@@ -178,17 +178,17 @@ System::Void FormVisMask::btnDilate_Click(System::Object^  sender, System::Event
   formMain_redrawMainPanel();
 }
 
-System::Void FormVisMask::btnFillHole_Click     (System::Object^  sender, System::EventArgs^  e)
+System::Void FormVisMask::btnFillHole_Click(System::Object^  sender, System::EventArgs^  e)
 {
   ImageCore::getInst()->selectedMsk_fillHole();
   updateImageCoreVisVolumes();
   formMain_redrawMainPanel();
 }
 
-System::Void FormVisMask::btnExpObj_Click       (System::Object^  sender, System::EventArgs^  e) 
+System::Void FormVisMask::btnExpObj_Click(System::Object^  sender, System::EventArgs^  e) 
 {
   SaveFileDialog^ dlg = gcnew SaveFileDialog();
-  dlg->Filter = "surface data (*.obj)|*.obj||";
+  dlg->Filter = "surface data (*.obj)|*.obj";
 
   if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return;
 

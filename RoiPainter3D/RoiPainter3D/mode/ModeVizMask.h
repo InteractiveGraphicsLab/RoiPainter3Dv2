@@ -22,7 +22,7 @@ class ModeVizMask : public ModeInterface
 
   ModeVizMask();
 public:
-  ~ModeVizMask();
+  ~ModeVizMask(){}
 
   static ModeVizMask* getInst() { 
     static ModeVizMask p; 
