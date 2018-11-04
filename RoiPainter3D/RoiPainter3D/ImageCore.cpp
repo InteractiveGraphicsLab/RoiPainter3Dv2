@@ -297,13 +297,13 @@ static bool t_LoadDCMs
 
 		tdcm.getPixelsAs<short>( &vol[z*W*H] );
 
-		fprintf( stderr, "(%d/%d)", z, D);
+		printf( "(%d/%d)", z, D);
 	}
 
 
 	if( pitch[2] < 0)
 	{
-		fprintf( stderr, "flip in z\n");
+		printf( "flip in z\n");
 		pitch[2] *= -1.0;
 		t_flipVolumeInZ(W,H,D, vol);
 	}
@@ -331,7 +331,7 @@ static bool t_LoadDCM3D(
 	pitch[2] = 1;//pitch[0];
 	System::Windows::Forms::MessageBox::Show("pitch情報は読み込んでいません。正しい値をダイアログより指定してしてください");
 
-	fprintf( stderr, "resolution %d %d %d\n", reso[0], reso[1], reso[2]);
+	printf( "resolution %d %d %d\n", reso[0], reso[1], reso[2]);
 
 	vol = new short[ reso[0] * reso[1] * reso[2] ];
 	tdcm.getPixels3DAs<short>( vol );
@@ -353,7 +353,7 @@ static bool t_LoadPVM3D(
 
 	byte *buf = readPVMvolume(fname.c_str(), &W, &H, &D,&components, &px,&py,&pz );
 
-	fprintf( stderr, "load pvm %d %d %d %d\n", W,H,D,components);
+	printf( "load pvm %d %d %d %d\n", W,H,D,components);
 
 	reso  << W, H, D;
 	pitch << px, py, pz;
@@ -755,3 +755,80 @@ void ImageCore::selectedMsk_expObj  (const string &fname)
 
   delete[] v;
 }
+
+
+
+static const int ColPalletN = 14;
+static const EVec3i ColPallet[ColPalletN] = {
+	EVec3i(255,0  ,0) , EVec3i(0  ,0,255), 
+	EVec3i(0,255,255 ), EVec3i(255,0,255), EVec3i(255,255,0 ),
+	EVec3i(0, 128,128), EVec3i(128,0,128), EVec3i(128,128, 0), 
+	EVec3i(255,128,0) , EVec3i(0,255,128), EVec3i(128,0,255 ), 
+	EVec3i(128,255,0) , EVec3i(0,128,255), EVec3i(255, 0, 128) , 
+	
+};
+
+
+
+//mask_storeCurrentForeGround
+//generate new region by using all voxels with (m_volFlg[i] == 255) 
+void ImageCore::mask_storeCurrentForeGround()
+{
+	const int id = (int) m_maskData.size();
+	const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+	for (int i = 0; i < N; ++i) if( m_volFlg[i] == 255 )  m_volMsk[i] = id;
+	m_volMsk.SetUpdated();
+
+	//initial color
+	static int c = 1;
+	c++;
+	//store new region
+	m_maskData.push_back( MaskData("region", ColPallet[c%ColPalletN], 0.1, false, true) );
+}
+
+
+void ImageCore::selectedMsk_setLock(const bool tf)
+{
+	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
+	m_maskData[m_maskSelectedId].lock = tf;
+}
+
+void ImageCore::selectedMsk_setAlpha(const double alpha)
+{
+	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
+	m_maskData[m_maskSelectedId].alpha = alpha;
+}
+
+void ImageCore::selectedMsk_setColor(const EVec3i &c)
+{
+	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
+	m_maskData[m_maskSelectedId].color = c;
+}
+
+
+void ImageCore::selectedMsk_setRendSurf(const bool tf)
+{
+	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
+	MaskData &trgtMsk = m_maskData[m_maskSelectedId];
+
+	trgtMsk.bRendSurf = tf;
+	
+	if( tf == true && trgtMsk.surf.m_vSize == 0)
+	{
+		const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+		short *v = new short[N];
+
+		for( int i=0; i < N; ++i ) v[i] = ( m_volMsk[i] == m_maskSelectedId ) ? 255 : 0;
+
+    marchingcubes::t_MarchingCubes(m_Reso, m_Pitch, v, 128, 0, 0, trgtMsk.surf);
+		trgtMsk.surf.smoothing(2);
+
+		delete[] v;
+	}
+}
+
+
+
+

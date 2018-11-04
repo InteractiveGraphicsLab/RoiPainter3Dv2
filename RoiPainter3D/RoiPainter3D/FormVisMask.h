@@ -18,15 +18,21 @@ namespace RoiPainter3D {
 
   private:
     static FormVisMask^ m_singleton;
-  private: System::Windows::Forms::Button^  btnExpObj;
-
-  private: System::Windows::Forms::Button^  btnErode;
-  private: System::Windows::Forms::Button^  btnDilate;
-  private: System::Windows::Forms::Button^  btnFillHole;
-
-
-
-           bool   m_bListUpdating;
+    bool                m_bListUpdating;
+    System::Windows::Forms::Button^  btnExpObj;
+    System::Windows::Forms::Button^  btnErode;
+    System::Windows::Forms::Button^  btnDilate;
+    System::Windows::Forms::Button^  btnFillHole;
+    System::Windows::Forms::Button^  btnMargeTo;
+    System::Windows::Forms::Button^  btnDelete;
+    System::Windows::Forms::Button^  btnTestAdd;
+    System::Windows::Forms::Button^  btnColorPallet;
+    System::Windows::Forms::CheckBox^  checkbox_lock;
+    System::Windows::Forms::DataGridView^  maskList;
+    System::Windows::Forms::DataGridViewTextBoxColumn^  regionIDColumn;
+    System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
+    System::Windows::Forms::TrackBar^  trackbar_alpha;
+    System::Windows::Forms::TextBox^  alpha;
 
     FormVisMask(void)
 		{
@@ -50,10 +56,6 @@ namespace RoiPainter3D {
 
     void updateList();
 
-
-
-
-
 	protected:
 		/// <summary>
 		/// 使用中のリソースをすべてクリーンアップします。
@@ -65,27 +67,7 @@ namespace RoiPainter3D {
 				delete components;
 			}
 		}
-  private: System::Windows::Forms::Button^  btnMargeTo;
-  protected:
-  private: System::Windows::Forms::Button^  btnDelete;
-  private: System::Windows::Forms::Button^  btnTestAdd;
-  private: System::Windows::Forms::Button^  btnColorPallet;
-  private: System::Windows::Forms::CheckBox^  checkbox_lock;
-  private: System::Windows::Forms::DataGridView^  maskList;
-  private: System::Windows::Forms::DataGridViewTextBoxColumn^  regionIDColumn;
-  private: System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
-  private: System::Windows::Forms::TrackBar^  trackbar_alpha;
 
-
-
-
-
-
-
-
-
-
-  private: System::Windows::Forms::TextBox^  alpha;
 
 	private:
 		/// <summary>

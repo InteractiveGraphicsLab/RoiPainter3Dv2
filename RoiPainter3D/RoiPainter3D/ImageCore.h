@@ -18,6 +18,7 @@
 
 #include "./COMMON/OglForCLI.h"
 #include "./COMMON/OglImage.h"
+#include "./COMMON/tmath.h"
 #include "./COMMON/tmesh.h"
 
 #include <vector>
@@ -31,12 +32,12 @@ class MaskData
 {
 
 public:
-	string name     ;
-	TMesh  surf     ;
-	EVec3i color    ;
-	double alpha    ;
-	bool   bRendSurf;
-	bool   lock     ;
+  string name     ;
+  TMesh  surf     ;
+  EVec3i color    ;
+  double alpha    ;
+  bool   bRendSurf;
+  bool   lock     ;
 
 	MaskData(string _name, EVec3i _color, double _alpha, bool _bRendSurf, bool _lock = false) 
 	{
@@ -157,7 +158,13 @@ public:
 
 
 	//mask manipuration
-  
+
+  void mask_storeCurrentForeGround();
+  void selectedMsk_setLock    (const bool   tf    );
+  void selectedMsk_setRendSurf(const bool   tf    );
+  void selectedMsk_setAlpha   (const double alpha );
+  void selectedMsk_setColor   (const EVec3i &c    );
+
   void selectedMsk_delete  ();
   void selectedMsk_marge   (const int &trgtMaskID);
   void selectedMsk_erode   ();
@@ -166,29 +173,11 @@ public:
   void selectedMsk_expObj  (const string &fname);
 
 
-  /*
-
-	void mask_storeCurrentForeGround();
-
-	void ActvMsk_SetLock    (const bool   tf    );
-	void ActvMsk_SetRendSurf(const bool   tf    );
-	void ActvMsk_SetAlpha   (const double alpha );
-	void ActvMsk_SetColor   (const EVec3i &c    );
-	void ActvMsk_erode      ();
-	void ActvMsk_dilate     ();
-	void ActvMsk_fillHole   ();
-	void ActvMsk_delete     ();
-	void ActvMsk_margeTo    ();
-	void ActvMsk_fillPsuedoHoleAsNewRegion();
-	void ActvMsk_ExportObj(const char *fname);
-	void ActvMsk_ExportStl(const char *fname);
-	void ActvMsk_ExportBmp(const char *fname);
-
-
-	string getVolFilePath(){ return m_filePath; }
-
-
-*/
+	//void ActvMsk_fillPsuedoHoleAsNewRegion();
+	//void ActvMsk_ExportObj(const char *fname);
+	//void ActvMsk_ExportStl(const char *fname);
+	//void ActvMsk_ExportBmp(const char *fname);
+	//string getVolFilePath(){ return m_filePath; }
 
 private:
 	void updateGradVolume();
