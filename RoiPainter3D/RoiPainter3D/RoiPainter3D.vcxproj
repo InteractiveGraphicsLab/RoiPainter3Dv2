@@ -164,6 +164,12 @@
     <ClInclude Include="FormMain.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="FormSegGCut.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="FormSegRGrow.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="FormStackOrder.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -195,6 +201,8 @@
     <ClCompile Include="COMMON\tmarchingcubes.cpp" />
     <ClCompile Include="CrsSecCore.cpp" />
     <ClCompile Include="FormMain.cpp" />
+    <ClCompile Include="FormSegGCut.cpp" />
+    <ClCompile Include="FormSegRGrow.cpp" />
     <ClCompile Include="FormStackOrder.cpp" />
     <ClCompile Include="FormVisMask.cpp" />
     <ClCompile Include="FormVisNorm.cpp" />
@@ -214,6 +222,9 @@
   <ItemGroup>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormSegRGrow.resx">
+      <DependentUpon>FormSegRGrow.h</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormStackOrder.resx">
       <DependentUpon>FormStackOrder.h</DependentUpon>
