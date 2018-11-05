@@ -352,11 +352,28 @@ static void n_marshalString(String ^ s, string& os) {
 }
 
 
+class LessString_ForFnameTime {
+public:
+  bool operator()
+    (
+    const pair<string,string>& rsLeft, 
+    const pair<string,string>& rsRight
+    ) const 
+  {
+    if(rsLeft.first.length() == rsRight.first.length()) return rsLeft.first < rsRight.first;
+    else                                                return rsLeft.first.length() < rsRight.first.length();
+  }
+};
+
+
+
+
+
+
 static bool t_showOpenFileDlg_multi
 (
   const char* filter,
-  vector<string> &fNames,
-  vector<string> &fDates
+  vector<string> &fNames
 )
 {
   OpenFileDialog^ dlg = gcnew OpenFileDialog();
@@ -365,17 +382,22 @@ static bool t_showOpenFileDlg_multi
 
   if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return false;
 
-  fNames.clear();
-  fDates.clear();
+  vector<pair<string, string>> vec_fname_date;
 
   for each (auto it in  dlg->FileNames)
   {
     string fName, fTime;
     n_marshalString(it, fName);
     n_marshalString(File::GetCreationTime(it).ToString(), fTime);
-    fNames.push_back(fName);
-    fDates.push_back(fTime);
+    vec_fname_date.push_back(make_pair(fName, fTime));
   }
+
+  //sort fname_ftime 
+  //currentry the system only uses file name
+  sort(vec_fname_date.begin(), vec_fname_date.end(), LessString_ForFnameTime() );
+  
+  fNames.clear(); 
+  for( const auto &it : vec_fname_date) fNames.push_back(it.first);
 
   return true;
 }
@@ -423,8 +445,7 @@ static bool t_showSaveFileDlg
 System::Void FormMain::open2DSlicesToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e) 
 {
   vector<string> fNames;
-  vector<string> fDates;
-  if( !t_showOpenFileDlg_multi("2D slice files(*.bmp;*.tif)|*.bmp;*.tif", fNames, fDates) ) return;
+  if( !t_showOpenFileDlg_multi("2D slice files(*.bmp;*.tif)|*.bmp;*.tif", fNames) ) return;
 
   if( fNames.size() == 0 || fNames.front().length() < 3) return;
 
@@ -442,8 +463,7 @@ System::Void FormMain::open2DSlicesToolStripMenuItem_Click      (System::Object^
 System::Void FormMain::open2DSlicesdcmToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e) 
 {
   vector<string> fNames;
-  vector<string> fDates;
-  if( !t_showOpenFileDlg_multi("2d dcm slices(*.dcm;*.DCM;*)|*.dcm;*.DCM;*", fNames, fDates) ) return;
+  if( !t_showOpenFileDlg_multi("2d dcm slices(*.dcm;*.DCM;*)|*.dcm;*.DCM;*", fNames) ) return;
 
   if( fNames.size() == 0 || fNames.front().length() < 3) return;
 
