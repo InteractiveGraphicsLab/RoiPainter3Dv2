@@ -8,6 +8,8 @@
 
 #include "mode/ModeVizMask.h"
 #include "mode/ModeVizNormal.h"
+#include "mode/ModeSegRGrow.h"
+#include "mode/ModeSegGCut.h"
 
 
 using namespace System;
@@ -26,11 +28,13 @@ int main()
   ModeCore  ::getInst();
   ImageCore ::getInst();
   CrssecCore::getInst();
+
   ModeVizMask  ::getInst();
   ModeVizNormal::getInst();
+  ModeSegRGrow ::getInst();
+  ModeSegGCut  ::getInst();
 
   /*
-  ModeSegRGrow::getInst();
   ModeSegPixPaint::getInst();
   ModeSegRigidICP::GetInstance();
   ModeSegClosestPix::getInst();

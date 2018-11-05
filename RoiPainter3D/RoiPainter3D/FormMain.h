@@ -129,10 +129,10 @@ namespace RoiPainter3D {
       this->FormMainPanel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
         | System::Windows::Forms::AnchorStyles::Left)
         | System::Windows::Forms::AnchorStyles::Right));
-      this->FormMainPanel->Location = System::Drawing::Point(3, 35);
-      this->FormMainPanel->Margin = System::Windows::Forms::Padding(3, 2, 3, 2);
+      this->FormMainPanel->Location = System::Drawing::Point(2, 28);
+      this->FormMainPanel->Margin = System::Windows::Forms::Padding(2, 2, 2, 2);
       this->FormMainPanel->Name = L"FormMainPanel";
-      this->FormMainPanel->Size = System::Drawing::Size(888, 601);
+      this->FormMainPanel->Size = System::Drawing::Size(666, 481);
       this->FormMainPanel->TabIndex = 0;
       this->FormMainPanel->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &FormMain::FormMainPanel_Paint);
       this->FormMainPanel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler(this, &FormMain::FormMainPanel_MouseDoubleClick);
@@ -150,8 +150,8 @@ namespace RoiPainter3D {
       });
       this->menuStrip1->Location = System::Drawing::Point(0, 0);
       this->menuStrip1->Name = L"menuStrip1";
-      this->menuStrip1->Padding = System::Windows::Forms::Padding(5, 2, 0, 2);
-      this->menuStrip1->Size = System::Drawing::Size(891, 28);
+      this->menuStrip1->Padding = System::Windows::Forms::Padding(4, 2, 0, 2);
+      this->menuStrip1->Size = System::Drawing::Size(668, 24);
       this->menuStrip1->TabIndex = 1;
       this->menuStrip1->Text = L"menuStrip1";
       // 
@@ -164,79 +164,79 @@ namespace RoiPainter3D {
           this->toolStripSeparator2, this->exportVolumeAsTraw3dssToolStripMenuItem
       });
       this->fileToolStripMenuItem->Name = L"fileToolStripMenuItem";
-      this->fileToolStripMenuItem->Size = System::Drawing::Size(44, 24);
+      this->fileToolStripMenuItem->Size = System::Drawing::Size(37, 20);
       this->fileToolStripMenuItem->Text = L"File";
       // 
       // open2DSlicesToolStripMenuItem
       // 
       this->open2DSlicesToolStripMenuItem->Name = L"open2DSlicesToolStripMenuItem";
-      this->open2DSlicesToolStripMenuItem->Size = System::Drawing::Size(266, 26);
+      this->open2DSlicesToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open2DSlicesToolStripMenuItem->Text = L"open 2D slices (bmp, tif)";
       this->open2DSlicesToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open2DSlicesToolStripMenuItem_Click);
       // 
       // open2DSlicesdcmToolStripMenuItem
       // 
       this->open2DSlicesdcmToolStripMenuItem->Name = L"open2DSlicesdcmToolStripMenuItem";
-      this->open2DSlicesdcmToolStripMenuItem->Size = System::Drawing::Size(266, 26);
+      this->open2DSlicesdcmToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open2DSlicesdcmToolStripMenuItem->Text = L"open 2D slices (dcm)";
       this->open2DSlicesdcmToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open2DSlicesdcmToolStripMenuItem_Click);
       // 
       // open3DVolumetraw3DToolStripMenuItem
       // 
       this->open3DVolumetraw3DToolStripMenuItem->Name = L"open3DVolumetraw3DToolStripMenuItem";
-      this->open3DVolumetraw3DToolStripMenuItem->Size = System::Drawing::Size(266, 26);
+      this->open3DVolumetraw3DToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open3DVolumetraw3DToolStripMenuItem->Text = L"open 3D volume (traw3D)";
       this->open3DVolumetraw3DToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DVolumetraw3DToolStripMenuItem_Click);
       // 
       // open3DColumedcmToolStripMenuItem
       // 
       this->open3DColumedcmToolStripMenuItem->Name = L"open3DColumedcmToolStripMenuItem";
-      this->open3DColumedcmToolStripMenuItem->Size = System::Drawing::Size(266, 26);
+      this->open3DColumedcmToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open3DColumedcmToolStripMenuItem->Text = L"open 3D volume (dcm)";
       this->open3DColumedcmToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DColumedcmToolStripMenuItem_Click);
       // 
       // open3DVolumefavToolStripMenuItem
       // 
       this->open3DVolumefavToolStripMenuItem->Name = L"open3DVolumefavToolStripMenuItem";
-      this->open3DVolumefavToolStripMenuItem->Size = System::Drawing::Size(266, 26);
+      this->open3DVolumefavToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->open3DVolumefavToolStripMenuItem->Text = L"open 3D volume (fav)";
       this->open3DVolumefavToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DVolumefavToolStripMenuItem_Click);
       // 
       // toolStripSeparator1
       // 
       this->toolStripSeparator1->Name = L"toolStripSeparator1";
-      this->toolStripSeparator1->Size = System::Drawing::Size(263, 6);
+      this->toolStripSeparator1->Size = System::Drawing::Size(215, 6);
       // 
       // saveMaskmskToolStripMenuItem
       // 
       this->saveMaskmskToolStripMenuItem->Name = L"saveMaskmskToolStripMenuItem";
-      this->saveMaskmskToolStripMenuItem->Size = System::Drawing::Size(266, 26);
+      this->saveMaskmskToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->saveMaskmskToolStripMenuItem->Text = L"save mask (msk)";
       this->saveMaskmskToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::saveMaskmskToolStripMenuItem_Click);
       // 
       // loadMaskmskToolStripMenuItem
       // 
       this->loadMaskmskToolStripMenuItem->Name = L"loadMaskmskToolStripMenuItem";
-      this->loadMaskmskToolStripMenuItem->Size = System::Drawing::Size(266, 26);
+      this->loadMaskmskToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->loadMaskmskToolStripMenuItem->Text = L"load mask (msk)";
       this->loadMaskmskToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::loadMaskmskToolStripMenuItem_Click);
       // 
       // saveMaskfavbToolStripMenuItem
       // 
       this->saveMaskfavbToolStripMenuItem->Name = L"saveMaskfavbToolStripMenuItem";
-      this->saveMaskfavbToolStripMenuItem->Size = System::Drawing::Size(266, 26);
+      this->saveMaskfavbToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->saveMaskfavbToolStripMenuItem->Text = L"save mask (fav)";
       this->saveMaskfavbToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::saveMaskfavbToolStripMenuItem_Click);
       // 
       // toolStripSeparator2
       // 
       this->toolStripSeparator2->Name = L"toolStripSeparator2";
-      this->toolStripSeparator2->Size = System::Drawing::Size(263, 6);
+      this->toolStripSeparator2->Size = System::Drawing::Size(215, 6);
       // 
       // exportVolumeAsTraw3dssToolStripMenuItem
       // 
       this->exportVolumeAsTraw3dssToolStripMenuItem->Name = L"exportVolumeAsTraw3dssToolStripMenuItem";
-      this->exportVolumeAsTraw3dssToolStripMenuItem->Size = System::Drawing::Size(266, 26);
+      this->exportVolumeAsTraw3dssToolStripMenuItem->Size = System::Drawing::Size(218, 22);
       this->exportVolumeAsTraw3dssToolStripMenuItem->Text = L"export volume as traw3d_ss";
       this->exportVolumeAsTraw3dssToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click);
       // 
@@ -244,54 +244,56 @@ namespace RoiPainter3D {
       // 
       this->modeToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(7) {
         this->visualizationStandardToolStripMenuItem,
-          this->visualizationMaskToolStripMenuItem, this->toolStripSeparator3, this->segmentationToolStripMenuItem, this->segmentationThresholdToolStripMenuItem,
-          this->segmentationGraphCutToolStripMenuItem, this->segmentationToolStripMenuItem1
+          this->visualizationMaskToolStripMenuItem, this->toolStripSeparator3, this->segmentationThresholdToolStripMenuItem, this->segmentationGraphCutToolStripMenuItem,
+          this->segmentationToolStripMenuItem, this->segmentationToolStripMenuItem1
       });
       this->modeToolStripMenuItem->Name = L"modeToolStripMenuItem";
-      this->modeToolStripMenuItem->Size = System::Drawing::Size(60, 24);
+      this->modeToolStripMenuItem->Size = System::Drawing::Size(50, 20);
       this->modeToolStripMenuItem->Text = L"Mode";
       // 
       // visualizationStandardToolStripMenuItem
       // 
       this->visualizationStandardToolStripMenuItem->Name = L"visualizationStandardToolStripMenuItem";
-      this->visualizationStandardToolStripMenuItem->Size = System::Drawing::Size(327, 26);
+      this->visualizationStandardToolStripMenuItem->Size = System::Drawing::Size(267, 22);
       this->visualizationStandardToolStripMenuItem->Text = L"Visualization Standard";
       this->visualizationStandardToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::visualizationStandardToolStripMenuItem_Click);
       // 
       // visualizationMaskToolStripMenuItem
       // 
       this->visualizationMaskToolStripMenuItem->Name = L"visualizationMaskToolStripMenuItem";
-      this->visualizationMaskToolStripMenuItem->Size = System::Drawing::Size(327, 26);
+      this->visualizationMaskToolStripMenuItem->Size = System::Drawing::Size(267, 22);
       this->visualizationMaskToolStripMenuItem->Text = L"Visualization Mask";
       this->visualizationMaskToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::visualizationMaskToolStripMenuItem_Click);
       // 
       // toolStripSeparator3
       // 
       this->toolStripSeparator3->Name = L"toolStripSeparator3";
-      this->toolStripSeparator3->Size = System::Drawing::Size(324, 6);
+      this->toolStripSeparator3->Size = System::Drawing::Size(264, 6);
       // 
       // segmentationToolStripMenuItem
       // 
       this->segmentationToolStripMenuItem->Name = L"segmentationToolStripMenuItem";
-      this->segmentationToolStripMenuItem->Size = System::Drawing::Size(327, 26);
+      this->segmentationToolStripMenuItem->Size = System::Drawing::Size(267, 22);
       this->segmentationToolStripMenuItem->Text = L"Segmentation Pixel Paint";
       // 
       // segmentationThresholdToolStripMenuItem
       // 
       this->segmentationThresholdToolStripMenuItem->Name = L"segmentationThresholdToolStripMenuItem";
-      this->segmentationThresholdToolStripMenuItem->Size = System::Drawing::Size(327, 26);
-      this->segmentationThresholdToolStripMenuItem->Text = L"Segmentation Threshold";
+      this->segmentationThresholdToolStripMenuItem->Size = System::Drawing::Size(267, 22);
+      this->segmentationThresholdToolStripMenuItem->Text = L"Segmentation Region Growing";
+      this->segmentationThresholdToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::segmentationThresholdToolStripMenuItem_Click);
       // 
       // segmentationGraphCutToolStripMenuItem
       // 
       this->segmentationGraphCutToolStripMenuItem->Name = L"segmentationGraphCutToolStripMenuItem";
-      this->segmentationGraphCutToolStripMenuItem->Size = System::Drawing::Size(327, 26);
-      this->segmentationGraphCutToolStripMenuItem->Text = L"Segmentation GraphCut";
+      this->segmentationGraphCutToolStripMenuItem->Size = System::Drawing::Size(267, 22);
+      this->segmentationGraphCutToolStripMenuItem->Text = L"Segmentation Graph Cut";
+      this->segmentationGraphCutToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::segmentationGraphCutToolStripMenuItem_Click);
       // 
       // segmentationToolStripMenuItem1
       // 
       this->segmentationToolStripMenuItem1->Name = L"segmentationToolStripMenuItem1";
-      this->segmentationToolStripMenuItem1->Size = System::Drawing::Size(327, 26);
+      this->segmentationToolStripMenuItem1->Size = System::Drawing::Size(267, 22);
       this->segmentationToolStripMenuItem1->Text = L"Segmentation Local Region Growing";
       // 
       // miscsToolStripMenuItem
@@ -301,30 +303,30 @@ namespace RoiPainter3D {
           this->importCurrentCameraPosToolStripMenuItem
       });
       this->miscsToolStripMenuItem->Name = L"miscsToolStripMenuItem";
-      this->miscsToolStripMenuItem->Size = System::Drawing::Size(57, 24);
+      this->miscsToolStripMenuItem->Size = System::Drawing::Size(49, 20);
       this->miscsToolStripMenuItem->Text = L"miscs";
       // 
       // exportCurrentCameraPosToolStripMenuItem
       // 
       this->exportCurrentCameraPosToolStripMenuItem->Name = L"exportCurrentCameraPosToolStripMenuItem";
-      this->exportCurrentCameraPosToolStripMenuItem->Size = System::Drawing::Size(260, 26);
+      this->exportCurrentCameraPosToolStripMenuItem->Size = System::Drawing::Size(215, 22);
       this->exportCurrentCameraPosToolStripMenuItem->Text = L"export current camera pos";
       // 
       // importCurrentCameraPosToolStripMenuItem
       // 
       this->importCurrentCameraPosToolStripMenuItem->Name = L"importCurrentCameraPosToolStripMenuItem";
-      this->importCurrentCameraPosToolStripMenuItem->Size = System::Drawing::Size(260, 26);
+      this->importCurrentCameraPosToolStripMenuItem->Size = System::Drawing::Size(215, 22);
       this->importCurrentCameraPosToolStripMenuItem->Text = L"import current camera pos";
       // 
       // FormMain
       // 
-      this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
+      this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(891, 635);
+      this->ClientSize = System::Drawing::Size(668, 508);
       this->Controls->Add(this->FormMainPanel);
       this->Controls->Add(this->menuStrip1);
       this->MainMenuStrip = this->menuStrip1;
-      this->Margin = System::Windows::Forms::Padding(3, 2, 3, 2);
+      this->Margin = System::Windows::Forms::Padding(2, 2, 2, 2);
       this->Name = L"FormMain";
       this->Text = L"FormMain";
       this->MouseWheel += gcnew System::Windows::Forms::MouseEventHandler(this, &FormMain::FormMain_MouseWheel);
@@ -359,6 +361,8 @@ namespace RoiPainter3D {
       System::Void exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
       System::Void visualizationStandardToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
       System::Void visualizationMaskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
+      System::Void segmentationThresholdToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
+      System::Void segmentationGraphCutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
 };
 
 

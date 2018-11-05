@@ -8,6 +8,8 @@
 #include "FormVisParam.h"
 #include "FormVisNorm.h"
 #include "FormVisMask.h"
+#include "FormSegRGrow.h"
+#include "FormSegGCut.h"
 
 
 
@@ -190,9 +192,10 @@ void FormMain::replaceOtherForms()
   FormVisParam::getInst()->Location = Point(thisX + thisW, thisY);
   FormVisNorm ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormVisMask ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegRGrow::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegGCut ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
 
   /*
-  FormSegRGrow::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegPixPaint::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegRigidICP::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegClosestPix::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
@@ -215,17 +218,20 @@ void FormMain::initializeOtherForms()
 
 
   //ˆê“xShow‚µ Hide‚·‚é(‚»‚¤‚µ‚È‚¢‚ÆˆÚ“®‚ªŒø‚©‚È‚¢)
-  FormVisNorm::getInst()->Show();
-  FormVisMask::getInst()->Show();
+  FormVisNorm ::getInst()->Show();
+  FormVisMask ::getInst()->Show();
+  FormSegRGrow::getInst()->Show();
+  FormSegGCut ::getInst()->Show();
   
   replaceOtherForms();
   
-  FormVisNorm::getInst()->Hide();
-  FormVisMask::getInst()->Hide();
+  FormVisNorm ::getInst()->Hide();
+  FormVisMask ::getInst()->Hide();
+  FormSegRGrow::getInst()->Hide();
+  FormSegGCut ::getInst()->Hide();
   printf("--------initialize form(dialogs)...DONE\n");
 
   /*
-  FormSegRGrow::getInst()->Show();
   FormSegPixPaint::getInst()->Show();
   FormSegRigidICP::getInst()->Show();
   FormSegClosestPix::getInst()->Show();
@@ -565,6 +571,14 @@ System::Void FormMain::visualizationMaskToolStripMenuItem_Click(System::Object^ 
   redrawMainPanel();
 }
 
+System::Void FormMain::segmentationThresholdToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+  ModeCore::getInst()->ModeSwitch(MODE_SEG_REGGROW);
+  redrawMainPanel();
+}
+System::Void FormMain::segmentationGraphCutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+  ModeCore::getInst()->ModeSwitch(MODE_SEG_GCUT);
+  redrawMainPanel();
+}
 
 
 

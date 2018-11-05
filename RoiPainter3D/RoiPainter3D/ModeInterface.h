@@ -9,10 +9,12 @@
 enum MODE_ID
 {
 	MODE_VIS_NORMAL    , // ModeVizNormal       
-	MODE_VIS_MASK      , // ModeVizMask         
+	MODE_VIS_MASK      , // ModeVizMask    
+	MODE_SEG_REGGROW   , // ModeSegRegGrow     
+	MODE_SEG_GCUT      , // ModeSegGGut           
+
 
 	MODE_SEG_PIXPAINT  , // ModeSegPixPaint
-	MODE_SEG_REGGROW   , // ModeSegRegGrow     
 	MODE_SEG_RIGIDICP  , // ModeSegRigidICP   (SJTracker‚æ‚è)
 	MODE_SEG_CLOSESTPIX, // ModeSegClosestPix (SproutViewer‚æ‚è TODO Tomofumi Narita)
 
@@ -21,7 +23,6 @@ enum MODE_ID
 
 	MODE_REF_STRKTRIM     // ModeRefStrkTrim     
 
-	//MODE_SEG_GCUT   , // ModeSegGGut           
 	//MODE_SEG_THRESHPNT, // ModeSegTreshPnt      
 	//MODE_SEG_LOCALRGROW, // ModeSegLocalRGrow    
 };
