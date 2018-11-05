@@ -18,6 +18,7 @@
 
 #include "./COMMON/OglForCLI.h"
 #include "./COMMON/OglImage.h"
+#include "./COMMON/tmath.h"
 #include "./COMMON/tmesh.h"
 
 #include <vector>
@@ -31,12 +32,12 @@ class MaskData
 {
 
 public:
-	string name     ;
-	TMesh  surf     ;
-	EVec3i color    ;
-	double alpha    ;
-	bool   bRendSurf;
-	bool   lock     ;
+  string name     ;
+  TMesh  surf     ;
+  EVec3i color    ;
+  double alpha    ;
+  bool   bRendSurf;
+  bool   lock     ;
 
 	MaskData(string _name, EVec3i _color, double _alpha, bool _bRendSurf, bool _lock = false) 
 	{
@@ -85,13 +86,10 @@ private:
 	EVec3i  m_Reso ;
 	EVec3f  m_Pitch;
   EVec2i  m_volMinMax;
-
 	string  m_filePath;
 
   
 public:
-	//DlgVolInfo  m_dlg;
-
 	//volume 
 	short              *m_volOrig  ; // original image          [W,H,D]
 	float              *m_volOrigGM; // original image grad mag [W,H,D]
@@ -101,8 +99,8 @@ public:
 	OglImage3D          m_volGmag  ; // gradient magnitude 
 	OglImage1D<CH_RGBA> m_imgMskCol; // func: maskID    --> color
 
-	int                 m_maskActiveId;
-	vector<MaskData>    m_maskData    ;
+	  int               m_maskSelectedId; // -1:none, 0...:maskID
+	vector<MaskData>    m_maskData      ;
 
 	
 
@@ -131,9 +129,9 @@ public:
 
 	//getter/setter for pitch 
 	EVec3f getPitch()  { return m_Pitch; }
-	float getPitchW() { return m_Pitch[0]; }
-	float getPitchH() { return m_Pitch[1]; }
-	float getPitchD() { return m_Pitch[2]; }
+	float  getPitchW() { return m_Pitch[0]; }
+	float  getPitchH() { return m_Pitch[1]; }
+	float  getPitchD() { return m_Pitch[2]; }
 
   void  setPitch (const EVec3f pitch){ m_Pitch = pitch;}
   void  setPitchW(const float &pW) { m_Pitch[0] = pW; }
@@ -158,32 +156,28 @@ public:
 
 
 
-  /*
-	//get Value 
-
 
 	//mask manipuration
-	void mask_storeCurrentForeGround();
 
-	void ActvMsk_SetLock    (const bool   tf    );
-	void ActvMsk_SetRendSurf(const bool   tf    );
-	void ActvMsk_SetAlpha   (const double alpha );
-	void ActvMsk_SetColor   (const EVec3i &c    );
-	void ActvMsk_erode      ();
-	void ActvMsk_dilate     ();
-	void ActvMsk_fillHole   ();
-	void ActvMsk_delete     ();
-	void ActvMsk_margeTo    ();
-	void ActvMsk_fillPsuedoHoleAsNewRegion();
-	void ActvMsk_ExportObj(const char *fname);
-	void ActvMsk_ExportStl(const char *fname);
-	void ActvMsk_ExportBmp(const char *fname);
+  void mask_storeCurrentForeGround();
+  void selectedMsk_setLock    (const bool   tf    );
+  void selectedMsk_setRendSurf(const bool   tf    );
+  void selectedMsk_setAlpha   (const double alpha );
+  void selectedMsk_setColor   (const EVec3i &c    );
+
+  void selectedMsk_delete  ();
+  void selectedMsk_marge   (const int &trgtMaskID);
+  void selectedMsk_erode   ();
+  void selectedMsk_dilate  ();
+  void selectedMsk_fillHole();
+  void selectedMsk_expObj  (const string &fname);
 
 
-	string getVolFilePath(){ return m_filePath; }
-
-
-*/
+	//void ActvMsk_fillPsuedoHoleAsNewRegion();
+	//void ActvMsk_ExportObj(const char *fname);
+	//void ActvMsk_ExportStl(const char *fname);
+	//void ActvMsk_ExportBmp(const char *fname);
+	//string getVolFilePath(){ return m_filePath; }
 
 private:
 	void updateGradVolume();

@@ -106,8 +106,9 @@
       <AdditionalIncludeDirectories>./;./3rdparty/glew/include;./3rdparty/Eigen;./3rdparty/dcmtk/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies />
+      <AdditionalDependencies>glew32.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
+      <AdditionalLibraryDirectories>./3rdparty/dcmtk/staticlibMD;./3rdparty/glew/lib/Release/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -150,6 +151,7 @@
   <ItemGroup>
     <ClInclude Include="3rdparty\dcmtk\tdcmtk.h" />
     <ClInclude Include="3rdparty\vvv\ddsbase.h" />
+    <ClInclude Include="climessagebox.h" />
     <ClInclude Include="COMMON\kcurves.h" />
     <ClInclude Include="COMMON\OglForCLI.h" />
     <ClInclude Include="COMMON\OglImage.h" />
@@ -162,6 +164,18 @@
     <ClInclude Include="FormMain.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="FormSegGCut.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="FormSegRGrow.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="FormStackOrder.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="FormVisMask.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="FormVisNorm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -172,6 +186,7 @@
     <ClInclude Include="ModeCore.h" />
     <ClInclude Include="ModeInterface.h" />
     <ClInclude Include="mode\GlslShader.h" />
+    <ClInclude Include="mode\ModeVizMask.h" />
     <ClInclude Include="mode\ModeVizNormal.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ViewAngleCore.h" />
@@ -186,12 +201,17 @@
     <ClCompile Include="COMMON\tmarchingcubes.cpp" />
     <ClCompile Include="CrsSecCore.cpp" />
     <ClCompile Include="FormMain.cpp" />
+    <ClCompile Include="FormSegGCut.cpp" />
+    <ClCompile Include="FormSegRGrow.cpp" />
+    <ClCompile Include="FormStackOrder.cpp" />
+    <ClCompile Include="FormVisMask.cpp" />
     <ClCompile Include="FormVisNorm.cpp" />
     <ClCompile Include="FormVisParam.cpp" />
     <ClCompile Include="ImageCore.cpp" />
     <ClCompile Include="ModeCore.cpp" />
     <ClCompile Include="ModeInterface.cpp" />
     <ClCompile Include="mode\GlslShader.cpp" />
+    <ClCompile Include="mode\ModeVizMask.cpp" />
     <ClCompile Include="mode\ModeVizNormal.cpp" />
     <ClCompile Include="RoiPainter3D.cpp" />
     <ClCompile Include="ViewAngleCore.cpp" />
@@ -202,6 +222,15 @@
   <ItemGroup>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormSegRGrow.resx">
+      <DependentUpon>FormSegRGrow.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormStackOrder.resx">
+      <DependentUpon>FormStackOrder.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormVisMask.resx">
+      <DependentUpon>FormVisMask.h</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormVisNorm.resx">
       <DependentUpon>FormVisNorm.h</DependentUpon>

@@ -1,6 +1,9 @@
 #include "ImageCore.h"
+#include "FormStackOrder.h"
 
+#include "climessagebox.h"
 #include "./COMMON/tmath.h"
+#include "./COMMON/tmarchingcubes.h"
 #include "./3rdParty/dcmtk/tdcmtk.h"
 #include "./3rdparty/vvv/ddsbase.h"
 
@@ -9,13 +12,10 @@ ImageCore::ImageCore()
 {
   fprintf(stderr, "CONSTRUCTOR ImageCore ...\n");
 
-  
 	m_volOrig = 0;
-
 	loadVolume("init","init");
-
 	m_imgMskCol.Allocate(256);
-
+  m_maskSelectedId = -1;
   fprintf(stderr, "CONSTRUCTOR ImageCore ...DONE !\n");
 }
 
@@ -298,13 +298,13 @@ static bool t_LoadDCMs
 
 		tdcm.getPixelsAs<short>( &vol[z*W*H] );
 
-		fprintf( stderr, "(%d/%d)", z, D);
+		printf( "(%d/%d)", z, D);
 	}
 
 
 	if( pitch[2] < 0)
 	{
-		fprintf( stderr, "flip in z\n");
+		printf( "flip in z\n");
 		pitch[2] *= -1.0;
 		t_flipVolumeInZ(W,H,D, vol);
 	}
@@ -332,7 +332,7 @@ static bool t_LoadDCM3D(
 	pitch[2] = 1;//pitch[0];
 	System::Windows::Forms::MessageBox::Show("pitch情報は読み込んでいません。正しい値をダイアログより指定してしてください");
 
-	fprintf( stderr, "resolution %d %d %d\n", reso[0], reso[1], reso[2]);
+	printf( "resolution %d %d %d\n", reso[0], reso[1], reso[2]);
 
 	vol = new short[ reso[0] * reso[1] * reso[2] ];
 	tdcm.getPixels3DAs<short>( vol );
@@ -354,7 +354,7 @@ static bool t_LoadPVM3D(
 
 	byte *buf = readPVMvolume(fname.c_str(), &W, &H, &D,&components, &px,&py,&pz );
 
-	fprintf( stderr, "load pvm %d %d %d %d\n", W,H,D,components);
+	printf( "load pvm %d %d %d %d\n", W,H,D,components);
 
 	reso  << W, H, D;
 	pitch << px, py, pz;
@@ -436,9 +436,8 @@ bool ImageCore::loadVolume(vector<string> fnames, string fext)
 		}
 		else
 		{
-      System::Windows::Forms::MessageBox::Show("TODO SHOW STACK DIALOG"); 
-			//DlgSetStackOrder dlg;
-			//if (IDOK != dlg.DoModal()) t_flipVolumeInZ<float>( m_Reso[0], m_Reso[1], m_Reso[2], m_volOrig);
+      int flg = RoiPainter3D::formStackOrder_showModalDialog();
+			if (flg == 1) t_flipVolumeInZ<short>( m_Reso[0], m_Reso[1], m_Reso[2], m_volOrig);
 		}
 	}
 	else 
@@ -502,6 +501,333 @@ void ImageCore::updateVisVolume(short winLvMin,  short winLvMax)
   m_vol.SetValue( m_volOrig, (short)winLvMin, (short)winLvMax);
 }
 
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////
+//MASK IO////////////////////////////////////////////////////
+
+
+void ImageCore::loadMask(const char *fname)
+{
+	FILE* fp = fopen(fname, "rb");
+	
+	//save mask image
+	int version, W,H,D;
+	fread(&version, sizeof(int), 1, fp);
+	fread(&W      , sizeof(int), 1, fp);
+	fread(&H      , sizeof(int), 1, fp);
+	fread(&D      , sizeof(int), 1, fp);
+
+	if(W != m_Reso[0] || H != m_Reso[1] || D != m_Reso[2] )
+	{
+		RoiPainter3D::CLI_MessageBox_OK_Show( "strange volume size\n", "caution");
+		fclose( fp );
+		return;
+	}
+
+  //read mask voxels
+	fread( &m_volMsk[0], sizeof(byte), W * H * D, fp);
+
+
+  int flg = RoiPainter3D::formStackOrder_showModalDialog();
+  if (flg == 1) m_volMsk.FlipInZ();
+
+	m_volMsk.SetUpdated();
+
+  //read mask status
+	int maskN;
+	fread(&maskN, sizeof(int), 1, fp);
+
+	m_maskData.clear();
+
+	for (int i=0; i < maskN; ++i)
+	{
+		int lock, nLen;
+		int col[3];
+		double alpha;
+		fread(&alpha, sizeof(double), 1, fp);
+		fread(col   , sizeof(int   ), 3, fp);
+		fread(&lock , sizeof(int   ), 1, fp);
+
+		fread(&nLen , sizeof(int   ), 1, fp);
+		char *name = new char[nLen + 1];
+		fread(name, sizeof(char), nLen + 1, fp);
+
+		printf("%d %s\n", nLen, name);
+
+		m_maskData.push_back( MaskData(string(name), EVec3i(col[0],col[1],col[2]), alpha, 0, lock?true:false) );
+
+		delete[] name; 
+	}
+	fclose(fp);
+}
+
+
+void ImageCore::saveMask( const char* fname)
+{
+  FILE* fp = fopen(fname, "wb");
+
+  //save mask image
+  int version = 0;
+  fwrite(&version  , sizeof(int), 1, fp);
+  fwrite(&m_Reso[0], sizeof(int), 1, fp);
+  fwrite(&m_Reso[1], sizeof(int), 1, fp);
+  fwrite(&m_Reso[2], sizeof(int), 1, fp);
+  fwrite(&m_volMsk[0], sizeof(byte), m_Reso[0] * m_Reso[1] * m_Reso[2], fp);
+
+	int maskN = (int)m_maskData.size();
+	fwrite(&maskN, sizeof(int), 1, fp);
+
+	for( const auto &it : m_maskData )
+	{
+		int iLock = it.lock;
+		fwrite(&it.alpha      , sizeof(double), 1, fp);
+		fwrite(it.color.data(), sizeof(int)   , 3, fp);
+		fwrite(&iLock, sizeof(int), 1, fp);
+
+		int nLen = (int)it.name.length();
+		fwrite(&nLen          , sizeof(int ),  1    , fp);
+		fwrite(it.name.c_str(), sizeof(char), nLen+1, fp);
+
+		printf("%d %s\n", nLen, it.name.c_str());
+	}
+	fclose(fp);
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////
+//Mask Manipulation///////////////////////////////////////
+
+using namespace RoiPainter3D;
+
+
+void ImageCore::selectedMsk_delete  ()
+{
+  if (m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  if (m_maskSelectedId == 0)
+  {
+    CLI_MessageBox_OK_Show("0th region (background) cannot be removed", "caution");
+    return;
+  }
+
+  if (CLI_MessageBox_YESNO_Show("Do you want to DELETE the selected mask?", "caution") == false) return;
+
+
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  for (int i = 0; i < N; ++i)
+  {
+    if (     m_volMsk[i] >  m_maskSelectedId) m_volMsk[i]--;
+    else if (m_volMsk[i] == m_maskSelectedId) m_volMsk[i] = 0;
+  }
+
+  m_maskData.erase( m_maskData.begin() + m_maskSelectedId );
+  m_maskSelectedId = 0;
+}
+
+
+void ImageCore::selectedMsk_marge   (const int &trgtMaskID)
+{
+  if (m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  if (m_maskSelectedId == 0 || trgtMaskID == 0)
+  {
+    CLI_MessageBox_OK_Show("0th region (background) cannot be marged", "caution");
+    return;
+  }
+
+  if (trgtMaskID == m_maskSelectedId)
+  {
+    CLI_MessageBox_OK_Show("Cannot marge to it self", "caution");
+    return;
+  }
+
+
+  fprintf(stderr, "active %d, trgt, %d\n", m_maskSelectedId, trgtMaskID);
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  for (int i = 0; i < N; ++i) if ( m_volMsk[i] == trgtMaskID) m_volMsk[i] = m_maskSelectedId;
+  for (int i = 0; i < N; ++i) if ( m_volMsk[i] >  trgtMaskID) --m_volMsk[i];
+
+  if (m_maskSelectedId > trgtMaskID) --m_maskSelectedId;
+
+  m_maskData.erase(m_maskData.begin() + trgtMaskID);
+
+  m_maskData[ m_maskSelectedId ].surf.clear();
+  m_maskData[ m_maskSelectedId ].bRendSurf = false;
+}
+
+
+void ImageCore::selectedMsk_erode()
+{
+  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  printf( "mask erode...\n");
+  
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  byte* flgs = new byte[N];
+
+  for (int i = 0; i < N; ++i) flgs[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 : 1;
+  t_erode3D( m_Reso[0], m_Reso[1], m_Reso[2], flgs);
+  for (int i = 0; i < N; ++i) if (m_volMsk[i] == m_maskSelectedId && flgs[i] == 1) m_volMsk[i] = 0;
+
+  delete[] flgs;
+
+  printf( "mask erode...DONE\n");
+}
+
+
+
+void ImageCore::selectedMsk_dilate  ()
+{
+  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  printf( "mask dilate...\n");
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  byte* flgs = new byte[N];
+  for (int i = 0; i < N; ++i) {
+    flgs[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 :
+              (m_maskData[m_volMsk[i]].lock   ) ? 0 : 1;
+  }
+
+  t_dilate3D( m_Reso[0], m_Reso[1], m_Reso[2], flgs);
+
+  for (int i = 0; i < N; ++i) {
+    if (flgs[i] == 255) m_volMsk[i] = m_maskSelectedId;
+  }
+
+  delete[] flgs;
+  printf( "mask dilate...DONE\n");
+}
+
+
+
+void ImageCore::selectedMsk_fillHole()
+{
+  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  printf( "mask fillhole...\n");
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+  
+  byte* flgs = new byte[ N ]; //0:back, 255:trgt_mask_id
+
+  for (int i = 0; i < N; ++i){
+    flgs[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 : 0;
+  } 
+
+  t_fillHole3D(m_Reso[0], m_Reso[1], m_Reso[2], flgs);
+
+  for (int i = 0; i < N; ++i)
+  {
+    if (flgs[i] == 255 && m_volMsk[i] == 0 ) m_volMsk[i] = m_maskSelectedId;
+  }
+
+  delete[] flgs;
+
+  fprintf(stderr, "fillhole...DONE\n");
+}
+
+
+
+void ImageCore::selectedMsk_expObj  (const string &fname)
+{
+  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+
+  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+  short *v = new short[N];
+  for (int i = 0; i < N; ++i) v[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 : 0;
+
+  TMesh mesh;
+  marchingcubes::t_MarchingCubes(m_Reso, m_Pitch, v, 128, 0, 0, mesh);
+  mesh.smoothing(2);
+  mesh.exportObjNoTexCd(fname.c_str());
+
+  delete[] v;
+}
+
+
+
+static const int ColPalletN = 14;
+static const EVec3i ColPallet[ColPalletN] = {
+	EVec3i(255,0  ,0) , EVec3i(0  ,0,255), 
+	EVec3i(0,255,255 ), EVec3i(255,0,255), EVec3i(255,255,0 ),
+	EVec3i(0, 128,128), EVec3i(128,0,128), EVec3i(128,128, 0), 
+	EVec3i(255,128,0) , EVec3i(0,255,128), EVec3i(128,0,255 ), 
+	EVec3i(128,255,0) , EVec3i(0,128,255), EVec3i(255, 0, 128) , 
+	
+};
+
+
+
+//mask_storeCurrentForeGround
+//generate new region by using all voxels with (m_volFlg[i] == 255) 
+void ImageCore::mask_storeCurrentForeGround()
+{
+	const int id = (int) m_maskData.size();
+	const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+	for (int i = 0; i < N; ++i) if( m_volFlg[i] == 255 )  m_volMsk[i] = id;
+	m_volMsk.SetUpdated();
+
+	//initial color
+	static int c = 1;
+	c++;
+	//store new region
+	m_maskData.push_back( MaskData("region", ColPallet[c%ColPalletN], 0.1, false, true) );
+}
+
+
+void ImageCore::selectedMsk_setLock(const bool tf)
+{
+	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
+	m_maskData[m_maskSelectedId].lock = tf;
+}
+
+void ImageCore::selectedMsk_setAlpha(const double alpha)
+{
+	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
+	m_maskData[m_maskSelectedId].alpha = alpha;
+}
+
+void ImageCore::selectedMsk_setColor(const EVec3i &c)
+{
+	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
+	m_maskData[m_maskSelectedId].color = c;
+}
+
+
+void ImageCore::selectedMsk_setRendSurf(const bool tf)
+{
+	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
+	MaskData &trgtMsk = m_maskData[m_maskSelectedId];
+
+	trgtMsk.bRendSurf = tf;
+	
+	if( tf == true && trgtMsk.surf.m_vSize == 0)
+	{
+		const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+
+		short *v = new short[N];
+
+		for( int i=0; i < N; ++i ) v[i] = ( m_volMsk[i] == m_maskSelectedId ) ? 255 : 0;
+
+    marchingcubes::t_MarchingCubes(m_Reso, m_Pitch, v, 128, 0, 0, trgtMsk.surf);
+		trgtMsk.surf.smoothing(2);
+
+		delete[] v;
+	}
+}
 
 
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "COMMON/OglForCLI.h"
+#include "CrsSecCore.h"
 
 #define ONMOVE_SLICE_RATE 0.2
 
@@ -67,11 +68,11 @@ inline bool isAltKeyOn  () { return GetKeyState(VK_MENU   ) < 0; }
 //inline bool isTabKeyOn  (){ return GetKeyState( VK_TAB     ) < 0 ; }
 
 
+CRSSEC_ID pickCrsSec(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos);
+CRSSEC_ID pickCrsSec(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos, const bool bXY, const bool bYZ, const bool bZX);
 
 /*
 
-CRSSEC_ID pickCrsSrc(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos);
-CRSSEC_ID pickCrsSrc(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos, const bool bXY, const bool bYZ, const bool bZX);
 CRSSEC_ID pickCrsSrc(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos, const CRSSEC_ID id);
 {
 	const EVec3f cube  = ImageCore::getInst()->getCuboidF();

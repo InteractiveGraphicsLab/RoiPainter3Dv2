@@ -7,6 +7,7 @@
 
 #include "FormVisParam.h"
 #include "FormVisNorm.h"
+#include "FormVisMask.h"
 
 
 
@@ -92,6 +93,8 @@ System::Void FormMain::FormMainPanel_Paint    (System::Object^  sender, System::
 
 System::Void FormMain::FormMain_Resize(System::Object^  sender, System::EventArgs^  e)
 {
+  if (m_ogl == 0) return;
+  replaceOtherForms();
 }
 
 System::Void FormMain::FormMain_Move  (System::Object^  sender, System::EventArgs^  e)
@@ -183,11 +186,12 @@ void FormMain::replaceOtherForms()
   const int thisY = this->Location.Y;
   const int thisW = this->Width;
   const int dlgH = FormVisParam::getInst()->Height;
+
   FormVisParam::getInst()->Location = Point(thisX + thisW, thisY);
   FormVisNorm ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormVisMask ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
 
   /*
-  FormVisMask::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegRGrow::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegPixPaint::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegRigidICP::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
@@ -212,14 +216,15 @@ void FormMain::initializeOtherForms()
 
   //ˆê“xShow‚µ Hide‚·‚é(‚»‚¤‚µ‚È‚¢‚ÆˆÚ“®‚ªŒø‚©‚È‚¢)
   FormVisNorm::getInst()->Show();
+  FormVisMask::getInst()->Show();
   
   replaceOtherForms();
   
   FormVisNorm::getInst()->Hide();
+  FormVisMask::getInst()->Hide();
   printf("--------initialize form(dialogs)...DONE\n");
 
   /*
-  FormVisMask::getInst()->Show();
   FormSegRGrow::getInst()->Show();
   FormSegPixPaint::getInst()->Show();
   FormSegRigidICP::getInst()->Show();
@@ -227,7 +232,6 @@ void FormMain::initializeOtherForms()
   FormSegLocalRGrow::getInst()->Show();
   FormRefStrokeTrim::getInst()->Show();
   FormVisNorm::getInst()->Hide();
-  FormVisMask::getInst()->Hide();
   FormSegRGrow::getInst()->Hide();
   FormSegPixPaint::getInst()->Hide();
   FormSegRigidICP::getInst()->Hide();
@@ -348,11 +352,28 @@ static void n_marshalString(String ^ s, string& os) {
 }
 
 
-static bool t_showDlgToGetMultiFilePaths
+class LessString_ForFnameTime {
+public:
+  bool operator()
+    (
+    const pair<string,string>& rsLeft, 
+    const pair<string,string>& rsRight
+    ) const 
+  {
+    if(rsLeft.first.length() == rsRight.first.length()) return rsLeft.first < rsRight.first;
+    else                                                return rsLeft.first.length() < rsRight.first.length();
+  }
+};
+
+
+
+
+
+
+static bool t_showOpenFileDlg_multi
 (
   const char* filter,
-  vector<string> &fNames,
-  vector<string> &fDates
+  vector<string> &fNames
 )
 {
   OpenFileDialog^ dlg = gcnew OpenFileDialog();
@@ -361,23 +382,28 @@ static bool t_showDlgToGetMultiFilePaths
 
   if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return false;
 
-  fNames.clear();
-  fDates.clear();
+  vector<pair<string, string>> vec_fname_date;
 
   for each (auto it in  dlg->FileNames)
   {
     string fName, fTime;
     n_marshalString(it, fName);
     n_marshalString(File::GetCreationTime(it).ToString(), fTime);
-    fNames.push_back(fName);
-    fDates.push_back(fTime);
+    vec_fname_date.push_back(make_pair(fName, fTime));
   }
+
+  //sort fname_ftime 
+  //currentry the system only uses file name
+  sort(vec_fname_date.begin(), vec_fname_date.end(), LessString_ForFnameTime() );
+  
+  fNames.clear(); 
+  for( const auto &it : vec_fname_date) fNames.push_back(it.first);
 
   return true;
 }
 
 
-static bool t_showDlgToGetSingleFilePath
+static bool t_showOpenFileDlg_single
 (
   const char* filter,
   string &fname
@@ -396,13 +422,30 @@ static bool t_showDlgToGetSingleFilePath
 }
 
 
+static bool t_showSaveFileDlg
+(
+  const char *filter, 
+  string &fname
+)
+{
+  SaveFileDialog^ dlg = gcnew SaveFileDialog();
+  dlg->Filter = gcnew System::String(filter);
+
+  if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return false;
+
+  IntPtr mptr = Marshal::StringToHGlobalAnsi(dlg->FileName);
+  fname = static_cast<const char*>(mptr.ToPointer());
+  return true;
+}
+
+
+
 
 // bmp/tif slices
 System::Void FormMain::open2DSlicesToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e) 
 {
   vector<string> fNames;
-  vector<string> fDates;
-  if( !t_showDlgToGetMultiFilePaths("2D slice files(*.bmp;*.tif)|*.bmp;*.tif", fNames, fDates) ) return;
+  if( !t_showOpenFileDlg_multi("2D slice files(*.bmp;*.tif)|*.bmp;*.tif", fNames) ) return;
 
   if( fNames.size() == 0 || fNames.front().length() < 3) return;
 
@@ -420,8 +463,7 @@ System::Void FormMain::open2DSlicesToolStripMenuItem_Click      (System::Object^
 System::Void FormMain::open2DSlicesdcmToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e) 
 {
   vector<string> fNames;
-  vector<string> fDates;
-  if( !t_showDlgToGetMultiFilePaths("2d dcm slices(*.dcm;*.DCM;*)|*.dcm;*.DCM;*", fNames, fDates) ) return;
+  if( !t_showOpenFileDlg_multi("2d dcm slices(*.dcm;*.DCM;*)|*.dcm;*.DCM;*", fNames) ) return;
 
   if( fNames.size() == 0 || fNames.front().length() < 3) return;
 
@@ -440,7 +482,7 @@ System::Void FormMain::open2DSlicesdcmToolStripMenuItem_Click   (System::Object^
 System::Void FormMain::open3DVolumetraw3DToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
 {
   string fname;
-  if( !t_showDlgToGetSingleFilePath("3d volume (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
+  if( !t_showOpenFileDlg_single("3d volume (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
   if( fname.length() < 9) return;
 
   string fext = fname.substr(fname.length()-9, 9);
@@ -456,7 +498,7 @@ System::Void FormMain::open3DVolumetraw3DToolStripMenuItem_Click(System::Object^
 System::Void FormMain::open3DColumedcmToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e)
 {
   string fname;
-  if( !t_showDlgToGetSingleFilePath("3d volume (*.dcm;*.DCM;*)|*.dcm;*.DCM;*", fname) ) return;
+  if( !t_showOpenFileDlg_single("3d volume (*.dcm;*.DCM;*)|*.dcm;*.DCM;*", fname) ) return;
   if( fname.length() < 3) return;
 
   //load volume / update visParam / init camera / redraw 
@@ -469,7 +511,7 @@ System::Void FormMain::open3DColumedcmToolStripMenuItem_Click   (System::Object^
 System::Void FormMain::open3DVolumefavToolStripMenuItem_Click   (System::Object^  sender, System::EventArgs^  e)
 {
   string fname;
-  if( !t_showDlgToGetSingleFilePath("3d volume (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
+  if( !t_showOpenFileDlg_single("3d volume (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
   if( fname.length() < 3) return;
 
   string fext = fname.substr(fname.length()-3, 3);
@@ -483,7 +525,51 @@ System::Void FormMain::open3DVolumefavToolStripMenuItem_Click   (System::Object^
 }
 
 
-System::Void FormMain::saveMaskmskToolStripMenuItem_Click       (System::Object^  sender, System::EventArgs^  e){}
-System::Void FormMain::loadMaskmskToolStripMenuItem_Click       (System::Object^  sender, System::EventArgs^  e) {}
+System::Void FormMain::saveMaskmskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
+  string fname;
+  if( !t_showSaveFileDlg("RoiPainter Mask data (*.msk)|*.msk", fname) ) return;
+  ImageCore::getInst()->saveMask(fname.c_str());
+  redrawMainPanel();
+}
+
+
+System::Void FormMain::loadMaskmskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
+  string fname;
+  if( !t_showOpenFileDlg_single("RoiPainter Mask data (*.msk)|*.msk", fname) ) return;
+	ImageCore::getInst()->loadMask( fname.c_str() );
+	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK);
+  redrawMainPanel();
+}
+
+
+
+System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+
+}
+
+
+
 System::Void FormMain::saveMaskfavbToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e){}
-System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {}
+
+
+
+
+
+// mode switch items
+System::Void FormMain::visualizationStandardToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
+  ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+  redrawMainPanel();
+}
+System::Void FormMain::visualizationMaskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
+  ModeCore::getInst()->ModeSwitch(MODE_VIS_MASK);
+  redrawMainPanel();
+}
+
+
+
+
+
+
+
+
+

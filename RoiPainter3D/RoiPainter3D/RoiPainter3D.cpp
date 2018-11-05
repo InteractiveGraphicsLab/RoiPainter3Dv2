@@ -6,6 +6,10 @@
 #include "ModeCore.h"
 #include "CrsSecCore.h"
 
+#include "mode/ModeVizMask.h"
+#include "mode/ModeVizNormal.h"
+
+
 using namespace System;
 using namespace RoiPainter3D;
 
@@ -22,10 +26,10 @@ int main()
   ModeCore  ::getInst();
   ImageCore ::getInst();
   CrssecCore::getInst();
+  ModeVizMask  ::getInst();
+  ModeVizNormal::getInst();
 
   /*
-  ModeVizMask::getInst();
-  ModeVizNormal::getInst();
   ModeSegRGrow::getInst();
   ModeSegPixPaint::getInst();
   ModeSegRigidICP::GetInstance();
@@ -51,11 +55,11 @@ int main()
 //   support gradient magnitude    OK
 //   support gradient magnitude tf OK
 //
-// modeVisMask
-//   implement overall workflow
-//   formVisMask
-//   maskManipulations   
-//   I/O
+// modeVisMask OK
+//   implement overall workflow OK
+//   formVisMask                OK
+//   maskManipulations          80%
+//   I/O                        OK
 //
 // modeSegRgrow
 //
@@ -91,4 +95,14 @@ int main()
 //   
 // etc...
 
+/*
 
+todo
+1. modeVisMask作る OK 
+2. maskIOのテスト / VisMaskのテスト 
+3. mode switchのテスト 
+4. volume_load時のflipするかどうかを聞くdialog作る
+5. visMaskをonにした瞬間にmarching cubesする機構を作る
+--> segmentationへ
+
+*/
