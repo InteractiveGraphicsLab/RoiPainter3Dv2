@@ -1,4 +1,5 @@
 #include "ImageCore.h"
+#include "FormStackOrder.h"
 
 #include "climessagebox.h"
 #include "./COMMON/tmath.h"
@@ -435,9 +436,8 @@ bool ImageCore::loadVolume(vector<string> fnames, string fext)
 		}
 		else
 		{
-      System::Windows::Forms::MessageBox::Show("TODO SHOW STACK DIALOG"); 
-			//DlgSetStackOrder dlg;
-			//if (IDOK != dlg.DoModal()) t_flipVolumeInZ<float>( m_Reso[0], m_Reso[1], m_Reso[2], m_volOrig);
+      int flg = RoiPainter3D::formStackOrder_showModalDialog();
+			if (flg == 1) t_flipVolumeInZ<short>( m_Reso[0], m_Reso[1], m_Reso[2], m_volOrig);
 		}
 	}
 	else 
@@ -532,9 +532,9 @@ void ImageCore::loadMask(const char *fname)
   //read mask voxels
 	fread( &m_volMsk[0], sizeof(byte), W * H * D, fp);
 
-	RoiPainter3D::CLI_MessageBox_OK_Show( "TODO TODO show flip dialog\n", "caution");	
-	//DlgSetStackOrder dlg;
-	//if (IDOK != dlg.DoModal()) m_volMsk.flipVolumeInZ();
+
+  int flg = RoiPainter3D::formStackOrder_showModalDialog();
+  if (flg == 1) m_volMsk.FlipInZ();
 
 	m_volMsk.SetUpdated();
 
