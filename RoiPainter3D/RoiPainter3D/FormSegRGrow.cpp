@@ -15,7 +15,13 @@ void FormSegRGrow::InitAllItems(short volMin, short volMax)
 
 
 
-System::Void FormSegRGrow::textBox_min_TextChanged(System::Object^  sender, System::EventArgs^  e) {}
+
+//TODO here
+System::Void FormSegRGrow::textBox_min_TextChanged(System::Object^  sender, System::EventArgs^  e) 
+{
+    
+}
+
 System::Void FormSegRGrow::trackbar_min_Scroll(System::Object^  sender, System::EventArgs^  e) {}
 System::Void FormSegRGrow::textBox_max_TextChanged(System::Object^  sender, System::EventArgs^  e){} 
 System::Void FormSegRGrow::trackBar_max_Scroll(System::Object^  sender, System::EventArgs^  e) {}
