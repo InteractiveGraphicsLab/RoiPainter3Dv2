@@ -385,7 +385,80 @@ void ModeSegRGrow::runRegionGrow6(short minV, short maxV)
 
 void ModeSegRGrow::runRegionGrow26(short minV, short maxV)
 {
-  //TODO
+  fprintf( stderr, "runRegionGrow26...");
+	const short  *vO   = ImageCore::getInst()->m_volOrig;
+	OglImage3D   &vF   = ImageCore::getInst()->m_volFlg ; 
+	const EVec3i  reso = ImageCore::getInst()->getResolution();
+  const EVec3f  pitch= ImageCore::getInst()->getPitch();
+
+	const int W = reso[0];
+	const int H = reso[1];
+	const int D = reso[2], WH = W*H, WHD = W*H*D;
+
+	for (int i = 0; i < WHD; ++i) vF[i] = ( vF[i] == 0) ? 0 : 1;
+
+	//CP --> pixel id
+	//volFlg : 0:never change, 1:back, 255:fore
+	TQueue<EVec4i> Q;
+	for ( const auto cp : m_CPs)
+	{
+		const int x = min(W-1, (int)( cp[0] / pitch[0] ) ) ;
+		const int y = min(H-1, (int)( cp[1] / pitch[1] ) ) ;
+		const int z = min(D-1, (int)( cp[2] / pitch[2] ) ) ;
+		const int I = x + y*W + z*WH;
+		if ( vF[I] != 0 && minV <= vO[I] && vO[I] <= maxV)
+		{
+			Q.push_back(EVec4i(x, y, z, I));
+			vF[I] = 255;
+		}
+	}
+
+	while (!Q.empty())
+	{
+		const int x = Q.front()[0];
+		const int y = Q.front()[1];
+		const int z = Q.front()[2];
+		const int I = Q.front()[3];
+		Q.pop_front();
+
+		//grow to 26  neighbors
+		int K;
+    K = I-1-W-WH; if (x> 0 &&y> 0 &&z> 0 && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x-1, y-1, z-1, K)); }
+    K = I  -W-WH; if (       y> 0 &&z> 0 && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x  , y-1, z-1, K)); }
+    K = I+1-W-WH; if (x<W-1&&y> 0 &&z> 0 && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x+1, y-1, z-1, K)); }
+    K = I-1  -WH; if (x> 0        &&z> 0 && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x-1, y  , z-1, K)); }
+    K = I    -WH; if (              z> 0 && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x  , y  , z-1, K)); }
+    K = I+1  -WH; if (x<W-1       &&z> 0 && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x+1, y  , z-1, K)); }
+    K = I-1+W-WH; if (x> 0 &&y<H-1&&z> 0 && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x-1, y+1, z-1, K)); }
+    K = I  +W-WH; if (       y<H-1&&z> 0 && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x  , y+1, z-1, K)); }
+    K = I+1+W-WH; if (x<W-1&&y<H-1&&z> 0 && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x+1, y+1, z-1, K)); }
+
+    K = I-1-W   ; if (x> 0 &&y> 0        && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x-1, y-1, z  , K)); }
+    K = I  -W   ; if (       y> 0        && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x  , y-1, z  , K)); }
+    K = I+1-W   ; if (x<W-1&&y> 0        && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x+1, y-1, z  , K)); }
+    K = I-1     ; if (x> 0               && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x-1, y  , z  , K)); }
+  //K = I       ; if (                   && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x  , y  , z  , K)); }
+    K = I+1     ; if (x<W-1              && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x+1, y  , z  , K)); }
+    K = I-1+W   ; if (x> 0 &&y<H-1       && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x-1, y+1, z  , K)); }
+    K = I  +W   ; if (       y<H-1       && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x  , y+1, z  , K)); }
+    K = I+1+W   ; if (x<W-1&&y<H-1       && vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x+1, y+1, z  , K)); }
+
+    K = I-1-W+WH; if (x> 0 &&y> 0 &&z<D-1&& vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x-1, y-1, z+1, K)); }
+    K = I  -W+WH; if (       y> 0 &&z<D-1&& vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x  , y-1, z+1, K)); }
+    K = I+1-W+WH; if (x<W-1&&y> 0 &&z<D-1&& vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x+1, y-1, z+1, K)); }
+    K = I-1  +WH; if (x> 0        &&z<D-1&& vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x-1, y  , z+1, K)); }
+    K = I    +WH; if (              z<D-1&& vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x  , y  , z+1, K)); }
+    K = I+1  +WH; if (x<W-1       &&z<D-1&& vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x+1, y  , z+1, K)); }
+    K = I-1+W+WH; if (x> 0 &&y<H-1&&z<D-1&& vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x-1, y+1, z+1, K)); }
+    K = I  +W+WH; if (       y<H-1&&z<D-1&& vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x  , y+1, z+1, K)); }
+    K = I+1+W+WH; if (x<W-1&&y<H-1&&z<D-1&& vF[K] == 1 && minV <= vO[K] && vO[K] <= maxV) { vF[K] = 255; Q.push_back(EVec4i(x+1, y+1, z+1, K)); }
+	}
+	
+  vF.SetUpdated();
+	m_bRegionUpdated = true;
+  formMain_redrawMainPanel();
+
+	fprintf(stderr, "runRegionGrow26...DONE\n\n");
 }
 
 
