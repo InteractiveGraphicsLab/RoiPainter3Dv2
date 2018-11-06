@@ -141,8 +141,8 @@ System::Void FormVisMask::btnDelete_Click       (System::Object^  sender, System
 
 System::Void FormVisMask::btnMargeTo_Click( System::Object^  sender, System::EventArgs^  e) 
 {
-  /*
   todo 
+  /*
     + marge to çÏÇÈ
     + marge toópÇÃselection dialogçÏÇÈ
     + stack orientation dialogçÏÇÈ

@@ -34,6 +34,7 @@ namespace RoiPainter3D {
       return m_singleton;
     }
 
+    void InitAllItems(short volMin, short volMax);
 
 	protected:
 		/// <summary>
@@ -55,7 +56,7 @@ namespace RoiPainter3D {
     System::Windows::Forms::TextBox^  textBox_min;
     System::Windows::Forms::TextBox^  textBox_max;
     System::Windows::Forms::TrackBar^  trackbar_min;
-    System::Windows::Forms::TrackBar^  trackBar_max;
+    System::Windows::Forms::TrackBar^  trackbar_max;
     System::Windows::Forms::GroupBox^  groupBox;
     System::Windows::Forms::Button^  btn_thresholding;
     System::Windows::Forms::Button^  btn_rgrow8;
@@ -84,7 +85,7 @@ namespace RoiPainter3D {
       this->label1 = (gcnew System::Windows::Forms::Label());
       this->label2 = (gcnew System::Windows::Forms::Label());
       this->trackbar_min = (gcnew System::Windows::Forms::TrackBar());
-      this->trackBar_max = (gcnew System::Windows::Forms::TrackBar());
+      this->trackbar_max = (gcnew System::Windows::Forms::TrackBar());
       this->label3 = (gcnew System::Windows::Forms::Label());
       this->label4 = (gcnew System::Windows::Forms::Label());
       this->textBox_min = (gcnew System::Windows::Forms::TextBox());
@@ -98,7 +99,7 @@ namespace RoiPainter3D {
       this->btn_dilate = (gcnew System::Windows::Forms::Button());
       this->btn_finish = (gcnew System::Windows::Forms::Button());
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackbar_min))->BeginInit();
-      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar_max))->BeginInit();
+      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackbar_max))->BeginInit();
       this->groupBox->SuspendLayout();
       this->SuspendLayout();
       // 
@@ -135,12 +136,12 @@ namespace RoiPainter3D {
       // 
       // trackBar_max
       // 
-      this->trackBar_max->Location = System::Drawing::Point(12, 90);
-      this->trackBar_max->Name = L"trackBar_max";
-      this->trackBar_max->Size = System::Drawing::Size(206, 45);
-      this->trackBar_max->TabIndex = 3;
-      this->trackBar_max->TickStyle = System::Windows::Forms::TickStyle::None;
-      this->trackBar_max->Scroll += gcnew System::EventHandler(this, &FormSegRGrow::trackBar_max_Scroll);
+      this->trackbar_max->Location = System::Drawing::Point(12, 90);
+      this->trackbar_max->Name = L"trackBar_max";
+      this->trackbar_max->Size = System::Drawing::Size(206, 45);
+      this->trackbar_max->TabIndex = 3;
+      this->trackbar_max->TickStyle = System::Windows::Forms::TickStyle::None;
+      this->trackbar_max->Scroll += gcnew System::EventHandler(this, &FormSegRGrow::trackBar_max_Scroll);
       // 
       // label3
       // 
@@ -187,7 +188,7 @@ namespace RoiPainter3D {
       this->groupBox->Controls->Add(this->label3);
       this->groupBox->Controls->Add(this->label4);
       this->groupBox->Controls->Add(this->trackbar_min);
-      this->groupBox->Controls->Add(this->trackBar_max);
+      this->groupBox->Controls->Add(this->trackbar_max);
       this->groupBox->Location = System::Drawing::Point(6, 61);
       this->groupBox->Name = L"groupBox";
       this->groupBox->Size = System::Drawing::Size(245, 124);
@@ -220,7 +221,7 @@ namespace RoiPainter3D {
       this->btn_rgrow8->Text = L"run region growing 6-neighbors";
       this->btn_rgrow8->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
       this->btn_rgrow8->UseVisualStyleBackColor = true;
-      this->btn_rgrow8->Click += gcnew System::EventHandler(this, &FormSegRGrow::btn_rgrow8_Click);
+      this->btn_rgrow8->Click += gcnew System::EventHandler(this, &FormSegRGrow::btn_rgrow6_Click);
       // 
       // btn_rgrow26
       // 
@@ -301,7 +302,7 @@ namespace RoiPainter3D {
       this->Name = L"FormSegRGrow";
       this->Text = L"FormSegRGrow";
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackbar_min))->EndInit();
-      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar_max))->EndInit();
+      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackbar_max))->EndInit();
       this->groupBox->ResumeLayout(false);
       this->groupBox->PerformLayout();
       this->ResumeLayout(false);
@@ -316,11 +317,15 @@ private:
   System::Void textBox_max_TextChanged(System::Object^  sender, System::EventArgs^  e); 
   System::Void trackBar_max_Scroll(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_thresholding_Click(System::Object^  sender, System::EventArgs^  e) ;
-  System::Void btn_rgrow8_Click(System::Object^  sender, System::EventArgs^  e) ;
+  System::Void btn_rgrow6_Click(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_rgrow26_Click(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_erode_Click(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_dilate_Click(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_fillhole_Click(System::Object^  sender, System::EventArgs^  e); 
   System::Void btn_finish_Click(System::Object^  sender, System::EventArgs^  e) ;
 };
+
+  inline void formSegRGrow_Show() { FormSegRGrow::getInst()->Show(); }
+  inline void formSegRGrow_Hide() { FormSegRGrow::getInst()->Hide(); }
+  inline void formSegRGrow_InitAllItems(short volMin, short volMax) { FormSegRGrow::getInst()->InitAllItems(volMin, volMax); }
 }

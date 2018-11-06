@@ -631,6 +631,8 @@ void ImageCore::selectedMsk_delete  ()
 
   m_maskData.erase( m_maskData.begin() + m_maskSelectedId );
   m_maskSelectedId = 0;
+  m_volMsk.SetUpdated();
+
 }
 
 
@@ -659,8 +661,9 @@ void ImageCore::selectedMsk_marge   (const int &trgtMaskID)
 
   if (m_maskSelectedId > trgtMaskID) --m_maskSelectedId;
 
-  m_maskData.erase(m_maskData.begin() + trgtMaskID);
+  m_volMsk.SetUpdated();
 
+  m_maskData.erase(m_maskData.begin() + trgtMaskID);
   m_maskData[ m_maskSelectedId ].surf.clear();
   m_maskData[ m_maskSelectedId ].bRendSurf = false;
 }
@@ -680,6 +683,7 @@ void ImageCore::selectedMsk_erode()
   t_erode3D( m_Reso[0], m_Reso[1], m_Reso[2], flgs);
   for (int i = 0; i < N; ++i) if (m_volMsk[i] == m_maskSelectedId && flgs[i] == 1) m_volMsk[i] = 0;
 
+  m_volMsk.SetUpdated();
   delete[] flgs;
 
   printf( "mask erode...DONE\n");
@@ -705,6 +709,7 @@ void ImageCore::selectedMsk_dilate  ()
   for (int i = 0; i < N; ++i) {
     if (flgs[i] == 255) m_volMsk[i] = m_maskSelectedId;
   }
+  m_volMsk.SetUpdated();
 
   delete[] flgs;
   printf( "mask dilate...DONE\n");
@@ -731,6 +736,7 @@ void ImageCore::selectedMsk_fillHole()
   {
     if (flgs[i] == 255 && m_volMsk[i] == 0 ) m_volMsk[i] = m_maskSelectedId;
   }
+  m_volMsk.SetUpdated();
 
   delete[] flgs;
 

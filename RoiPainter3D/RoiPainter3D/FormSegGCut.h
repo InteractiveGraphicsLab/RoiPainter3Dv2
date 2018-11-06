@@ -303,4 +303,7 @@ namespace RoiPainter3D {
     System::Void btn_canel_Click(System::Object^  sender, System::EventArgs^  e) ;
     System::Void btn_finish_Click(System::Object^  sender, System::EventArgs^  e) ;
 };
+  inline void formSegGCut_Hide(){
+    FormSegGCut::getInst()->Hide();
+  }
 }

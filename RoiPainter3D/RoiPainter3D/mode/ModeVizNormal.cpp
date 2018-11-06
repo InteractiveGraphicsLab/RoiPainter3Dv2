@@ -106,13 +106,11 @@ void ModeVizNormal::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 }
 
 
-#pragma managed
 void ModeVizNormal::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 {
 
 
 }
-#pragma unmanaged
 
 
 void ModeVizNormal::RBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
@@ -229,5 +227,5 @@ void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
 
 
 }
-
+    
 #pragma managed

@@ -114,9 +114,9 @@ namespace RoiPainter3D {
       this->visualizationStandardToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->visualizationMaskToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->toolStripSeparator3 = (gcnew System::Windows::Forms::ToolStripSeparator());
-      this->segmentationToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->segmentationThresholdToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->segmentationGraphCutToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+      this->segmentationToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->segmentationToolStripMenuItem1 = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->miscsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->exportCurrentCameraPosToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -244,8 +244,8 @@ namespace RoiPainter3D {
       // 
       this->modeToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(7) {
         this->visualizationStandardToolStripMenuItem,
-          this->visualizationMaskToolStripMenuItem, this->toolStripSeparator3, this->segmentationToolStripMenuItem, this->segmentationThresholdToolStripMenuItem,
-          this->segmentationGraphCutToolStripMenuItem, this->segmentationToolStripMenuItem1
+          this->visualizationMaskToolStripMenuItem, this->toolStripSeparator3, this->segmentationThresholdToolStripMenuItem, this->segmentationGraphCutToolStripMenuItem,
+          this->segmentationToolStripMenuItem, this->segmentationToolStripMenuItem1
       });
       this->modeToolStripMenuItem->Name = L"modeToolStripMenuItem";
       this->modeToolStripMenuItem->Size = System::Drawing::Size(60, 24);
@@ -270,23 +270,25 @@ namespace RoiPainter3D {
       this->toolStripSeparator3->Name = L"toolStripSeparator3";
       this->toolStripSeparator3->Size = System::Drawing::Size(324, 6);
       // 
-      // segmentationToolStripMenuItem
-      // 
-      this->segmentationToolStripMenuItem->Name = L"segmentationToolStripMenuItem";
-      this->segmentationToolStripMenuItem->Size = System::Drawing::Size(327, 26);
-      this->segmentationToolStripMenuItem->Text = L"Segmentation Pixel Paint";
-      // 
       // segmentationThresholdToolStripMenuItem
       // 
       this->segmentationThresholdToolStripMenuItem->Name = L"segmentationThresholdToolStripMenuItem";
       this->segmentationThresholdToolStripMenuItem->Size = System::Drawing::Size(327, 26);
-      this->segmentationThresholdToolStripMenuItem->Text = L"Segmentation Threshold";
+      this->segmentationThresholdToolStripMenuItem->Text = L"Segmentation Region Growing";
+      this->segmentationThresholdToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::segmentationThresholdToolStripMenuItem_Click);
       // 
       // segmentationGraphCutToolStripMenuItem
       // 
       this->segmentationGraphCutToolStripMenuItem->Name = L"segmentationGraphCutToolStripMenuItem";
       this->segmentationGraphCutToolStripMenuItem->Size = System::Drawing::Size(327, 26);
-      this->segmentationGraphCutToolStripMenuItem->Text = L"Segmentation GraphCut";
+      this->segmentationGraphCutToolStripMenuItem->Text = L"Segmentation Graph Cut";
+      this->segmentationGraphCutToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::segmentationGraphCutToolStripMenuItem_Click);
+      // 
+      // segmentationToolStripMenuItem
+      // 
+      this->segmentationToolStripMenuItem->Name = L"segmentationToolStripMenuItem";
+      this->segmentationToolStripMenuItem->Size = System::Drawing::Size(327, 26);
+      this->segmentationToolStripMenuItem->Text = L"Segmentation Pixel Paint";
       // 
       // segmentationToolStripMenuItem1
       // 
@@ -327,6 +329,8 @@ namespace RoiPainter3D {
       this->Margin = System::Windows::Forms::Padding(3, 2, 3, 2);
       this->Name = L"FormMain";
       this->Text = L"FormMain";
+      this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &FormMain::FormMain_KeyDown);
+      this->KeyUp += gcnew System::Windows::Forms::KeyEventHandler(this, &FormMain::FormMain_KeyUp);
       this->MouseWheel += gcnew System::Windows::Forms::MouseEventHandler(this, &FormMain::FormMain_MouseWheel);
       this->Move += gcnew System::EventHandler(this, &FormMain::FormMain_Move);
       this->Resize += gcnew System::EventHandler(this, &FormMain::FormMain_Resize);
@@ -359,6 +363,10 @@ namespace RoiPainter3D {
       System::Void exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
       System::Void visualizationStandardToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
       System::Void visualizationMaskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
+      System::Void segmentationThresholdToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
+      System::Void segmentationGraphCutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
+      System::Void FormMain_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) ;
+      System::Void FormMain_KeyUp(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) ;
 };
 
 
