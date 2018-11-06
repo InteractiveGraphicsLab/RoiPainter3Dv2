@@ -82,8 +82,6 @@ int main()
 //    resize   80% --> set dialog position when resizing
 //    repaint  OK
 //
-// 
-//
 //
 // IO
 //   initial volume    OK

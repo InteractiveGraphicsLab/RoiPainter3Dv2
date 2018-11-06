@@ -549,17 +549,37 @@ System::Void FormMain::loadMaskmskToolStripMenuItem_Click(System::Object^  sende
 
 
 
-System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+//
+System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) 
+{
+
+}
+
+
+//fav
+System::Void FormMain::saveMaskfavbToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e)
+{
 
 }
 
 
 
-System::Void FormMain::saveMaskfavbToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e){}
 
 
+System::Void FormMain::FormMain_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) 
+{
+  if (m_prevKeyID == (int)e->KeyCode) return;
+  ModeCore::getInst()->keyDown((int)e->KeyCode);
+  m_prevKeyID = (int)e->KeyCode;
+  redrawMainPanel();
+}
 
-
+System::Void FormMain::FormMain_KeyUp(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) 
+{
+  ModeCore::getInst()->keyUp((int)e->KeyCode);
+  m_prevKeyID = -1;
+  redrawMainPanel();
+}
 
 // mode switch items
 System::Void FormMain::visualizationStandardToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){

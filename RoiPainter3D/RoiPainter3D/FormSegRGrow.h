@@ -221,7 +221,7 @@ namespace RoiPainter3D {
       this->btn_rgrow8->Text = L"run region growing 6-neighbors";
       this->btn_rgrow8->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
       this->btn_rgrow8->UseVisualStyleBackColor = true;
-      this->btn_rgrow8->Click += gcnew System::EventHandler(this, &FormSegRGrow::btn_rgrow8_Click);
+      this->btn_rgrow8->Click += gcnew System::EventHandler(this, &FormSegRGrow::btn_rgrow6_Click);
       // 
       // btn_rgrow26
       // 
@@ -317,7 +317,7 @@ private:
   System::Void textBox_max_TextChanged(System::Object^  sender, System::EventArgs^  e); 
   System::Void trackBar_max_Scroll(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_thresholding_Click(System::Object^  sender, System::EventArgs^  e) ;
-  System::Void btn_rgrow8_Click(System::Object^  sender, System::EventArgs^  e) ;
+  System::Void btn_rgrow6_Click(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_rgrow26_Click(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_erode_Click(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_dilate_Click(System::Object^  sender, System::EventArgs^  e) ;
