@@ -62,10 +62,21 @@ int main()
 // modeVisMask OK
 //   implement overall workflow OK
 //   formVisMask                OK
-//   maskManipulations          80%
+//   maskManipulations          OK
 //   I/O                        OK
 //
 // modeSegRgrow
+//   formSegRGrow    OK
+//   Thesholing      OK
+//   RegionGrowing6  OK
+//   RegionGrowing26 OK
+//
+// modeSegRgrow
+//   formSegGCut
+//   watershed (bk-thread) 
+//   graphcut Wsd level   
+//   graphcut voxel level 
+//   erode/dilate/fillhole 
 //
 //
 //
@@ -73,13 +84,13 @@ int main()
 //   ImageCore     OK 
 //   CrssecCore    OK
 //   ViewAngleCore OK
-//   ModeCore      50%
+//   ModeCore      80%
 //
 // 
 // event handler (MainForm): 
 //    Wheeling OK
 //    mouse    OK
-//    resize   80% --> set dialog position when resizing
+//    resize   OK
 //    repaint  OK
 //
 //
@@ -89,11 +100,11 @@ int main()
 //   2D slices dcm     OK
 //   3D traw3D         OK
 //   3D dcm            OK
-//   save / load mask  
-//   export traw3d_ss  
-//   open fav          
-//   save fav          
-//   show_dlg for stack orientation
+//   save / load mask  OK 
+//   export traw3d_ss  TODO YET TODO YET 
+//   open fav          TODO YET TODO YET 
+//   save fav          TODO YET TODO YET 
+//   show_dlg for stack orientation TODO YET TODO YET 
 //   
 // etc...
 

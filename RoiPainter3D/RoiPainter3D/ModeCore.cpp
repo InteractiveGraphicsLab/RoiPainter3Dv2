@@ -34,7 +34,7 @@ void ModeCore::ModeSwitch(MODE_ID m)
 
   if      (m == MODE_VIS_MASK      ) m_mode = ModeVizMask ::getInst();
   else if (m == MODE_SEG_REGGROW   ) m_mode = ModeSegRGrow::getInst();
-  else if (m == MODE_SEG_REGGROW   ) m_mode = ModeSegGCut ::getInst();
+  else if (m == MODE_SEG_GCUT      ) m_mode = ModeSegGCut ::getInst();
   /*else if (m == MODE_SEG_PIXPAINT  ) m_mode = ModeSegPixPaint::getInst();
   else if (m == MODE_SEG_RIGIDICP  ) m_mode = ModeSegRigidICP::GetInstance();
   else if (m == MODE_SEG_CLOSESTPIX) m_mode = ModeSegClosestPix::getInst();

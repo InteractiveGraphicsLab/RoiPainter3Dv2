@@ -126,6 +126,8 @@ public:
 	EVec3f getCuboidF() { return EVec3f((float)(m_Reso[0] * m_Pitch[0]), (float)(m_Reso[1] * m_Pitch[1]), (float)(m_Reso[2] * m_Pitch[2])); }
 	EVec3i getResolution() { return m_Reso; }
 
+  string getFilePath(){ return m_filePath;}
+
 
 	//getter/setter for pitch 
 	EVec3f getPitch()  { return m_Pitch; }
@@ -148,6 +150,16 @@ public:
     const int z = min(m_Reso[2] - 1, (int)(position[2] / m_Pitch[2]));
     return x + y * m_Reso[0] + z * m_Reso[0] * m_Reso[1];
   }
+  EVec4i getVoxelIndex4i(const EVec3f& position)
+  {
+    EVec4i v;
+    v[0] = min(m_Reso[0] - 1, (int)(position[0] / m_Pitch[0]));
+    v[1] = min(m_Reso[1] - 1, (int)(position[1] / m_Pitch[1]));
+    v[2] = min(m_Reso[2] - 1, (int)(position[2] / m_Pitch[2]));
+    v[3] = v[0] + v[1] * m_Reso[0] + v[2] * m_Reso[0] * m_Reso[1];
+    return v;
+  }
+
 
   short getVoxelValue(const EVec3f& position)
   {

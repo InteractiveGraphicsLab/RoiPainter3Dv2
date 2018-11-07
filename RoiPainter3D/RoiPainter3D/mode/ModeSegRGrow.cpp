@@ -277,7 +277,7 @@ void ModeSegRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVe
   m_crssecShader.unbind();
 
 
-  if (bDrawVol)
+  if (bDrawVol && !isSpaceKeyOn())
   {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
