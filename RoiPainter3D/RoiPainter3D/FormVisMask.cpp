@@ -1,5 +1,6 @@
 #include "FormVisMask.h"
 #include "FormMain.h"
+#include "FormMaskIDselection.h"
 #include "ImageCore.h"
 
 
@@ -141,26 +142,14 @@ System::Void FormVisMask::btnDelete_Click       (System::Object^  sender, System
 
 System::Void FormVisMask::btnMargeTo_Click( System::Object^  sender, System::EventArgs^  e) 
 {
-  todo 
-  /*
-    + marge to ì‚é
-    + marge to—p‚Ìselection dialogì‚é
-    + stack orientation dialogì‚é
-    */
-  /*
-
-  FormSelectMskId ^modal = gcnew FormSelectMskId();
-  if (modal->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return;
-
-  int trgtId = modal->getTrgtID();
-  modal->Close();
+  int trgtId = formMaskIdSelection_showModalDialog();
+  if( trgtId == -1) return;
 
   ImageCore::getInst()->selectedMsk_marge(trgtId);
   updateList();
 
   updateImageCoreVisVolumes();
   formMain_redrawMainPanel();
-  */
 }
 
 System::Void FormVisMask::btnErode_Click(System::Object^  sender, System::EventArgs^  e)

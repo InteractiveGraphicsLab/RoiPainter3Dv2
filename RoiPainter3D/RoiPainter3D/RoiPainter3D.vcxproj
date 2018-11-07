@@ -164,6 +164,9 @@
     <ClInclude Include="FormMain.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="FormMaskIDselection.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="FormSegGCut.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -203,6 +206,7 @@
     <ClCompile Include="COMMON\tmarchingcubes.cpp" />
     <ClCompile Include="CrsSecCore.cpp" />
     <ClCompile Include="FormMain.cpp" />
+    <ClCompile Include="FormMaskIDselection.cpp" />
     <ClCompile Include="FormSegGCut.cpp" />
     <ClCompile Include="FormSegRGrow.cpp" />
     <ClCompile Include="FormStackOrder.cpp" />
@@ -226,6 +230,9 @@
   <ItemGroup>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormMaskIDselection.resx">
+      <DependentUpon>FormMaskIDselection.h</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormSegGCut.resx">
       <DependentUpon>FormSegGCut.h</DependentUpon>
