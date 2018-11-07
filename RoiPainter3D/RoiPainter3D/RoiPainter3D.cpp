@@ -44,7 +44,6 @@ int main()
 
   printf("FormMain::getInst()->ShowDialog() \n");
   FormMain::getInst()->ShowDialog();
-  
   printf("aaaa FormMain::getInst()->ShowDialog() \n");
 
   return 0;

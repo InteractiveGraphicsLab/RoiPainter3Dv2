@@ -356,20 +356,20 @@ void t_wsd_CalcLabelFromGMag
 {
 	if( W * H > 1024*1024*4 ) 
 	{ 
-		AfxMessageBox( "データサイズが大きすぎます\n"); 
+		printf( "データサイズが大きすぎます\n"); 
 		return;
 	}
 
 	const int stepZ = 2 * 1024 * 1024 / ( W * H) ;
 	const int iterN = ( D % stepZ == 0 ) ? D / stepZ  :  D / stepZ + 1;
-	fprintf( stderr, "watershed (%d %d %d), stepZ:%d iterN:%d \n", W,H,D, stepZ, iterN);
+	printf( "watershed (%d %d %d), stepZ:%d iterN:%d \n", W,H,D, stepZ, iterN);
 
 
 	vector< vector<int> > tmpLabels( iterN, vector<int>() );
 	
 	for( int i = 0; i < iterN; ++i)
 	{
-		fprintf( stderr, "was %d/%d \n", i, iterN );
+    printf( "was %d/%d \n", i, iterN );
 		int z0 = i * stepZ;
 		int tmpD = ( z0 + stepZ <= D ) ? stepZ : D - z0;
 		TWatershed3DEx( W, H, tmpD, &gMagVol[ W * H * z0 ], volCoef, tmpLabels[i], 0 );

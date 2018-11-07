@@ -8,9 +8,10 @@
 
 #include "FormMain.h"
 #include "FormVisParam.h"
-#include "FormVisNorm.h"
+#include "FormSegGCut.h"
 
 #include <time.h>
+#include <process.h>
 #include "../3rdparty/riken/TMaxFlow_BK4.h"
 #include "../3rdParty\riken\TWatershedEx.h"
 
@@ -32,9 +33,6 @@ static void t_constructWsdNodesFromLabel( const int W, const int H, const int D,
                                           vector< WsdNode> &wsdNodes, vector<set<int>> &wsdNodeNei);
 
 
-
-
-
 ModeSegGCut::~ModeSegGCut()
 {
 
@@ -47,6 +45,8 @@ ModeSegGCut::ModeSegGCut() :
   m_bWsdInitialized = false;
   m_bWsdComputing   = false;
 
+
+  printf("ModeSegGCutModeSegGCutfinish  constructor!\n");
 }
 
 
@@ -96,9 +96,10 @@ void ModeSegGCut::startMode()
 
 	  //thread‚ð‹N“®‚µwatershed‚ðŒvŽZ‚·‚é
 	  m_bWsdComputing = true;
-	  AfxBeginThread( ModeSegGCut::initWsdNodes_thread, (LPVOID)this, THREAD_PRIORITY_HIGHEST); 
+    _beginthread( ModeSegGCut::initWsdNodes_thread, 0, (LPVOID)this); 
   }
 
+  formSegGCut_Show();
 }
 
 
@@ -258,7 +259,7 @@ void ModeSegGCut::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
   
   CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
   if( id != CRSSEC_NON ) CrssecCore::getInst()->MoveCrssec(ImageCore::getInst()->getResolution(), 
-                                                           ImageCore::getInst()->getResolution(), id, zDelta);
+                                                           ImageCore::getInst()->getPitch(), id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
   formMain_redrawMainPanel();
@@ -476,7 +477,7 @@ void t_constructWsdNodesFromLabel
 
 
 //thread‚Æ‚µ‚Ä‹N“®‚³‚ê‚é
-UINT ModeSegGCut::initWsdNodes_thread(LPVOID pParam)
+void ModeSegGCut::initWsdNodes_thread(void *pParam)
 {
 	fprintf( stderr, "initWsdNodes_thread start!!\n");
 
@@ -511,9 +512,6 @@ UINT ModeSegGCut::initWsdNodes_thread(LPVOID pParam)
 	
 
 	fprintf( stderr, "initWsdNodes_thread DONE!!\n");
-
-	return TRUE;
-
 }
 
 
@@ -1005,39 +1003,3 @@ void ModeSegGCut::runGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnly
 
 
 
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/

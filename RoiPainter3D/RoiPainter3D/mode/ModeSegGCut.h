@@ -157,7 +157,7 @@ public:
   void newVolLoaded(){ m_bWsdInitialized = false; }
 
 private:
-	static UINT initWsdNodes_thread( LPVOID pParam );
+	static void initWsdNodes_thread( void *pParam );
 };
 
 #pragma managed
