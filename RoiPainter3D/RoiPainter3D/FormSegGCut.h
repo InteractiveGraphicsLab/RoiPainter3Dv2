@@ -17,13 +17,7 @@ namespace RoiPainter3D {
   private:
     static FormSegGCut^ m_singleton;
 
-		FormSegGCut(void)
-		{
-			InitializeComponent();
-			//
-			//TODO: ここにコンストラクター コードを追加します
-			//
-		}
+		FormSegGCut(void);
 
   public:
     static FormSegGCut^ getInst()
@@ -305,5 +299,8 @@ namespace RoiPainter3D {
 };
   inline void formSegGCut_Hide(){
     FormSegGCut::getInst()->Hide();
+  }
+  inline void formSegGCut_Show(){
+    FormSegGCut::getInst()->Show();
   }
 }

@@ -7,6 +7,8 @@
 #include "./3rdParty/dcmtk/tdcmtk.h"
 #include "./3rdparty/vvv/ddsbase.h"
 
+#include "./Mode/ModeSegGCut.h"
+
 
 ImageCore::ImageCore()
 {
@@ -468,8 +470,7 @@ bool ImageCore::loadVolume(vector<string> fnames, string fext)
 
 	updateGradVolume();
 
-  System::Windows::Forms::MessageBox::Show("TODO UPDATE GRAPHCUT"); 
-	//ModeSegGCut::getInst()->newVolLoaded();
+	ModeSegGCut::getInst()->newVolLoaded();
 
   return true;
 }
