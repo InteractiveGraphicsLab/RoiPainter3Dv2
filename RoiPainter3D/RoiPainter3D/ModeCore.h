@@ -9,8 +9,10 @@
 
 class ModeCore
 {
-
+  MODE_ID        m_mode_id;
   ModeInterface* m_mode;
+
+
   ModeCore();
 public:
   ~ModeCore();
@@ -40,6 +42,8 @@ public:
   void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF) {
     m_mode->drawScene(cuboid, camP, camF);
   }
+
+  MODE_ID getCurrentModeId(){ return m_mode_id; }
 
 };
 

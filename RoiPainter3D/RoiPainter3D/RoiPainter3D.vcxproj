@@ -24,7 +24,7 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>RoiPainter3D</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -167,10 +167,22 @@
     <ClInclude Include="FormMaskIDselection.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="FormRefStrokeTrim.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="FormSegGCut.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="FormSegLocalRGrow.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="FormSegRGrow.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="FormSegThreshfieldPaint.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="FormSegVoxelPaint.h">
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="FormStackOrder.h">
@@ -189,8 +201,12 @@
     <ClInclude Include="ModeCore.h" />
     <ClInclude Include="ModeInterface.h" />
     <ClInclude Include="mode\GlslShader.h" />
+    <ClInclude Include="mode\ModeRefStrokeTrim.h" />
     <ClInclude Include="mode\ModeSegGCut.h" />
+    <ClInclude Include="mode\ModeSegLocalRGrow.h" />
     <ClInclude Include="mode\ModeSegRGrow.h" />
+    <ClInclude Include="mode\ModeSegThreshfieldPaint.h" />
+    <ClInclude Include="mode\ModeSegVoxelPaint.h" />
     <ClInclude Include="mode\ModeVizMask.h" />
     <ClInclude Include="mode\ModeVizNormal.h" />
     <ClInclude Include="resource.h" />
@@ -207,8 +223,12 @@
     <ClCompile Include="CrsSecCore.cpp" />
     <ClCompile Include="FormMain.cpp" />
     <ClCompile Include="FormMaskIDselection.cpp" />
+    <ClCompile Include="FormRefStrokeTrim.cpp" />
     <ClCompile Include="FormSegGCut.cpp" />
+    <ClCompile Include="FormSegLocalRGrow.cpp" />
     <ClCompile Include="FormSegRGrow.cpp" />
+    <ClCompile Include="FormSegThreshfieldPaint.cpp" />
+    <ClCompile Include="FormSegVoxelPaint.cpp" />
     <ClCompile Include="FormStackOrder.cpp" />
     <ClCompile Include="FormVisMask.cpp" />
     <ClCompile Include="FormVisNorm.cpp" />
@@ -217,8 +237,12 @@
     <ClCompile Include="ModeCore.cpp" />
     <ClCompile Include="ModeInterface.cpp" />
     <ClCompile Include="mode\GlslShader.cpp" />
+    <ClCompile Include="mode\ModeRefStrokeTrim.cpp" />
     <ClCompile Include="mode\ModeSegGCut.cpp" />
+    <ClCompile Include="mode\ModeSegLocalRGrow.cpp" />
     <ClCompile Include="mode\ModeSegRGrow.cpp" />
+    <ClCompile Include="mode\ModeSegThreshfieldPaint.cpp" />
+    <ClCompile Include="mode\ModeSegVoxelPaint.cpp" />
     <ClCompile Include="mode\ModeVizMask.cpp" />
     <ClCompile Include="mode\ModeVizNormal.cpp" />
     <ClCompile Include="RoiPainter3D.cpp" />

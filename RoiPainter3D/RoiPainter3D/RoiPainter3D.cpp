@@ -10,6 +10,10 @@
 #include "mode/ModeVizNormal.h"
 #include "mode/ModeSegRGrow.h"
 #include "mode/ModeSegGCut.h"
+#include "mode/ModeSegLocalRGrow.h"
+#include "mode/ModeSegThreshfieldPaint.h"
+#include "mode/ModeSegVoxelPaint.h"
+#include "mode/ModeRefStrokeTrim.h"
 
 
 using namespace System;
@@ -29,18 +33,14 @@ int main()
   ImageCore ::getInst();
   CrssecCore::getInst();
 
-  ModeVizMask  ::getInst();
+  ModeVizMask::getInst();
   ModeVizNormal::getInst();
-  ModeSegRGrow ::getInst();
-  ModeSegGCut  ::getInst();
-
-  /*
-  ModeSegPixPaint::getInst();
-  ModeSegRigidICP::GetInstance();
-  ModeSegClosestPix::getInst();
+  ModeSegRGrow::getInst();
+  ModeSegGCut::getInst();
   ModeSegLocalRGrow::getInst();
+  ModeSegThreshfieldPaint::getInst();
+  ModeSegVoxelPaint::getInst();
   ModeRefStrokeTrim::getInst();
-  */
 
   printf("FormMain::getInst()->ShowDialog() \n");
   FormMain::getInst()->ShowDialog();
@@ -109,12 +109,13 @@ int main()
 
 /*
 
-todo
-1. modeVisMask作る OK 
-2. maskIOのテスト / VisMaskのテスト 
-3. mode switchのテスト 
-4. volume_load時のflipするかどうかを聞くdialog作る
-5. visMaskをonにした瞬間にmarching cubesする機構を作る
---> segmentationへ
-
+todo 
+fav対応
+Favのコンパイル
+1. xerces_c_3.1.4を取得
+2. xerces-c-3.1.4\projects\Win32\VC14\xerces-all内のプロジェクトファイルを開く
+3. x64のreleaseモードとdebugモードでコンパイル
+4. fav-projectをクローン
+5. favプロジェクト内　fav-project\FavLibrary\FavLibrary.Win\packages\にxerces-c-3.1.4フォルダをコピー
+6. favプロジェクトをコンパイル (FavLibrary.dll/FavLibrary.libができる)
 */
