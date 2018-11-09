@@ -10,6 +10,10 @@
 #include "FormVisMask.h"
 #include "FormSegRGrow.h"
 #include "FormSegGCut.h"
+#include "FormSegThreshfieldPaint.h"
+#include "FormSegVoxelPaint.h"
+#include "FormSegLocalRGrow.h"
+#include "FormRefStrokeTrim.h"
 
 
 
@@ -194,15 +198,10 @@ void FormMain::replaceOtherForms()
   FormVisMask ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegRGrow::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegGCut ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
-
-  /*
-  FormSegPixPaint::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
-  FormSegRigidICP::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
-  FormSegClosestPix::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
-  FormSegParaConts::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegLocalRGrow::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegVoxelPaint::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormRefStrokeTrim::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
-  */
+  FormSegThreshfieldPaint::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
 }
 
 
@@ -222,29 +221,23 @@ void FormMain::initializeOtherForms()
   FormVisMask ::getInst()->Show();
   FormSegRGrow::getInst()->Show();
   FormSegGCut ::getInst()->Show();
-  
+  FormSegLocalRGrow ::getInst()->Show();
+  FormSegVoxelPaint ::getInst()->Show();
+  FormRefStrokeTrim ::getInst()->Show();
+  FormSegThreshfieldPaint::getInst()->Show();
+
   replaceOtherForms();
   
   FormVisNorm ::getInst()->Hide();
   FormVisMask ::getInst()->Hide();
   FormSegRGrow::getInst()->Hide();
   FormSegGCut ::getInst()->Hide();
-  printf("--------initialize form(dialogs)...DONE\n");
+  FormSegLocalRGrow ::getInst()->Hide();
+  FormSegVoxelPaint ::getInst()->Hide();
+  FormRefStrokeTrim ::getInst()->Hide();
+  FormSegThreshfieldPaint::getInst()->Hide();
 
-  /*
-  FormSegPixPaint::getInst()->Show();
-  FormSegRigidICP::getInst()->Show();
-  FormSegClosestPix::getInst()->Show();
-  FormSegLocalRGrow::getInst()->Show();
-  FormRefStrokeTrim::getInst()->Show();
-  FormVisNorm::getInst()->Hide();
-  FormSegRGrow::getInst()->Hide();
-  FormSegPixPaint::getInst()->Hide();
-  FormSegRigidICP::getInst()->Hide();
-  FormSegClosestPix::getInst()->Hide();
-  //FormSegLocalRGrow::getInst()->Hide();
-  FormRefStrokeTrim::getInst()->Hide();
-  */
+  printf("--------initialize form(dialogs)...DONE\n");
 }
 
 
@@ -597,6 +590,15 @@ System::Void FormMain::segmentationThresholdToolStripMenuItem_Click(System::Obje
 }
 System::Void FormMain::segmentationGraphCutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
   ModeCore::getInst()->ModeSwitch(MODE_SEG_GCUT);
+  redrawMainPanel();
+}
+System::Void FormMain::segmentationToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+  ModeCore::getInst()->ModeSwitch(MODE_SEG_VOXPAINT);
+  redrawMainPanel();
+}
+
+System::Void FormMain::segmentationToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+  ModeCore::getInst()->ModeSwitch(MODE_REF_VOXPAINT);
   redrawMainPanel();
 }
 

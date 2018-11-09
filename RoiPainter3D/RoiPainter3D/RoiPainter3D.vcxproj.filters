@@ -117,6 +117,30 @@
     <ClInclude Include="FormMaskIDselection.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="mode\ModeRefStrokeTrim.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="mode\ModeSegLocalRGrow.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="mode\ModeSegThreshfieldPaint.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="mode\ModeSegVoxelPaint.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="FormRefStrokeTrim.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="FormSegLocalRGrow.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="FormSegThreshfieldPaint.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="FormSegVoxelPaint.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -193,6 +217,30 @@
     <ClCompile Include="FormMaskIDselection.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="mode\ModeRefStrokeTrim.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="mode\ModeSegLocalRGrow.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="mode\ModeSegThreshfieldPaint.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="mode\ModeSegVoxelPaint.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="FormRefStrokeTrim.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="FormSegLocalRGrow.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="FormSegThreshfieldPaint.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="FormSegVoxelPaint.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="app.ico">
@@ -219,6 +267,9 @@
       <Filter>リソース ファイル</Filter>
     </EmbeddedResource>
     <EmbeddedResource Include="FormSegGCut.resx">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormMaskIDselection.resx">
       <Filter>リソース ファイル</Filter>
     </EmbeddedResource>
   </ItemGroup>

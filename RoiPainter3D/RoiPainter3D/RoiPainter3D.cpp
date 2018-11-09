@@ -10,6 +10,10 @@
 #include "mode/ModeVizNormal.h"
 #include "mode/ModeSegRGrow.h"
 #include "mode/ModeSegGCut.h"
+#include "mode/ModeSegLocalRGrow.h"
+#include "mode/ModeSegThreshfieldPaint.h"
+#include "mode/ModeSegVoxelPaint.h"
+#include "mode/ModeRefStrokeTrim.h"
 
 
 using namespace System;
@@ -29,18 +33,14 @@ int main()
   ImageCore ::getInst();
   CrssecCore::getInst();
 
-  ModeVizMask  ::getInst();
+  ModeVizMask::getInst();
   ModeVizNormal::getInst();
-  ModeSegRGrow ::getInst();
-  ModeSegGCut  ::getInst();
-
-  /*
-  ModeSegPixPaint::getInst();
-  ModeSegRigidICP::GetInstance();
-  ModeSegClosestPix::getInst();
+  ModeSegRGrow::getInst();
+  ModeSegGCut::getInst();
   ModeSegLocalRGrow::getInst();
+  ModeSegThreshfieldPaint::getInst();
+  ModeSegVoxelPaint::getInst();
   ModeRefStrokeTrim::getInst();
-  */
 
   printf("FormMain::getInst()->ShowDialog() \n");
   FormMain::getInst()->ShowDialog();

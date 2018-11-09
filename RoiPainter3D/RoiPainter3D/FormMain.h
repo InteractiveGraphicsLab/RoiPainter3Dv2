@@ -21,6 +21,10 @@ namespace RoiPainter3D {
 
     OglForCLI *m_ogl;
     int        m_prevKeyID;
+  private: System::Windows::Forms::ToolStripMenuItem^  segmentationThreshFieldPaintToolStripMenuItem;
+  private: System::Windows::Forms::ToolStripSeparator^  toolStripSeparator4;
+  private: System::Windows::Forms::ToolStripMenuItem^  refinementStrokeTrimingToolStripMenuItem;
+  private: System::Windows::Forms::ToolStripMenuItem^  refinementVoxelPaintToolStripMenuItem;
 
     static FormMain^ m_singleton;
     FormMain(void);
@@ -118,9 +122,13 @@ namespace RoiPainter3D {
       this->segmentationGraphCutToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->segmentationToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->segmentationToolStripMenuItem1 = (gcnew System::Windows::Forms::ToolStripMenuItem());
+      this->segmentationThreshFieldPaintToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+      this->toolStripSeparator4 = (gcnew System::Windows::Forms::ToolStripSeparator());
+      this->refinementStrokeTrimingToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->miscsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->exportCurrentCameraPosToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->importCurrentCameraPosToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+      this->refinementVoxelPaintToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->menuStrip1->SuspendLayout();
       this->SuspendLayout();
       // 
@@ -242,10 +250,11 @@ namespace RoiPainter3D {
       // 
       // modeToolStripMenuItem
       // 
-      this->modeToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(7) {
+      this->modeToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(11) {
         this->visualizationStandardToolStripMenuItem,
           this->visualizationMaskToolStripMenuItem, this->toolStripSeparator3, this->segmentationThresholdToolStripMenuItem, this->segmentationGraphCutToolStripMenuItem,
-          this->segmentationToolStripMenuItem, this->segmentationToolStripMenuItem1
+          this->segmentationToolStripMenuItem, this->segmentationToolStripMenuItem1, this->segmentationThreshFieldPaintToolStripMenuItem,
+          this->toolStripSeparator4, this->refinementStrokeTrimingToolStripMenuItem, this->refinementVoxelPaintToolStripMenuItem
       });
       this->modeToolStripMenuItem->Name = L"modeToolStripMenuItem";
       this->modeToolStripMenuItem->Size = System::Drawing::Size(60, 24);
@@ -288,13 +297,31 @@ namespace RoiPainter3D {
       // 
       this->segmentationToolStripMenuItem->Name = L"segmentationToolStripMenuItem";
       this->segmentationToolStripMenuItem->Size = System::Drawing::Size(327, 26);
-      this->segmentationToolStripMenuItem->Text = L"Segmentation Pixel Paint";
+      this->segmentationToolStripMenuItem->Text = L"Segmentation Voxel Paint";
+      this->segmentationToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::segmentationToolStripMenuItem_Click);
       // 
       // segmentationToolStripMenuItem1
       // 
       this->segmentationToolStripMenuItem1->Name = L"segmentationToolStripMenuItem1";
       this->segmentationToolStripMenuItem1->Size = System::Drawing::Size(327, 26);
       this->segmentationToolStripMenuItem1->Text = L"Segmentation Local Region Growing";
+      // 
+      // segmentationThreshFieldPaintToolStripMenuItem
+      // 
+      this->segmentationThreshFieldPaintToolStripMenuItem->Name = L"segmentationThreshFieldPaintToolStripMenuItem";
+      this->segmentationThreshFieldPaintToolStripMenuItem->Size = System::Drawing::Size(327, 26);
+      this->segmentationThreshFieldPaintToolStripMenuItem->Text = L"Segmentation Thresh Field Paint";
+      // 
+      // toolStripSeparator4
+      // 
+      this->toolStripSeparator4->Name = L"toolStripSeparator4";
+      this->toolStripSeparator4->Size = System::Drawing::Size(324, 6);
+      // 
+      // refinementStrokeTrimingToolStripMenuItem
+      // 
+      this->refinementStrokeTrimingToolStripMenuItem->Name = L"refinementStrokeTrimingToolStripMenuItem";
+      this->refinementStrokeTrimingToolStripMenuItem->Size = System::Drawing::Size(327, 26);
+      this->refinementStrokeTrimingToolStripMenuItem->Text = L"Refinement Stroke Triming";
       // 
       // miscsToolStripMenuItem
       // 
@@ -317,6 +344,13 @@ namespace RoiPainter3D {
       this->importCurrentCameraPosToolStripMenuItem->Name = L"importCurrentCameraPosToolStripMenuItem";
       this->importCurrentCameraPosToolStripMenuItem->Size = System::Drawing::Size(260, 26);
       this->importCurrentCameraPosToolStripMenuItem->Text = L"import current camera pos";
+      // 
+      // refinementVoxelPaintToolStripMenuItem
+      // 
+      this->refinementVoxelPaintToolStripMenuItem->Name = L"refinementVoxelPaintToolStripMenuItem";
+      this->refinementVoxelPaintToolStripMenuItem->Size = System::Drawing::Size(327, 26);
+      this->refinementVoxelPaintToolStripMenuItem->Text = L"Refinement Voxel Paint";
+      this->refinementVoxelPaintToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::refinementVoxelPaintToolStripMenuItem_Click);
       // 
       // FormMain
       // 
@@ -364,7 +398,10 @@ namespace RoiPainter3D {
       System::Void visualizationStandardToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
       System::Void visualizationMaskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
       System::Void segmentationThresholdToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
-      System::Void segmentationGraphCutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
+      System::Void segmentationGraphCutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^   e) ;
+      System::Void segmentationToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
+      System::Void refinementVoxelPaintToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) ;
+
       System::Void FormMain_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) ;
       System::Void FormMain_KeyUp(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) ;
 };

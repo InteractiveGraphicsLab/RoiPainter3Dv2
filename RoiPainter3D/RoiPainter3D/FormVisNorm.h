@@ -16,7 +16,6 @@ namespace RoiPainter3D {
 	public ref class FormVisNorm : public System::Windows::Forms::Form
 	{
 
-    static FormVisNorm^ m_singleton;
    
     FormVisNorm(void)
 		{
@@ -25,6 +24,8 @@ namespace RoiPainter3D {
 			//TODO: ここにコンストラクター コードを追加します
 			//
 		}
+
+    static FormVisNorm^ m_singleton;
    
   public:
     static FormVisNorm^ getInst()

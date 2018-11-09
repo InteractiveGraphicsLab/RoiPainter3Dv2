@@ -18,28 +18,20 @@
 #include "COMMON/OglForCLI.h"
 #include "CrsSecCore.h"
 
-#define ONMOVE_SLICE_RATE 0.2
+#define ONMOVE_SLICE_RATE 0.5
 
 
 enum MODE_ID
 {
 	MODE_VIS_NORMAL    , // ModeVizNormal       
 	MODE_VIS_MASK      , // ModeVizMask    
-	MODE_SEG_REGGROW   , // ModeSegRegGrow     
+  MODE_SEG_REGGROW   , // ModeSegRegGrow     
 	MODE_SEG_GCUT      , // ModeSegGGut           
-
-
-	MODE_SEG_PIXPAINT  , // ModeSegPixPaint
-	MODE_SEG_RIGIDICP  , // ModeSegRigidICP   (SJTracker‚æ‚è)
-	MODE_SEG_CLOSESTPIX, // ModeSegClosestPix (SproutViewer‚æ‚è TODO Tomofumi Narita)
-
-	MODE_SEG_PARACONT,   //ModeSegParaConts   (Parallel Contours by Chika Tomiyama)
-	MODE_SEG_LCLRGROW,   //ModeSegLocalRGrow  (Local Region Growing by Hikaru Shionozaki)
-
-	MODE_REF_STRKTRIM     // ModeRefStrkTrim     
-
-	//MODE_SEG_THRESHPNT, // ModeSegTreshPnt      
-	//MODE_SEG_LOCALRGROW, // ModeSegLocalRGrow    
+	MODE_SEG_VOXPAINT  , // ModeSegVoxelPaint
+	MODE_SEG_LCLRGROW  , // ModeSegLocalRGrow  (Local Region Growing by Takashi Ijiri & Shogo Tsuruoka (Ritumei))
+	MODE_SEG_THRESHPNT , // ModeSegThreshfieldPaint (UIST paper by Takeo Igarashi)
+	MODE_REF_STRKTRIM  , // ModeRefStrokeTrim
+	MODE_REF_VOXPAINT    // ModeSegVoxelPaint
 };
 
 
@@ -52,15 +44,15 @@ protected:
 
 public:
 	virtual MODE_ID getModeID() = 0;
-	virtual void LBtnUp		(const EVec2i &p, OglForCLI *ogl) = 0;
-	virtual void RBtnUp		(const EVec2i &p, OglForCLI *ogl) = 0;
-	virtual void MBtnUp		(const EVec2i &p, OglForCLI *ogl) = 0;
-	virtual void LBtnDown	(const EVec2i &p, OglForCLI *ogl) = 0;
-	virtual void RBtnDown	(const EVec2i &p, OglForCLI *ogl) = 0;
-	virtual void MBtnDown	(const EVec2i &p, OglForCLI *ogl) = 0;
-	virtual void LBtnDclk	(const EVec2i &p, OglForCLI *ogl) = 0;
-	virtual void RBtnDclk	(const EVec2i &p, OglForCLI *ogl) = 0;
-	virtual void MBtnDclk	(const EVec2i &p, OglForCLI *ogl) = 0;
+	virtual void LBtnUp		  (const EVec2i &p, OglForCLI *ogl) = 0;
+	virtual void RBtnUp		  (const EVec2i &p, OglForCLI *ogl) = 0;
+	virtual void MBtnUp		  (const EVec2i &p, OglForCLI *ogl) = 0;
+	virtual void LBtnDown	  (const EVec2i &p, OglForCLI *ogl) = 0;
+	virtual void RBtnDown	  (const EVec2i &p, OglForCLI *ogl) = 0;
+	virtual void MBtnDown	  (const EVec2i &p, OglForCLI *ogl) = 0;
+	virtual void LBtnDclk	  (const EVec2i &p, OglForCLI *ogl) = 0;
+	virtual void RBtnDclk	  (const EVec2i &p, OglForCLI *ogl) = 0;
+	virtual void MBtnDclk	  (const EVec2i &p, OglForCLI *ogl) = 0;
 	virtual void MouseMove	(const EVec2i &p, OglForCLI *ogl) = 0;
 	virtual void MouseWheel	(const EVec2i &p, short zDelta, OglForCLI *ogl) = 0;
 
