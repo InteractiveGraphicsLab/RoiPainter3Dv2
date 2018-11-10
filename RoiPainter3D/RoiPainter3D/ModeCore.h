@@ -23,7 +23,6 @@ public:
   }
 
   void ModeSwitch(MODE_ID m);
-  MODE_ID getCurrentMode() { return m_mode->getModeID(); }
 
   void LBtnUp    (const EVec2i &p, OglForCLI *ogl) { m_mode->LBtnUp  (p, ogl); }
   void RBtnUp    (const EVec2i &p, OglForCLI *ogl) { m_mode->RBtnUp  (p, ogl); }

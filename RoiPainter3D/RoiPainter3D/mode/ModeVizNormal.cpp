@@ -122,11 +122,7 @@ void ModeVizNormal::MouseMove(const EVec2i &p, OglForCLI *ogl)
   EVec3f rayP, rayD, pos;
   ogl->GetCursorRay(p, rayP, rayD);
 
-  EVec3f cuboid = ImageCore::getInst()->getCuboidF();
-  const bool bXY = formVisParam_bPlaneXY();
-  const bool bYZ = formVisParam_bPlaneYZ();
-  const bool bZX = formVisParam_bPlaneZX();
-  CRSSEC_ID id = CrssecCore::getInst()->PickCrssec(bXY, bYZ, bZX, cuboid, rayP, rayD, pos);
+  CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
   if(id != CRSSEC_NON){
     short v = ImageCore::getInst()->getVoxelValue(pos);
     formVisNorm_setVoxelVis(v);
@@ -147,17 +143,14 @@ void ModeVizNormal::MouseMove(const EVec2i &p, OglForCLI *ogl)
 
 void ModeVizNormal::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
-  EVec3f eyeRay, eyePos;
-  ogl->GetCursorRay(p, eyePos, eyeRay);
-  EVec3f cuboid = ImageCore::getInst()->getCuboidF();
+  EVec3f rayP, rayD, pos;
+  ogl->GetCursorRay(p, rayP, rayD);
+  CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
+
   EVec3i reso   = ImageCore::getInst()->getResolution();
   EVec3f pitch  = ImageCore::getInst()->getPitch();
 
-  const bool bXY = formVisParam_bPlaneXY();
-  const bool bYZ = formVisParam_bPlaneYZ();
-  const bool bZX = formVisParam_bPlaneZX();
 
-  CRSSEC_ID id = CrssecCore::getInst()->PickCrssec(bXY, bYZ, bZX, cuboid, eyePos, eyeRay);
   if (id != CRSSEC_NON) CrssecCore::getInst()->MoveCrssec(reso, pitch, id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 

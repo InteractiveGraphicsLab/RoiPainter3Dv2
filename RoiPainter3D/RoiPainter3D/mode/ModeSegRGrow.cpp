@@ -270,7 +270,6 @@ void ModeSegRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVe
   if (m_bDrawStr) t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
 
   //draw planes
-
   glColor3d(1, 1, 1);
   m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
   CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);

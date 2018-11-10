@@ -46,8 +46,8 @@ public:
     return &p;
   }
 
-  CRSSEC_ID PickCrssec(bool bXY, bool bYZ, bool bZX, const EVec3f &cuboid, const EVec3f &rayP, const EVec3f &rayD);
-  CRSSEC_ID PickCrssec(bool bXY, bool bYZ, bool bZX, const EVec3f &cuboid, const EVec3f &rayP, const EVec3f &rayD, EVec3f &pos);
+  CRSSEC_ID PickCrssec(bool bXY, bool bYZ, bool bZX, bool bCrvSurf, const EVec3f &cuboid, const EVec3f &rayP, const EVec3f &rayD);
+  CRSSEC_ID PickCrssec(bool bXY, bool bYZ, bool bZX, bool bCrvSurf, const EVec3f &cuboid, const EVec3f &rayP, const EVec3f &rayD, EVec3f &pos);
 
   void DrawCrssec(bool bXY, bool bYZ, bool bZX, const EVec3f &cuboid);
   void MoveCrssec(EVec3i reso, EVec3f pitch, CRSSEC_ID id, short Delta);
@@ -61,7 +61,7 @@ public:
   }
 
   void GenerateCurvedCrssec(const EVec3f &cuboid, const EVec3f &camP, const vector<EVec3f> &stroke);
-
+  void ClearCurvedCrossec(){ m_curve_crssec.clear(); m_curve_crssec_edge.clear(); }
   float GetPlaneXyPosition() { return m_plane_xy; }
   float GetPlaneYzPosition() { return m_plane_yz; }
   float GetPlaneZxPosition() { return m_plane_zx; }

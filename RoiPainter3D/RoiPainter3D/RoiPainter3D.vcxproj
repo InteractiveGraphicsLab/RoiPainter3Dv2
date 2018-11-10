@@ -264,6 +264,9 @@
     <EmbeddedResource Include="FormSegRGrow.resx">
       <DependentUpon>FormSegRGrow.h</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormSegVoxelPaint.resx">
+      <DependentUpon>FormSegVoxelPaint.h</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormStackOrder.resx">
       <DependentUpon>FormStackOrder.h</DependentUpon>
     </EmbeddedResource>

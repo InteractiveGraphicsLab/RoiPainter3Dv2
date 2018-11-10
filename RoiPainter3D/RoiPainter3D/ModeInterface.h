@@ -43,7 +43,6 @@ protected:
 	ModeInterface() { m_bL = m_bR = m_bM = false; }
 
 public:
-	virtual MODE_ID getModeID() = 0;
 	virtual void LBtnUp		  (const EVec2i &p, OglForCLI *ogl) = 0;
 	virtual void RBtnUp		  (const EVec2i &p, OglForCLI *ogl) = 0;
 	virtual void MBtnUp		  (const EVec2i &p, OglForCLI *ogl) = 0;
@@ -78,19 +77,5 @@ inline bool isAltKeyOn  () { return GetKeyState(VK_MENU   ) < 0; }
 
 CRSSEC_ID pickCrsSec(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos);
 CRSSEC_ID pickCrsSec(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos, const bool bXY, const bool bYZ, const bool bZX);
-
-/*
-
-CRSSEC_ID pickCrsSrc(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos, const CRSSEC_ID id);
-{
-	const EVec3f cube  = ImageCore::getInst()->getCuboidF();
-	const EVec3i reso  = ImageCore::getInst()->getReso   ();
-	const EVec3f pitch = ImageCore::getInst()->getPitch  ();
-	const bool   bXY   = formVisParam_bPlaneXY();
-	const bool   bYZ   = formVisParam_bPlaneYZ();
-	const bool   bZX   = formVisParam_bPlaneZX();
-	return CrsSecCore::getInst()->pickCrosSec(bXY, bYZ, bZX, cube, rayP, rayD, *pos);
-}
-*/
-
+CRSSEC_ID pickCrsSec_onlyTrgt(const CRSSEC_ID trgtID, const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos);
 

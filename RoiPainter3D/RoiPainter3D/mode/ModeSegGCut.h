@@ -127,7 +127,6 @@ public:
   }
 
   // overload functions ---------------------------------------------
-  MODE_ID getModeID() { return MODE_VIS_NORMAL; }
 
   void LBtnUp    (const EVec2i &p, OglForCLI *ogl);
   void RBtnUp    (const EVec2i &p, OglForCLI *ogl);
