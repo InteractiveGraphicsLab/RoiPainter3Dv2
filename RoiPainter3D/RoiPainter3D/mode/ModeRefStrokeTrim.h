@@ -48,6 +48,10 @@ public:
   void startMode ();
   void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF);
 
+  void cancelSegmentation();
+  void finishSegmentation();
+
+
 };
 
 #pragma managed

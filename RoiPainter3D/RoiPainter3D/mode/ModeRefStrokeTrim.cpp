@@ -95,4 +95,9 @@ void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 {
 }
 
+
+
+void ModeRefStrokeTrim::cancelSegmentation(){}
+void ModeRefStrokeTrim::finishSegmentation(){}
+
 #pragma managed
