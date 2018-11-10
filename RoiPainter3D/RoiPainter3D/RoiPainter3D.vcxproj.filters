@@ -202,12 +202,6 @@
     <ClCompile Include="FormStackOrder.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="FormSegRGrow.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="FormSegGCut.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="mode\ModeSegGCut.cpp">
       <Filter>MODE</Filter>
     </ClCompile>
@@ -239,6 +233,12 @@
       <Filter>MODE</Filter>
     </ClCompile>
     <ClCompile Include="FormSegVoxelPaint.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="FormSegGCut.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="FormSegRGrow.cpp">
       <Filter>MODE</Filter>
     </ClCompile>
   </ItemGroup>

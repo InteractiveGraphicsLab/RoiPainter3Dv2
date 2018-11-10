@@ -596,8 +596,7 @@ System::Void FormMain::segmentationToolStripMenuItem_Click(System::Object^  send
   ModeCore::getInst()->ModeSwitch(MODE_SEG_VOXPAINT);
   redrawMainPanel();
 }
-
-System::Void FormMain::segmentationToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+System::Void FormMain::refinementVoxelPaintToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
   ModeCore::getInst()->ModeSwitch(MODE_REF_VOXPAINT);
   redrawMainPanel();
 }

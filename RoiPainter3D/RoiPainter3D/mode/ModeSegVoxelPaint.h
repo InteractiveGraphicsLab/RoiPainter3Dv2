@@ -31,8 +31,9 @@ class ModeSegVoxelPaint : public ModeInterface
   int  m_refineMaskId  ; 
 
   //mouse manipuration
-	bool m_bPaintVoxel;
-	bool m_bDrawLasso ;
+	bool      m_bPaintVoxel;
+	bool      m_bDrawLasso ;
+  CRSSEC_ID m_lassoTrgtId;
 	vector<EVec3f>  m_lasso;
 	vector<EVec4i>  m_paintVoxels;
 
@@ -46,7 +47,6 @@ public:
   }
 
   // overload functions ---------------------------------------------
-  MODE_ID getModeID() { return MODE_VIS_NORMAL; }
 
   void LBtnUp    (const EVec2i &p, OglForCLI *ogl);
   void RBtnUp    (const EVec2i &p, OglForCLI *ogl);
@@ -67,6 +67,8 @@ public:
   void startMode ();
   void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF);
 
+  void finishSegmentation();
+  void cancelSegmentation();
 };
 
 #pragma managed

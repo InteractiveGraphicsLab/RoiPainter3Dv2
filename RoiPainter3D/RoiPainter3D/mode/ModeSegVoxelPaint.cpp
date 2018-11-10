@@ -7,7 +7,9 @@
 
 #include "FormMain.h"
 #include "FormVisParam.h"
-#include "FormVisNorm.h"
+#include "FormSegVoxelPaint.h"
+#include "FormMaskIDselection.h"
+#include "climessagebox.h"
 
 
 using namespace RoiPainter3D;
@@ -25,11 +27,14 @@ ModeSegVoxelPaint::~ModeSegVoxelPaint()
 }
 
 ModeSegVoxelPaint::ModeSegVoxelPaint() :
-  m_volumeShader("shader/volVtx.glsl"   , "shader/volFlg.glsl"),
-  m_crssecShader("shader/crssecVtx.glsl", "shader/crssecFlg.glsl")
+	m_volumeShader("shader/volVtx.glsl"   , "shader/volFlg_Seg.glsl"   ),
+	m_crssecShader("shader/crssecVtx.glsl", "shader/crssecFlg_Seg.glsl")
 {
+  m_bR = m_bL = m_bM = false;
+  m_bDrawLasso = false;
+  m_bPaintVoxel = false;
+  m_bRefinmentMode = false;
 }
-
 
 
 
@@ -38,206 +43,109 @@ bool ModeSegVoxelPaint::canEndMode()
   return true;
 }
 
+
+
 void ModeSegVoxelPaint::startMode()
 {
-}
+  formSegVoxelPaint_Show();
 
+  m_bR = m_bL = m_bM = false;
+	m_bDrawLasso = m_bPaintVoxel = m_bRefinmentMode = false;
 
-void ModeSegVoxelPaint::LBtnDown(const EVec2i &p, OglForCLI *ogl)
-{
-}
-
-
-void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
-{
-}
-
-void ModeSegVoxelPaint::RBtnDown(const EVec2i &p, OglForCLI *ogl)
-{
-}
-
-void ModeSegVoxelPaint::RBtnUp(const EVec2i &p, OglForCLI *ogl)
-{
-}
-
-void ModeSegVoxelPaint::MBtnDown(const EVec2i &p, OglForCLI *ogl)
-{
-}
-
-void ModeSegVoxelPaint::MBtnUp(const EVec2i &p, OglForCLI *ogl)
-{
-}
-
-
-void ModeSegVoxelPaint::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
-{
-
-
-}
-
-
-void ModeSegVoxelPaint::RBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
-void ModeSegVoxelPaint::MBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
-
-
-void ModeSegVoxelPaint::MouseMove(const EVec2i &p, OglForCLI *ogl)
-{
-}
-
-
-void ModeSegVoxelPaint::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
-{
-}
-
-
-
-void ModeSegVoxelPaint::keyDown(int nChar) {}
-void ModeSegVoxelPaint::keyUp(int nChar) {}
-
-
-void ModeSegVoxelPaint::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
-{
-}
-
-
-
-
-todo 以下の実装を上にコピー
-refinement modeへの対応も行う（start とfinish以外は同じでok）
-
-
-/*
-
-
-ModeSegPixPaint::ModeSegPixPaint() : 
-	m_volumeShader("shader/volVtx.glsl"   , "shader/volFlg_Seg.glsl"   ),
-	m_crssecShader("shader/crssecVtx.glsl", "shader/crssecFlg_Seg.glsl")
-{
-
-	m_bR = m_bL = m_bM = false;
-	m_dlg.Create(IDD_DIALOG_SEG_PIXPAINT);
-
-}
-
-
-ModeSegPixPaint::~ModeSegPixPaint()
-{
-
-}
-
-
-void ModeSegPixPaint::FinishSegmentation()
-{
-
- const EVec3i res = TexCore::getInst()->getResolution();
-	const int    N = res[0] * res[1] * res[2];
-
-	bool bForeExist = false;
-	for (int i = 0; i < N; ++i)
-	{
-		if ( TexCore::getInst()->m_volFlg[i] == 255)
-		{
-			bForeExist = true;
-			break;
-		}
-	}
-
-	if (!bForeExist) 
-	{
-		AfxMessageBox("No foreground pixel exist\n");
-		return;
-	}
-
-
-	TexCore::getInst()->mask_storeCurrentForeGround();
-	ModeCore::getInst()->SwitchMode( MODE_VIS_MASK );
-
-}
-
-void ModeSegPixPaint::startMode() 
-{
-	m_dlg.ShowWindow( SW_SHOW );
-
-	m_bR = m_bL = m_bM = false;
-	m_bDrawLasso = m_bPaintCP = false;
-
-
-	vector<MaskData> &mask = TexCore::getInst()->m_maskData;
-	OglImage3D      &vMask = TexCore::getInst()->m_volMsk;
-	OglImage3D      &vFlg  = TexCore::getInst()->m_volFlg;
-
-
-	EVec3i r = TexCore::getInst()->getResolution();
+	const vector<MaskData> &mask = ImageCore::getInst()->m_maskData;
+	const OglImage3D      &vMask = ImageCore::getInst()->m_volMsk;
+	const EVec3i           r     = ImageCore::getInst()->getResolution();
+	OglImage3D            &vFlg  = ImageCore::getInst()->m_volFlg;
 	const int N = r[0] * r[1] * r[2];
-	
-	for (int i = 0; i < N; ++i)
-	{
-		vFlg[i] = (mask[vMask[i]].lock) ? 0 : 1;
-	}
 
-	//call TOGLImage.setUpdated after modification (the data will send to GPU if this flg is ture)
-	vFlg.setUpdated();
 
+  if(ModeCore::getInst()->getCurrentModeId() == MODE_SEG_VOXPAINT)
+  {
+    //segmentation mode
+    for (int i = 0; i < N; ++i) vFlg[i] = (mask[vMask[i]].lock) ? 0 : 1;
+  }
+  else if(ModeCore::getInst()->getCurrentModeId() == MODE_REF_VOXPAINT )
+  {
+    //refinement mode
+    m_bRefinmentMode = true;
+    m_refineMaskId = formMaskIdSelection_showModalDialog();
+    if( m_refineMaskId  == -1)
+    {
+      ModeCore::getInst()->ModeSwitch(MODE_VIS_MASK);
+      return;
+    }
+    
+    if( m_refineMaskId  == 0)
+    {
+      CLI_MessageBox_OK_Show("MASK_id = 0 is not editable here ", "message");
+      ModeCore::getInst()->ModeSwitch(MODE_VIS_MASK);
+      return;
+    }
+
+    for (int i = 0; i < N; ++i) 
+      vFlg[i] = (vMask[i] == m_refineMaskId) ? 255 : 
+                (mask[vMask[i]].lock       ) ?  0  : 1;
+  }
+  else
+  {
+    //never comes here 
+    ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+    return;
+  }
+
+	vFlg.SetUpdated();
+  CrssecCore::getInst()->ClearCurvedCrossec();
 }
 
-bool ModeSegPixPaint::canEndMode() 
+
+
+
+
+
+void ModeSegVoxelPaint::finishSegmentation()
 {
-	return true;//IDYES == AfxMessageBox("Current Result is not stored. \nDo you want to leave?", MB_YESNO);
+  const EVec3i res = ImageCore::getInst()->getResolution();
+  const int    N   = res[0] * res[1] * res[2];
+ 
+  const OglImage3D &vFlg  = ImageCore::getInst()->m_volFlg;
+  OglImage3D &vMask = ImageCore::getInst()->m_volMsk;
+
+
+  if ( m_bRefinmentMode )
+  {
+    //refinement mode
+    for (int i = 0; i < N; ++i) {
+      if     ( vFlg[i] == 255                               ) vMask[i] = m_refineMaskId ;
+      else if( vFlg[i] == 1   && vMask[i] == m_refineMaskId ) vMask[i] = 0 ;
+
+    }
+    vMask.SetUpdated();
+    ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+  }
+  else 
+  {
+    //segmentation mode
+    bool bForeExist = false;
+    for (int i = 0; i < N; ++i) if ( vFlg[i] == 255)
+    {
+      bForeExist = true;
+      break;
+    }
+
+    if (!bForeExist) 
+    {
+      CLI_MessageBox_OK_Show("No foreground pixel exist", "caution");
+      return;
+    }
+    ImageCore::getInst()->mask_storeCurrentForeGround();
+    ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+  }
 }
 
-
-
-
-
-
-
-
-
-
-// position & vCube --> voxel index
-inline EVec4i t_calcVoxIdx(const EVec3f &p, const EVec3f &pitch, const EVec3i &reso)
+void ModeSegVoxelPaint::cancelSegmentation()
 {
-	int x = (int)(p[0] / pitch[0]);
-	int y = (int)(p[1] / pitch[1]);
-	int z = (int)(p[2] / pitch[2]);
-	t_crop(0, reso[0] - 1, x);
-	t_crop(0, reso[1] - 1, y);
-	t_crop(0, reso[2] - 1, z);
-	return EVec4i(x, y, z, x + y * reso[0] + z * reso[0] * reso[1]);
-}
-
-
-
-static void drawCubes
-(
-	const vector<EVec4i> &pixIds,
-	const EVec3f &pitch,
-	const bool   &tf
-) 
-{
-	if( tf ) glColor3d(0.2, 0.8, 1.0);
-	else     glColor3d(0.9, 0.9, 0.9);
-
-	const float x = pitch[0];
-	const float y = pitch[1];
-	const float z = pitch[2];
-
-	for (const auto itr : pixIds) 
-	{
-		glPushMatrix();
-			glTranslated(itr.x()*x,  itr.y()*y, itr.z()*z);
-			glDisable(GL_CULL_FACE);
-			glBegin(GL_QUADS);
-				glNormal3f(-1,0, 0); glVertex3f(0, 0, 0); glVertex3f(0, 0, z); glVertex3f(0, y, z); glVertex3f(0, y, 0);
-				glNormal3f(0,-1, 0); glVertex3f(0, 0, 0); glVertex3f(x, 0, 0); glVertex3f(x, 0, z); glVertex3f(0, 0, z);
-				glNormal3f(0, 0,-1); glVertex3f(0, 0, 0); glVertex3f(0, y, 0); glVertex3f(x, y, 0); glVertex3f(y, 0, 0);
-				glNormal3f(1, 0, 0); glVertex3f(x, 0, 0); glVertex3f(x, 0, z); glVertex3f(x, y, z); glVertex3f(x, y, 0);
-				glNormal3f(0, 1, 0); glVertex3f(0, y, 0); glVertex3f(x, y, 0); glVertex3f(x, y, z); glVertex3f(0, y, z);
-				glNormal3f(0, 0, 1); glVertex3f(0, 0, z); glVertex3f(0, y, z); glVertex3f(x, y, z); glVertex3f(y, 0, z);
-			glEnd();
-			glEnable(GL_CULL_FACE);
-		glPopMatrix();
-	}
+    ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+    formMain_redrawMainPanel();
 }
 
 
@@ -245,77 +153,17 @@ static void drawCubes
 
 
 
-void ModeSegPixPaint::drawScene(
-	const EVec3f &cuboid, 
-	const EVec3f &camP  , 
-	const EVec3f &camF)	
-{
-	const bool   bRendVol = TexCore::getInst()->m_dlg.bRendVol();
-	const bool   bGradMag = TexCore::getInst()->m_dlg.bGradMag();
-	const bool   bPsuedo  = TexCore::getInst()->m_dlg.bDoPsued();
-	const float  alpha    = TexCore::getInst()->m_dlg.getTransAlpha();
-	const EVec3i reso     = TexCore::getInst()->getResolution();
-	const EVec3f pitch    = TexCore::getInst()->getPitch();
-
-	bool isOnManip = TexCore::getInst()->m_dlg.bOnManip() || m_bL || m_bR || m_bM;
-	const int  sliceN = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * TexCore::getInst()->m_dlg.getSliceNum());
-
-
-	//bind volumes ---------------------------------------
-	glActiveTextureARB(GL_TEXTURE0);
-	TexCore::getInst()->m_vol.bindOgl();
-	glActiveTextureARB(GL_TEXTURE1);
-	TexCore::getInst()->m_volGmag.bindOgl();
-	glActiveTextureARB(GL_TEXTURE2);
-	TexCore::getInst()->m_volFlg.bindOgl(false);
-	glActiveTextureARB(GL_TEXTURE3);
-	TexCore::getInst()->m_volMsk.bindOgl(false);
-	glActiveTextureARB(GL_TEXTURE4);
-	TexCore::getInst()->m_imgTf.bindOgl(false);
-	glActiveTextureARB(GL_TEXTURE5);
-	TexCore::getInst()->m_imgPsu.bindOgl();
-	glActiveTextureARB(GL_TEXTURE6);
-	TexCore::getInst()->m_imgMskCol.bindOgl(false);
-
-	
-	//render cross sections ----------------------------------
-	m_crssecShader.bind(0, 1, 2, 3, 6, reso, bGradMag, !isSpaceKeyOn());
-	CrsSecCore::getInst()->drawCrosSec(cuboid);
-	m_crssecShader.unbind();
-
-
-
-	//volume rendering ---------------------------------------
-	if (bRendVol && !isSpaceKeyOn())
-	{
-		glDisable( GL_DEPTH_TEST );
-		glEnable(GL_BLEND);
-		m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, true);
-		t_drawSlices(sliceN, camP, camF, cuboid);
-		m_volumeShader.unbind();
-		glDisable(GL_BLEND);
-		glEnable(GL_DEPTH_TEST);
-	}	
-
-	if (m_bPaintCP) drawCubes(m_paintPixels, pitch, m_bL);
-	
-	if (m_bDrawLasso) {
-		EVec3f ofset = (camP - camF).normalized() * 0.5;
-		glLineWidth(2);
-		glColor3d(0.2, 0.4, 1.0);
-		
-		glPushMatrix();
-		glTranslated(ofset[0], ofset[1], ofset[2]);	
-		glBegin(GL_LINE_LOOP);
-		for (auto itr : m_lasso) glVertex3f(itr.x(), itr.y(), itr.z());
-		glEnd();
-		glPopMatrix();
-	}
-}
 
 
 
 
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//Functions for Lasso /////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 
 //compute angle of p1-p-p2 
@@ -334,12 +182,11 @@ static float c_calcAngle
 	if (an == 0 || bn == 0) return 0;
 	
 	float cosTheta = min(1,a.dot(b) / an / bn );
-
 	return ( a.cross(b)).dot(axis) > 0 ? acos(cosTheta): -acos(cosTheta);
 }
 
 
-//注目している点が内側であるか判定
+//注目している点が lasso の内側であるか判定
 static bool c_isInsideLasso
 (
 	const EVec3f         &pos, 
@@ -367,26 +214,25 @@ static bool c_isInsideLasso
 
 
 
-
-
-//lassoの内側にあるpixel flgを 255に
-
-static void c_addPixsInsideLasso
+//lassoの内側にあるvoxelを fore/backに変更
+//bFore = true  --> vFlg 1 --> 255に
+//bFore = false --> vFlg 255 --> 1に
+static void t_addPixsInsideLasso
 (
-	const EVec3i         &WHD,
-	const EVec3f         &pitch,
+	const CRSSEC_ID      id      ,
+	const EVec3i         reso    ,
+	const EVec3f         pitch   ,
 	const vector<EVec3f> &lassoPs,
-	const CRSSEC_ID      &id,
-	const bool &isFill,
-   		  OglImage3D     &vFlg
+	const bool           bFore   ,
 
+   		  OglImage3D     &vFlg
 )
 {
-	const int W = WHD[0];
-	const int H = WHD[1];
-	const int D = WHD[2], WH = W*H;
+	const int W = reso[0];
+	const int H = reso[1];
+	const int D = reso[2], WH = W*H;
 
-  fprintf(stderr, "---- %d  %d %d %d\n", id, WHD[0],WHD[1],WHD[2]);
+  fprintf(stderr, "---- %d  %d %d %d\n", id, W,H,D);
   Trace(pitch);
 
 	if (id == CRSSEC_XY) 
@@ -394,12 +240,22 @@ static void c_addPixsInsideLasso
 		const float zPos = lassoPs.begin()->z();
 		const int   zi   = (int)(zPos / pitch[2]);
 
-	#pragma omp parallel for
+#pragma omp parallel for
 		for (int yi = 0; yi < H; ++yi)
 		for (int xi = 0; xi < W; ++xi)
 		{
+      int idx = xi + yi * W + zi * WH;
+      printf("a");
+      if( vFlg[idx] == 0 ) continue;
+      printf("b");
+      
 			EVec3f p((xi + 0.5f) * pitch[0], (yi + 0.5f) * pitch[1], zPos);
-			if ( c_isInsideLasso(p, lassoPs, id)) vFlg[xi + yi * W + zi * WH] = (isFill)? 255 : 1;
+
+			if ( bFore ){
+        if ( vFlg[idx] == 1  &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 255;
+      }else{
+        if ( vFlg[idx] ==255 &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 1  ;
+      }
 		}
 	}
 	
@@ -408,14 +264,22 @@ static void c_addPixsInsideLasso
 		const float xPos = lassoPs.begin()->x();
 		const int   xi   = (int)(xPos / pitch[0]);
 
-	#pragma omp parallel for
+#pragma omp parallel for
 		for (int zi = 0; zi < D; ++zi)
 		for (int yi = 0; yi < H; ++yi)
 		{
+      int idx = xi + yi * W + zi * WH;
+      if( vFlg[idx] == 0 ) continue;
+      
 			EVec3f p(xPos, (yi + 0.5f) * pitch[1], (zi + 0.5f) * pitch[2]);
-			if (c_isInsideLasso(p, lassoPs, id)) vFlg[xi + yi * W + zi * WH] = (isFill) ? 255 : 1;
-		}
-	}
+
+			if ( bFore ){
+        if ( vFlg[idx] == 1  &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 255;
+      }else{
+        if ( vFlg[idx] ==255 &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 1  ;
+		  }
+	  }
+  }
 
 		
 	if (id == CRSSEC_ZX) 
@@ -423,12 +287,20 @@ static void c_addPixsInsideLasso
 		const float yPos = lassoPs.begin()->y();
 		const int   yi   = (int)(yPos / pitch[1]);
 
-	#pragma omp parallel for
-		for (int zi = 0; zi < WHD[2]; ++zi)
-		for (int xi = 0; xi < WHD[0]; ++xi)
+#pragma omp parallel for
+		for (int zi = 0; zi < D; ++zi)
+		for (int xi = 0; xi < W; ++xi)
 		{
+      int idx = xi + yi * W + zi * WH;
+      if( vFlg[idx] == 0 ) continue;
+      
 			EVec3f p((xi + 0.5f) * pitch[0], yPos, (zi + 0.5f) * pitch[2]);
-			if (c_isInsideLasso(p, lassoPs, id)) vFlg[xi + yi * W + zi * WH] = (isFill) ? 255 : 1;
+
+			if ( bFore ){
+        if ( vFlg[idx] == 1  &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 255;
+      }else{
+        if ( vFlg[idx] ==255 &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 1  ;
+		  }
 		}
 	}
 }
@@ -437,182 +309,316 @@ static void c_addPixsInsideLasso
 
 
 
-// mouse listener 
-void ModeSegPixPaint::LBtnUp  (const CPoint &p, OglForMFC &ogl) 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//Mouse Listener //////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+void ModeSegVoxelPaint::LBtnDown( const EVec2i &p, OglForCLI *ogl)
 {
-	OglImage3D  &vFlg = TexCore::getInst()->m_volFlg;
-	EVec3f rayP, rayD, pos;
-	ogl.GetCursorRay(p, rayP, rayD);
-	EVec3i reso  = TexCore::getInst()->getResolution();
-	EVec3f pitch = TexCore::getInst()->getPitch();
-	EVec3f cube  = TexCore::getInst()->getCuboidF();
 
-	CRSSEC_ID id = CrsSecCore::getInst()->pickCrosSec(cube, rayP, rayD, pos);
-
-	if (m_bPaintCP) 
-	{
-		for (auto itr : m_paintPixels)  if( vFlg[itr[3]] == 1 ) vFlg[itr[3]] = 255;
-		vFlg.setUpdated();
-	}
-	if (m_bDrawLasso)
-	{
-		c_addPixsInsideLasso(reso, pitch, m_lasso, id, m_bL, vFlg);
-		vFlg.setUpdated();
-	}
-
-	m_lasso.clear();
-	m_paintPixels.clear();
-	m_bL = m_bPaintCP = m_bDrawLasso = false;
-	ogl.BtnUp();
-	ogl.Redraw();
-}
-
-
-void ModeSegPixPaint::RBtnUp(const CPoint &p, OglForMFC &ogl)
-{
-	OglImage3D  &vFlg = TexCore::getInst()->m_volFlg;
-	EVec3f rayP, rayD, pos;
-	ogl.GetCursorRay(p, rayP, rayD);
-	EVec3i reso  = TexCore::getInst()->getResolution();
-	EVec3f pitch = TexCore::getInst()->getPitch();
-	EVec3f cube  = TexCore::getInst()->getCuboidF();
-
-	CRSSEC_ID id = CrsSecCore::getInst()->pickCrosSec(cube, rayP, rayD, pos);
-
-	if (m_bPaintCP) 
-	{
-		for (auto itr : m_paintPixels)  if( vFlg[itr[3]] == 255 ) vFlg[itr[3]] = 1;
-		vFlg.setUpdated();
-	}
-	if (m_bDrawLasso)
-	{
-		c_addPixsInsideLasso(reso, pitch, m_lasso, id, m_bL, vFlg);
-		vFlg.setUpdated();
-	}
-
-	m_lasso.clear();
-	m_paintPixels.clear();
-
-	m_bR = m_bPaintCP = false;
-	ogl.BtnUp();
-	ogl.Redraw();
-}
-
-
-void ModeSegPixPaint::MBtnUp  (const CPoint &p, OglForMFC &ogl) 
-{
-	m_bM = false;
-	ogl.BtnUp();
-	ogl.Redraw();
-}
-
-
-
-void ModeSegPixPaint::LBtnDown(const CPoint &p, OglForMFC &ogl)
-{
-	m_bL = true;
+  m_bL = true;
+  m_paintVoxels.clear();
+  m_lasso.clear();
 		
-	if (isShiftKeyOn() )
+	if ( isShiftKeyOn() )
 	{
-		if( m_dlg.m_check_lasso.GetCheck()) m_bDrawLasso = true;
-		else  m_bPaintCP = true;
+		if ( formSegVoxelPaint_bLassoMode() ) 
+    {
+      m_bDrawLasso  = true;
+      EVec3f rayP, rayD, pos;
+      ogl->GetCursorRay(p, rayP, rayD);
+      m_lassoTrgtId = pickCrsSec(rayP, rayD, &pos);
+
+      if(m_lassoTrgtId != CRSSEC_NON) m_bDrawLasso = true;
+    }
+		else 
+    {
+      m_bPaintVoxel = true;
+    }
 	}
 	else
 	{
-		ogl.BtnDown_Trans(p);
+		ogl->BtnDown_Trans( p );
 	}
 }
 
 
-void ModeSegPixPaint::RBtnDown(const CPoint &p, OglForMFC &ogl) 
+void ModeSegVoxelPaint::RBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
-	m_bR = true;
-	if (isShiftKeyOn() )
+  m_bR = true;
+  m_paintVoxels.clear();
+  m_lasso.clear();
+		
+	if ( isShiftKeyOn() )
 	{
-		if( m_dlg.m_check_lasso.GetCheck()) m_bDrawLasso = true;
-		else  m_bPaintCP = true;
+		if ( formSegVoxelPaint_bLassoMode() ) 
+    {
+      m_bDrawLasso  = true;
+      EVec3f rayP, rayD, pos;
+      ogl->GetCursorRay(p, rayP, rayD);
+      m_lassoTrgtId = pickCrsSec(rayP, rayD, &pos);
+
+      if(m_lassoTrgtId != CRSSEC_NON) m_bDrawLasso = true;
+    }
+		else 
+    {
+      m_bPaintVoxel = true;
+    }
 	}
 	else
 	{
-		ogl.BtnDown_Rot(p);
+		ogl->BtnDown_Rot( p );
 	}
-	m_bR = true;
 }
 
-
-void ModeSegPixPaint::MBtnDown(const CPoint &p, OglForMFC &ogl) 
+void ModeSegVoxelPaint::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
-	ogl.BtnDown_Zoom(p);
+  ogl->BtnDown_Zoom(p);
 	m_bM = true;
 }
 
 
 
-
-
-void ModeSegPixPaint::MouseMove(const CPoint &p, OglForMFC &ogl) 
+void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-	if (!m_bL && !m_bM && !m_bR) return;
+  OglImage3D  &vFlg = ImageCore::getInst()->m_volFlg;
 
-
-	EVec3f rayP, rayD;
-	ogl.GetCursorRay(p, rayP, rayD);
-	EVec3i reso  = TexCore::getInst()->getResolution();
-	EVec3f pitch = TexCore::getInst()->getPitch();
-	EVec3f cube  = TexCore::getInst()->getCuboidF();
-	OglImage3D &vFlg = TexCore::getInst()->m_volFlg;
-
-	EVec3f pos;
-	
-	if (m_bPaintCP)
+	if (m_bPaintVoxel) 
 	{
-		if (CrsSecCore::getInst()->pickCrosSec(cube, rayP, rayD, pos) == CRSSEC_NON) return;
-		EVec4i pixIdx = t_calcVoxIdx(pos, pitch, reso);
-		if( m_bL && vFlg[pixIdx[3]] == 1 ) m_paintPixels.push_back( pixIdx );
-		if(!m_bL && vFlg[pixIdx[3]] ==255) m_paintPixels.push_back( pixIdx );
+		for (auto itr : m_paintVoxels) if( vFlg[itr[3]] == 1 ) vFlg[itr[3]] = 255;
+		vFlg.SetUpdated();
+	}
+	if (m_bDrawLasso)
+	{
+    const EVec3i reso  = ImageCore::getInst()->getResolution();
+    const EVec3f pitch = ImageCore::getInst()->getPitch();
+    const EVec3f cube  = ImageCore::getInst()->getCuboidF();
+
+		t_addPixsInsideLasso( m_lassoTrgtId, reso, pitch, m_lasso, m_bL, vFlg);
+		vFlg.SetUpdated();
+	}
+
+	m_lasso.clear();
+	m_paintVoxels.clear();
+	m_bL = m_bPaintVoxel = m_bDrawLasso = false;
+	ogl->BtnUp();
+	formMain_redrawMainPanel();
+}
+
+
+void ModeSegVoxelPaint::RBtnUp(const EVec2i &p, OglForCLI *ogl)
+{
+  OglImage3D  &vFlg = ImageCore::getInst()->m_volFlg;
+
+	if (m_bPaintVoxel) 
+	{
+		for (auto itr : m_paintVoxels) if( vFlg[itr[3]] == 255) vFlg[itr[3]] = 1;
+		vFlg.SetUpdated();
+	}
+	if (m_bDrawLasso)
+	{
+    const EVec3i reso  = ImageCore::getInst()->getResolution();
+    const EVec3f pitch = ImageCore::getInst()->getPitch();
+    const EVec3f cube  = ImageCore::getInst()->getCuboidF();
+
+		t_addPixsInsideLasso(m_lassoTrgtId, reso, pitch, m_lasso, m_bL, vFlg);
+		vFlg.SetUpdated();
+	}
+
+	m_lasso.clear();
+	m_paintVoxels.clear();
+	m_bL = m_bPaintVoxel = m_bDrawLasso = false;
+	ogl->BtnUp();
+	formMain_redrawMainPanel();
+}
+
+void ModeSegVoxelPaint::MBtnUp(const EVec2i &p, OglForCLI *ogl)
+{
+  m_bM = false;
+  ogl->BtnUp();
+  formMain_redrawMainPanel();
+}
+
+
+
+
+void ModeSegVoxelPaint::MouseMove(const EVec2i &p, OglForCLI *ogl)
+{
+  if (!m_bL && !m_bM && !m_bR) return;
+
+	EVec3f rayP, rayD, pos;
+	ogl->GetCursorRay(p, rayP, rayD);
+
+	const OglImage3D &vFlg = ImageCore::getInst()->m_volFlg    ;
+
+	if ( m_bPaintVoxel )
+	{
+		if ( pickCrsSec(rayP, rayD, &pos) == CRSSEC_NON) return;
+    EVec4i vi = ImageCore::getInst()->getVoxelIndex4i(pos);
+
+		if( m_bL && vFlg[vi[3]] == 1 ) m_paintVoxels.push_back( vi );
+		if(!m_bL && vFlg[vi[3]] ==255) m_paintVoxels.push_back( vi );
 	}
 	else if (m_bDrawLasso) 
 	{
-		if (CrsSecCore::getInst()->pickCrosSec(cube, rayP, rayD, pos) != CRSSEC_NON)
-		{
+		if ( pickCrsSec_onlyTrgt( m_lassoTrgtId, rayP, rayD, &pos) != CRSSEC_NON){
 			m_lasso.push_back(pos);
 		}
 	}
 	else
 	{
-		ogl.MouseMove(p);
+		ogl->MouseMove(p);
 	}	
-
-	ogl.Redraw();
+  formMain_redrawMainPanel();
 }
 
 
 
-void ModeSegPixPaint::LBtnDclk(const CPoint &p, OglForMFC &ogl) {}
-void ModeSegPixPaint::RBtnDclk(const CPoint &p, OglForMFC &ogl) {}
-void ModeSegPixPaint::MBtnDclk(const CPoint &p, OglForMFC &ogl) {}
-
-void ModeSegPixPaint::MouseWheel(const CPoint &p, int nFlags, short zDelta, OglForMFC &ogl) 
+void ModeSegVoxelPaint::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
-	EVec3f eyeRay, eyePos, cuboid = TexCore::getInst()->getCuboidF();
-	ogl.GetCursorRay(p, eyePos, eyeRay);
+  EVec3f rayP, rayD, pos;
+	ogl->GetCursorRay(p, rayP, rayD);
+  
+  CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
+  if( id != CRSSEC_NON ) CrssecCore::getInst()->MoveCrssec(ImageCore::getInst()->getResolution(), 
+                                                           ImageCore::getInst()->getPitch(), id, zDelta);
+  else ogl->ZoomCam(zDelta * 0.1f);
 
-	CRSSEC_ID id = CrsSecCore::getInst()->pickCrosSec(cuboid, eyePos, eyeRay);
-	if (id != CRSSEC_NON) CrsSecCore::getInst()->moveCrossSec(id, zDelta);
-	else ogl.ZoomCam(zDelta * 0.1f);
-
-	ogl.Redraw();
-}
-
-void ModeSegPixPaint::keyDown(int nChar, int nRepCnt, int nFlags) {
-	CRoiPaintView::MyRedrawWindow();
-}
-void ModeSegPixPaint::keyUp(int nChar, int nRepCnt, int nFlags) {
-	CRoiPaintView::MyRedrawWindow();
+  formMain_redrawMainPanel();
 }
 
 
-*/
+
+void ModeSegVoxelPaint::LBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
+void ModeSegVoxelPaint::RBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
+void ModeSegVoxelPaint::MBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
+
+
+
+void ModeSegVoxelPaint::keyDown(int nChar) {
+  formMain_redrawMainPanel();
+}
+
+void ModeSegVoxelPaint::keyUp(int nChar) {
+  formMain_redrawMainPanel();
+}
+
+
+
+
+
+
+
+static void t_drawCubes
+(
+	const vector<EVec4i> &pixIds,
+	const EVec3f &pitch,
+	const bool   &tf
+) 
+{
+	if( tf ) glColor3d(0.2, 0.8, 1.0);
+	else     glColor3d(0.9, 0.9, 0.9);
+
+	const float x = pitch[0];
+	const float y = pitch[1];
+	const float z = pitch[2];
+
+	for (const auto itr : pixIds) 
+	{
+		glPushMatrix();
+      glEnable(GL_LIGHTING);
+			glTranslated(itr.x()*x,  itr.y()*y, itr.z()*z);
+			glDisable(GL_CULL_FACE);
+			glBegin(GL_QUADS);
+				glNormal3f(-1,0, 0); glVertex3f(0, 0, 0); glVertex3f(0, 0, z); glVertex3f(0, y, z); glVertex3f(0, y, 0);
+				glNormal3f(0,-1, 0); glVertex3f(0, 0, 0); glVertex3f(x, 0, 0); glVertex3f(x, 0, z); glVertex3f(0, 0, z);
+				glNormal3f(0, 0,-1); glVertex3f(0, 0, 0); glVertex3f(0, y, 0); glVertex3f(x, y, 0); glVertex3f(y, 0, 0);
+				glNormal3f(1, 0, 0); glVertex3f(x, 0, 0); glVertex3f(x, 0, z); glVertex3f(x, y, z); glVertex3f(x, y, 0);
+				glNormal3f(0, 1, 0); glVertex3f(0, y, 0); glVertex3f(x, y, 0); glVertex3f(x, y, z); glVertex3f(0, y, z);
+				glNormal3f(0, 0, 1); glVertex3f(0, 0, z); glVertex3f(0, y, z); glVertex3f(x, y, z); glVertex3f(y, 0, z);
+			glEnd();
+			glEnable(GL_CULL_FACE);
+      glDisable(GL_LIGHTING);
+		glPopMatrix();
+	}
+}
+
+
+
+void ModeSegVoxelPaint::drawScene
+(
+    const EVec3f &cuboid, 
+    const EVec3f &camP  ,
+    const EVec3f &camF
+)
+{
+  const bool   bXY = formVisParam_bPlaneXY();
+  const bool   bYZ = formVisParam_bPlaneYZ();
+  const bool   bZX = formVisParam_bPlaneZX();
+  const bool   bDrawVol = formVisParam_bRendVol();
+  const bool   bGradMag = formVisParam_bGradMag();
+  const bool   bPsuedo  = formVisParam_bDoPsued();
+  const float  alpha    = formVisParam_getAlpha();
+  const EVec3i reso     = ImageCore::getInst()->getResolution();
+  const EVec3f pitch    = ImageCore::getInst()->getPitch();
+
+  const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+  const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+
+  //bind volumes ---------------------------------------
+  glActiveTextureARB(GL_TEXTURE0);
+  ImageCore::getInst()->m_vol.BindOgl();
+  glActiveTextureARB(GL_TEXTURE1);
+  ImageCore::getInst()->m_volGmag.BindOgl();
+  glActiveTextureARB(GL_TEXTURE2);
+  ImageCore::getInst()->m_volFlg.BindOgl(false);
+  glActiveTextureARB(GL_TEXTURE3);
+  ImageCore::getInst()->m_volMsk.BindOgl(false);
+  glActiveTextureARB(GL_TEXTURE4);
+  formVisParam_bindTfImg();
+  glActiveTextureARB(GL_TEXTURE5);
+  formVisParam_bindPsuImg();
+  glActiveTextureARB(GL_TEXTURE6);
+  ImageCore::getInst()->m_imgMskCol.BindOgl(false);
+  
+
+  //draw planes
+  glColor3d(1, 1, 1);
+  m_crssecShader.bind(0, 1, 2, 3, 6, reso, bGradMag, !isSpaceKeyOn());
+  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
+  m_crssecShader.unbind();
+
+  
+  if (bDrawVol && !isSpaceKeyOn())
+  {
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !isSpaceKeyOn());
+    t_drawSlices(sliceN, camP, camF, cuboid);
+    m_volumeShader.unbind();
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+  }
+
+
+	if ( m_bPaintVoxel ) t_drawCubes( m_paintVoxels, pitch, m_bL);
+	
+	if (m_bDrawLasso) {
+		EVec3f ofset = (camP - camF).normalized() * 0.5;
+		glLineWidth(2);
+		glColor3d(0.2, 0.4, 1.0);
+		
+		glPushMatrix();
+		glTranslated(ofset[0], ofset[1], ofset[2]);	
+		glBegin(GL_LINE_LOOP);
+		for (auto itr : m_lasso) glVertex3f(itr.x(), itr.y(), itr.z());
+		glEnd();
+		glPopMatrix();
+	}
+}
 
 
 

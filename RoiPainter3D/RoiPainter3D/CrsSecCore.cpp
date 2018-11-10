@@ -107,9 +107,10 @@ void CrssecCore::DrawCrssec
 
 CRSSEC_ID CrssecCore::PickCrssec
 (
-  bool bXY, 
-  bool bYZ, 
-  bool bZX, 
+  bool  bXY, 
+  bool  bYZ, 
+  bool  bZX,
+  bool  bCrvSurf, //curved surfaceもピックするか？
   const EVec3f &C, 
   const EVec3f &rayP, 
   const EVec3f &rayD, 
@@ -148,7 +149,7 @@ CRSSEC_ID CrssecCore::PickCrssec
 
   EVec3f pos;
 
-  if (m_curve_crssec.pickByRay(rayP, rayD, pos) && (pos - rayP).norm() < minDist) {
+  if (bCrvSurf && m_curve_crssec.pickByRay(rayP, rayD, pos) && (pos - rayP).norm() < minDist) {
     id = CRSSEC_CURVE;
     resPos = pos;
   }
@@ -159,10 +160,10 @@ CRSSEC_ID CrssecCore::PickCrssec
 
 
 
-CRSSEC_ID CrssecCore::PickCrssec(bool bXY, bool bYZ, bool bZX, const EVec3f &C, const EVec3f &rayP, const EVec3f &rayD)
+CRSSEC_ID CrssecCore::PickCrssec(bool bXY, bool bYZ, bool bZX, bool bCrvSrf, const EVec3f &C, const EVec3f &rayP, const EVec3f &rayD)
 {
   EVec3f p;
-  return PickCrssec(bXY, bYZ, bZX, C, rayP, rayD, p);
+  return PickCrssec(bXY, bYZ, bZX, bCrvSrf, C, rayP, rayD, p);
 }
 
 

@@ -253,7 +253,6 @@ void ModeSegGCut::MouseMove(const EVec2i &p, OglForCLI *ogl)
 void ModeSegGCut::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
   EVec3f rayP, rayD, pos;
-  EVec3f cuboid = ImageCore::getInst()->getCuboidF();
 	ogl->GetCursorRay(p, rayP, rayD);
 
   
