@@ -258,6 +258,9 @@
     <EmbeddedResource Include="FormMaskIDselection.resx">
       <DependentUpon>FormMaskIDselection.h</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormRefStrokeTrim.resx">
+      <DependentUpon>FormRefStrokeTrim.h</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormSegGCut.resx">
       <DependentUpon>FormSegGCut.h</DependentUpon>
     </EmbeddedResource>
