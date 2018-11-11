@@ -473,10 +473,6 @@ System::Void FormMain::open2DSlicesdcmToolStripMenuItem_Click   (System::Object^
   redrawMainPanel();
 }
 
-//to check
-//2d bmp / tif /dcms
-//3D traw3D_ss / dcm / fav
-
 
 System::Void FormMain::open3DVolumetraw3DToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
 {
@@ -598,6 +594,10 @@ System::Void FormMain::segmentationToolStripMenuItem_Click(System::Object^  send
 }
 System::Void FormMain::refinementVoxelPaintToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
   ModeCore::getInst()->ModeSwitch(MODE_REF_VOXPAINT);
+  redrawMainPanel();
+}
+System::Void FormMain::refinementStrokeTrimingToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+  ModeCore::getInst()->ModeSwitch(MODE_REF_STRKTRIM);
   redrawMainPanel();
 }
 

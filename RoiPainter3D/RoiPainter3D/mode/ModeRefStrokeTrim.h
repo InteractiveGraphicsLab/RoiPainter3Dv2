@@ -17,6 +17,13 @@ class ModeRefStrokeTrim : public ModeInterface
   GlslShaderVolume m_volumeShader;
   GlslShaderCrsSec m_crssecShader;
 
+	bool m_bModified ;
+	bool m_bDrawStrok;
+	int  m_trgtMskId ;
+
+	byte  *m_volPrev;
+	vector<EVec2i> m_stroke2D;
+	vector<EVec3f> m_stroke3D;
 
   ModeRefStrokeTrim();
 public:
@@ -48,7 +55,13 @@ public:
   void startMode ();
   void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF);
 
+  void cancelSegmentation();
+  void finishSegmentation();
+
+private:
+  void updateVolFlgByStroke( OglForCLI *ogl);
 };
+
 
 #pragma managed
 
