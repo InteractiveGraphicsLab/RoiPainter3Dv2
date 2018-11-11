@@ -67,4 +67,8 @@ namespace RoiPainter3D {
 		}
 #pragma endregion
 	};
+
+  inline void formSegLocalRGrow_Show(){ FormSegLocalRGrow::getInst()->Show();}
+  inline void formSegLocalRGrow_Hide(){ FormSegLocalRGrow::getInst()->Hide();}
+  inline void formSegLocalRGrow_updateList(){ }
 }
