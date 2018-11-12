@@ -10,6 +10,7 @@
 #include "FormSegLocalRGrow.h"
 #include "climessagebox.h"
 
+#include <deque>
 
 using namespace RoiPainter3D;
 
@@ -525,116 +526,31 @@ void ModeSegLocalRGrow::runLocalRegionGrow()
 	const int H  = res[1];
 	const int D  = res[2], WH = W*H, WHD = W*H*D;
 
-	OglImage3D &volFlg = ImageCore::getInst()->m_volFlg;
-	for (int i = 0; i < WHD; ++i ) volFlg[i] = (volFlg[i] == 0) ? 0 : 1;
+	OglImage3D &vFlg = ImageCore::getInst()->m_volFlg;
+	for (int i = 0; i < WHD; ++i ) vFlg[i] = (vFlg[i] == 0) ? 0 : 1;
 
 	byte *flg = new byte[W*H*D];
 
   //seed–ˆ‚É‚Ð‚Æ‚Â‚Ã‚ÂRegion growing‚ðŒvŽZ
 	for( int j = 0; j < m_seeds.size(); ++j)
 	{
-		//flg‰Šú‰»
-		if(seeds[j].m_flg) for(int i=0;i<WHD;++i) flg[i] = (LRGflg[i] == 255) ? 1 : LRGflg[i];
-		else               for(int i=0;i<WHD;++i) flg[i] = 1;
+		//flg‰Šú‰»(0:locked, 1:yet fixed, 2:negative, 255:positive)
+    //‘OŒi‚ÌŽž : locked(0)‚Ænegaticve(2)ˆÈŠO‚ðyet(1)‚É
+    //”wŒi‚ÌŽž : —Ìˆæ‚ÌŒvŽZ‚Í‘S‘Ì‚É‘Î‚µ‚Äs‚¤
+		if ( m_seeds[j].m_flg) for (int i=0;i<WHD;++i) flg[i] = (vFlg[i] == 255) ? 1 : vFlg[i];
+		else                   for (int i=0;i<WHD;++i) flg[i] = 1;
 	
-		//marge flg & LRGflg
-		s_LocalRegionGrow(seeds[j], W, H, D, img, pitch, flg, j);
-		for (int i = 0; i < WHD; ++i ) if(flg[i] != 1) LRGflg[i] = flg[i];
+    //region grow
+		s_LocalRegionGrow( m_seeds[j], W, H, D, vol, pitch, flg, j);
+		
+		for (int i = 0; i < WHD; ++i ) if(flg[i] != 1) vFlg[i] = flg[i];
 	}
 
 	delete[] flg;
 
-	TexCore::getInst()->m_volFlg.setUpdated();
-	fprintf(stderr,"Local Region Grow done\n");
+  vFlg.SetUpdated();
+	printf("Local Region Grow done\n");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-inline bool isInRad(
-	const EVec3f &pitch, 
-	const int x,
-	const int y, 
-	const int z, 
-	const EVec3f &P,
-	const float &R2 )
-{
-	float fx = x * pitch[0];
-	float fy = y * pitch[1];
-	float fz = z * pitch[2];
-	return (P[0] - fx) * (P[0] - fx)  + 
-		   (P[1] - fy) * (P[1] - fy)  + 
-		   (P[2] - fz) * (P[2] - fz)  < R2;
-}
-
-
-
-static EVec4i getPixel
-(
-	const int W,
-	const int H,
-	const int D,
-	const EVec3f &pitch,
-	const EVec3f &p)
-{
-	int x = min(W - 1, (int)(p[0] / pitch[0]));
-	int y = min(H - 1, (int)(p[1] / pitch[1]));
-	int z = min(D - 1, (int)(p[2] / pitch[2]));
-	return EVec4i(x, y, z, x + y*W + z*W*H);
-}
-
-
-
-
-
-	//int k[26] = {
-	//		(x>0  &&y>0  &&z>0	) ? I-1-W-WH : -1, 
-	//		(x>0  &&y>0  &&z>0	) ? I  -W-WH : -1,
-	//		(x<W-1&&y>0  &&z>0  ) ? I+1-W-WH : -1, 
-	//		(x>0         &&z>0  ) ? I-1  -WH : -1, 
-	//		(              z>0  ) ? I    -WH : -1,
-	//		(x<W-1       &&z>0  ) ? I+1  -WH : -1,
-	//		(x>0  &&y<H-1&&z>0  ) ? I-1-W-WH : -1,
-	//		(       y<H-1&&z>0  ) ? I  -W-WH : -1,
-	//		(x<W-1&&y<H-1&&z>0  ) ? I+1-W-WH : -1, 
-
-	//		(x>0  &&y>0         ) ? I-1-W    : -1,
-	//		(       y>0         ) ? I  -W    : -1,
-	//		(x<W-1&&y>0         ) ? I+1-W    : -1,
-	//	    (x>0                ) ? I-1      : -1,
-	//		(x<W-1              ) ? I+1      : -1,
-	//		(x>0  &&y<H-1       ) ? I-1-W    : -1,
-	//		(       y<H-1       ) ? I  -W    : -1,
-	//		(x<W-1&&y<H-1       ) ? I+1-W    : -1,
-
-	//		(x>0  &&y>0  &&z<D-1) ? I-1-W+WH : -1,
-	//		(       y>0  &&z<D-1) ? I  -W+WH : -1,
-	//		(x<W-1&&y>0  &&z<D-1) ? I+1-W+WH : -1,
-	//		(x>0         &&z<D-1) ? I-1  +WH : -1,
-	//		(              z<D-1) ? I    +WH : -1,
-	//		(x<W-1       &&z<D-1) ? I+1  +WH : -1,
-	//		(x>0  &&y<H-1&&z<D-1) ? I-1-W+WH : -1,
-	//		(       y<H-1&&z<D-1) ? I  -W+WH : -1,
-	//		(x<W-1&&y<H-1&&z<D-1) ? I+1-W+WH : -1
-	//	};
-
-
 
 
 
@@ -649,8 +565,8 @@ static float distTrans_growFronteer
 	 byte  *flg  
 )
 {
-	const EVec3f pitch = TexCore::getInst()->getPitch();
-	const EVec3i res   = TexCore::getInst()->getResolution();
+	const EVec3f pitch = ImageCore::getInst()->getPitch();
+	const EVec3i res   = ImageCore::getInst()->getResolution();
 	const int W  = res[0];
 	const int H  = res[1];
 	const int D  = res[2], WH = W*H, WHD = W*H*D;
@@ -675,7 +591,8 @@ static float distTrans_growFronteer
 
 		int K ;
 	
-		//calcMinDist
+		//calc Dist for voxel (x,y,z) 
+    //unisotropic volume‚ÅAseed‚ª‹Èüó‚È‚Ì‚Å‚±‚ÌŽÀ‘•‚Ì‚Ù‚¤‚ª‘½­³Šm
 		K = I-1-W-WH; if(x>0  &&y>0  &&z>0	&& flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
 		K = I  -W-WH; if(       y>0  &&z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pYZ  );
 		K = I+1-W-WH; if(x<W-1&&y>0  &&z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
@@ -705,7 +622,7 @@ static float distTrans_growFronteer
 		K = I  +W+WH; if(       y<H-1&&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pYZ  );
 		K = I+1+W+WH; if(x<W-1&&y<H-1&&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
 
-		//add to deque
+		//grow fronteer to deque
 		K = I-1-W-WH; if(x>0  &&y>0  &&z>0	&&!flg[K]) { Q2.push_back(EVec4i(x-1, y-1, z-1, K)); flg[K] = 1;}	
 		K = I  -W-WH; if(       y>0  &&z>0  &&!flg[K]) { Q2.push_back(EVec4i(x  , y-1, z-1, K)); flg[K] = 1;}	
 		K = I+1-W-WH; if(x<W-1&&y>0  &&z>0  &&!flg[K]) { Q2.push_back(EVec4i(x+1, y-1, z-1, K)); flg[K] = 1;}	
@@ -744,7 +661,6 @@ static float distTrans_growFronteer
 
 
 
-
 //Written by Shogo Tsuruoka 11/15
 //refactored by Takashi Ijiri 11/29
 static void calcDistTrans
@@ -754,10 +670,9 @@ static void calcDistTrans
 	float R
 )	
 {
-	fprintf(stderr,"start Distance Transform...\n");
-	
-	const EVec3f cuboid = TexCore::getInst()->getCuboidF();
-	const EVec3i res    = TexCore::getInst()->getResolution();
+	printf( "start Distance Transform...\n");
+	const EVec3f cuboid = ImageCore::getInst()->getCuboidF();
+	const EVec3i res    = ImageCore::getInst()->getResolution();
 	const int WHD = res[0] * res[1] * res[2];
 	
 	byte *flg = new byte[WHD];
@@ -795,20 +710,24 @@ static void calcDistTrans
 	}
 
 	delete[] flg;
-	fprintf(stderr,"...Distance Transform Done\n");
+	printf("...Distance Transform Done\n");
 }
 
 
 
+
+
+//0:lock, 1:yet, 2:negative, 255:positive
 void ModeSegLocalRGrow::s_LocalRegionGrow
 (
 	const LRGseed &seed,
 	const int   W,
 	const int   H,
 	const int   D,
-	const float *img,
+	const short *img,
 	const EVec3f &pitch,
-	byte* flg, //0:lock, 1:yet, 2:negative, 255:positive
+
+	byte* flg , 
 	int seedId
 )
 {
@@ -818,7 +737,7 @@ void ModeSegLocalRGrow::s_LocalRegionGrow
 	deque<EVec4i> Q;
 	if (seed.m_pos.size() == 1)
 	{
-		Q.push_back(getPixel(W, H, D, pitch, seed.m_pos[0]));
+		Q.push_back( ImageCore::getInst()->getVoxelIndex4i( seed.m_pos[0] ) );
 	}
 	else
 	{
@@ -830,25 +749,25 @@ void ModeSegLocalRGrow::s_LocalRegionGrow
 			const EVec3f d   = (p2 - p1).normalized();
 			const float  L   = (p2 - p1).norm();
 
-			for (float a = 0; a < L; a += pitch[0] * 0.5f) Q.push_back(getPixel(W, H, D, pitch, p1 + a * d));
-			Q.push_back(getPixel(W, H, D, pitch, p2) );
+			for (float a = 0; a < L; a += pitch[0] * 0.5f) 
+        Q.push_back( ImageCore::getInst()->getVoxelIndex4i(p1 + a * d) );
+			Q.push_back( ImageCore::getInst()->getVoxelIndex4i( p2 ) );
 		}
 	}
 
 
-	fprintf(stderr,"result thresh = %f\n",seed.m_maxV);
-
-
-	//3 region growing
-	const byte    SET_FLG = seed.m_flg ? 255 : 2;
-	const float   R       = seed.m_rad  ;
-	const EVec3f &seedP   = seed.m_pos[0];
-	const float   minV    = seed.m_minV;
-	const float   maxV    = seed.m_maxV;
-
 	//2 distance transform
+	const byte    SET_FLG = seed.m_flg ? 255 : 2;
+	const float   R       = seed.m_rad   ;
+	const EVec3f &seedP   = seed.m_pos[0];
+	const float   minV    = seed.m_minV  ;
+	const float   maxV    = seed.m_maxV  ;
+
 	float *dist = new float[W*H*D ];
 	calcDistTrans(Q, dist, R);
+
+
+	//3  region growing
 
 	for (const auto &p : Q)
 	{
@@ -865,19 +784,15 @@ void ModeSegLocalRGrow::s_LocalRegionGrow
 		
 		if (flg[I] == 0 ) continue;
 		
-		int K = I - 1;
-		if (x > 0     && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x - 1, y, z, K)); }
-		K = I - W;
-		if (y > 0     && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y - 1, z, K)); }
-		K = I - WH;
-		if (z > 0     && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y, z - 1, K)); }
-		K = I + 1;
-		if (x < W - 1 && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x + 1, y, z, K)); }
-		K = I + W;
-		if (y < H - 1 && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y + 1, z, K)); }
-		K = I + WH;
-		if (z < D - 1 && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y, z + 1, K)); }
+		int K;
+    K = I - 1 ; if (x > 0   && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x - 1, y, z, K)); }
+		K = I - W ; if (y > 0   && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y - 1, z, K)); }
+		K = I - WH; if (z > 0   && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y, z - 1, K)); }
+		K = I + 1 ; if (x < W-1 && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x + 1, y, z, K)); }
+		K = I + W ; if (y < H-1 && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y + 1, z, K)); }
+		K = I + WH; if (z < D-1 && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y, z + 1, K)); }
 	}
+
 	delete[] dist;
 }
 
@@ -886,5 +801,25 @@ void ModeSegLocalRGrow::s_LocalRegionGrow
 
 
 
+
+
+
+/*
+
+inline bool isInRad(
+	const EVec3f &pitch, 
+	const int x,
+	const int y, 
+	const int z, 
+	const EVec3f &P,
+	const float &R2 )
+{
+	float fx = x * pitch[0];
+	float fy = y * pitch[1];
+	float fz = z * pitch[2];
+	return (P[0] - fx) * (P[0] - fx)  + 
+		   (P[1] - fy) * (P[1] - fy)  + 
+		   (P[2] - fz) * (P[2] - fz)  < R2;
+}
 
 */

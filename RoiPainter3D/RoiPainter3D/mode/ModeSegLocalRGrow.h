@@ -106,7 +106,7 @@ private:
   void dblclkToAddNewSeed( const EVec3f &rayP, const EVec3f &rayD, bool flgPosNeg   );
 	void dblclkToAddNewCp  ( const EVec3f &rayP, const EVec3f &rayD, const int seedId );
 	void dblclkToRemoveCP  ( EVec2i seedIdCpId );
-	void s_LocalRegionGrow(const LRGseed &seed,const int W,const int H,const int D,const float *img,const EVec3f &pitch,byte* flg,int a);
+	void s_LocalRegionGrow(const LRGseed &seed,const int W,const int H,const int D,const short *img,const EVec3f &pitch,byte* flg,int a);
 
   EVec2i pickSeeds(const EVec3f &rayP, const EVec3f &rayD);
 };
