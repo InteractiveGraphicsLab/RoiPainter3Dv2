@@ -31,11 +31,6 @@ ModeSegLocalRGrow::ModeSegLocalRGrow() :
 
 
 
-bool ModeSegLocalRGrow::canEndMode()
-{
-  return true;
-}
-
 
 
 //flg useage 
