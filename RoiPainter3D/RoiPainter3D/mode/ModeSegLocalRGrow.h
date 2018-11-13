@@ -15,7 +15,7 @@ class LRGseed
   
 
 public:
-	LRGseed(EVec3f pos = EVec3f(0,0,0), float minV = 0, float maxV = 0, int flg = 0, float rad = 0)
+	LRGseed(EVec3f pos = EVec3f(0,0,0), short minV = 0, short maxV = 0, int flg = 0, float rad = 0)
 	{
 		m_pos.push_back(pos);
 		m_minV = minV;
@@ -27,12 +27,13 @@ public:
 	//m_pos.size() == 1: sphere, > 1: cylinder 
 	vector < EVec3f > m_pos;
 
-	float  m_minV, m_maxV, m_rad;
+	short  m_minV, m_maxV;
+  float  m_rad;
 	int    m_flg;
 
   void modifyRadius(float delta){
-    m_rad += m_rad;
-    if( m_rad < 0.1 ) m_rad  = 0.1; 
+    m_rad += delta;
+    if( m_rad < 0.1 ) m_rad  = 0.1f; 
   }
 
 	void draw        (const TMesh &cp) const;
@@ -62,11 +63,13 @@ class ModeSegLocalRGrow : public ModeInterface
 	bool m_bDrawCutStr;
 	vector<EVec3f> m_stroke;
 
+public:
   // seeds and index of activated Seed (when -1 all seeds are non-activated)
   int m_ActiveSeedIdx; 
 	vector<LRGseed> m_seeds;
 
 
+private:
   ModeSegLocalRGrow();
 public:
   ~ModeSegLocalRGrow();

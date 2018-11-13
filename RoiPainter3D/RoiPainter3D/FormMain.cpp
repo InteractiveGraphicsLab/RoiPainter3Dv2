@@ -157,31 +157,6 @@ bool FormMain::pickViewAngleIndicator(const EVec2i p)
 
 
 
-/*
-    System::Void FormMainPanel_MouseWheel(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {}
-
-    System::Void FormMain_Move(System::Object^  sender, System::EventArgs^  e);
-    System::Void FormMain_Resize(System::Object^  sender, System::EventArgs^  e);
-    System::Void file_dcm3d_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void file_dcm2D_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void file_traw3d_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void file_saveMask_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void file_loadMask_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void switch_visNorm_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void switch_visMask_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void switch_visRegionGrow_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void switch_segPaint_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void switch_segRigidICP_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void switch_segClosestPix_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void switch_segParaConts_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void switch_segLocalRrow_Click(System::Object^  sender, System::EventArgs^  e);
-    System::Void switch_refStrokeTrim_Click(System::Object^  sender, System::EventArgs^  e);
-
-    System::Void FormMain_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e);
-    System::Void FormMain_KeyUp(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e);
-    System::Void FormMain_KeyPress(System::Object^  sender, System::Windows::Forms::KeyPressEventArgs^  e);
-*/
-
 
 
 
@@ -584,22 +559,34 @@ System::Void FormMain::segmentationThresholdToolStripMenuItem_Click(System::Obje
   ModeCore::getInst()->ModeSwitch(MODE_SEG_REGGROW);
   redrawMainPanel();
 }
+
 System::Void FormMain::segmentationGraphCutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
   ModeCore::getInst()->ModeSwitch(MODE_SEG_GCUT);
   redrawMainPanel();
 }
+
 System::Void FormMain::segmentationToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
   ModeCore::getInst()->ModeSwitch(MODE_SEG_VOXPAINT);
   redrawMainPanel();
 }
+
 System::Void FormMain::refinementVoxelPaintToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
   ModeCore::getInst()->ModeSwitch(MODE_REF_VOXPAINT);
   redrawMainPanel();
 }
+
 System::Void FormMain::refinementStrokeTrimingToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
   ModeCore::getInst()->ModeSwitch(MODE_REF_STRKTRIM);
   redrawMainPanel();
 }
+
+System::Void FormMain::segmentationToolStripMenuItem1_Click(System::Object^  sender, System::EventArgs^  e) {
+  ModeCore::getInst()->ModeSwitch(MODE_SEG_LCLRGROW);
+  redrawMainPanel();
+
+}
+
+
 
 
 

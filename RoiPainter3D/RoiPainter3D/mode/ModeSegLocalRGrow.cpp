@@ -65,13 +65,17 @@ void ModeSegLocalRGrow::startMode()
 
 	//seedを初期化
   m_seeds.clear();
-  formSegLocalRGrow_updateList();
+
+  float maxR = ImageCore::getInst()->getCuboidF()[0] / 2;
+  EVec2i minmax = ImageCore::getInst()->getVolMinMax();
+  formSegLocalRGrow_setSliderRange( maxR, minmax[0], minmax[1]);
+  formSegLocalRGrow_updateAllItems();
 }
 
 
 bool ModeSegLocalRGrow::canEndMode()
 {
-	if ( m_seeds.size() != 0 && !CLI_MessageBox_YESNO_Show("Current Result is not stored. Do you want to leave?", "message") );
+	if ( m_seeds.size() != 0 && !CLI_MessageBox_YESNO_Show("Current Result is not stored. Do you want to leave?", "message") )
 	{
 		return false;
 	}
@@ -114,7 +118,7 @@ void ModeSegLocalRGrow::finishSegmentation()
 void ModeSegLocalRGrow::cancelSegmentation()
 {
   m_seeds.clear();
-  formSegLocalRGrow_updateList();
+  formSegLocalRGrow_updateAllItems();
   ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
   formMain_redrawMainPanel();
 }
@@ -138,7 +142,12 @@ void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bL = true;
 
-  if (isCtrKeyOn())
+  if (isShiftKeyOn() )
+  {
+    return;
+  }
+
+  if (isCtrKeyOn() )
   {
     m_bDrawCutStr = true;
     m_stroke.clear();
@@ -150,7 +159,7 @@ void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 
 	m_moveSeedCpId = pickSeeds(rayP, rayD);
   m_ActiveSeedIdx = m_moveSeedCpId[0];
-	formSegLocalRGrow_updateList();
+	formSegLocalRGrow_updateAllItems();
 
   if(m_moveSeedCpId[0] == -1)
 	{
@@ -215,6 +224,9 @@ void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 }
 
 
+todo 
++ add sort function 
++ update 取り説
 
 
 void ModeSegLocalRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
@@ -232,7 +244,6 @@ void ModeSegLocalRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 		dblclkToAddNewSeed(rayP, rayD, true);
 	}
 
-  formSegLocalRGrow_updateList();
   formMain_redrawMainPanel();
 }
 
@@ -254,7 +265,6 @@ void ModeSegLocalRGrow::RBtnDclk(const EVec2i &p, OglForCLI *ogl)
 		 dblclkToAddNewSeed(rayP, rayD, false); 
 	}
 
-  formSegLocalRGrow_updateList();
   formMain_redrawMainPanel();
 }
 
@@ -267,7 +277,6 @@ void ModeSegLocalRGrow::MBtnDclk(const EVec2i &p, OglForCLI *ogl)
 	EVec2i seedId = pickSeeds(rayP, rayD);
 	if(seedId[0] != -1 && seedId[1] != -1) dblclkToRemoveCP( seedId );
 		
-  formSegLocalRGrow_updateList();
   formMain_redrawMainPanel();
 }
 
@@ -328,7 +337,8 @@ void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
 	{
     //active seed があれば、その半径を変更する (algキーが押されているときは高速) 
     double d = isAltKeyOn() ? (float)(zDelta * 0.1) : (float)(zDelta * 0.001);
-    m_seeds[m_ActiveSeedIdx].modifyRadius(d);
+    m_seeds[m_ActiveSeedIdx].modifyRadius( (float)d );
+    formSegLocalRGrow_updateSliders();
 	}
 	else
 	{
@@ -336,7 +346,7 @@ void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
     if( id != CRSSEC_NON ) {
       CrssecCore::getInst()->MoveCrssec( ImageCore::getInst()->getResolution(), 
                                          ImageCore::getInst()->getPitch(), id, 
-                                         (isAltKeyOn) ? 3 * zDelta : zDelta);
+                                         (isAltKeyOn()) ? 3 * zDelta : zDelta);
     }
 	}
   formMain_redrawMainPanel();
@@ -435,16 +445,21 @@ void ModeSegLocalRGrow::dblclkToAddNewSeed(const EVec3f &rayP, const EVec3f &ray
 	CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
 	if (id == CRSSEC_NON) return;
 
-	float imgV = ImageCore::getInst()->getVoxelValue(pos);
-	float minV = bNegPos ? imgV - 100 : 0         ;
-	float maxV = bNegPos ? 4095       : imgV + 100;
+	short imgV = ImageCore::getInst()->getVoxelValue(pos);
+	short minV = bNegPos ? imgV - 100 : 0         ;
+	short maxV = bNegPos ? 4095       : imgV + 100;
 	float size = bNegPos ? cuboid[0] * 0.05f : cuboid[0] * 0.02f;
+
+  EVec2i minMax = ImageCore::getInst()->getVolMinMax();
+  minV = max( minV, minMax[0]);
+  maxV = min( maxV, minMax[1]);
+
 
   m_seeds.push_back( LRGseed( pos, minV, maxV, bNegPos, size) );
 	m_ActiveSeedIdx = (int)m_seeds.size() - 1;
 
   //TODO SORT SEED
-  formSegLocalRGrow_updateList();
+  formSegLocalRGrow_updateAllItems();
   formMain_redrawMainPanel();
 }
 
@@ -460,7 +475,7 @@ void ModeSegLocalRGrow::dblclkToAddNewCp(const EVec3f &rayP, const EVec3f &rayD,
     m_seeds[seedId].m_pos.push_back(pos);
 	}
 
-  formSegLocalRGrow_updateList();
+  formSegLocalRGrow_updateAllItems();
   formMain_redrawMainPanel();
 }
 
@@ -485,7 +500,7 @@ void ModeSegLocalRGrow::dblclkToRemoveCP(EVec2i seedIdCpId)
     //control point だけを削除
 		m_seeds[seedId].m_pos.erase( m_seeds[seedId].m_pos.begin() + cpId );
 	}
-  formSegLocalRGrow_updateList();
+  formSegLocalRGrow_updateAllItems();
   formMain_redrawMainPanel();
 }
 
@@ -793,6 +808,64 @@ void ModeSegLocalRGrow::s_LocalRegionGrow
 
 
 
+
+
+
+const static float diffR[4] = {1   ,0,0,0}, diffB[4] = {0,0,1   ,0} ; const static float diffG[4] = {0,1,0,0};
+const static float ambiR[4] = {0.5f,0,0,0}, ambiB[4] = {0,0,0.5f,0},  ambiG[4] = {0,0.5f,0,0};
+const static float spec [4] = {1   ,1,1,0};
+const static float shin [1] = {56.0f};
+
+void LRGseed::draw(const TMesh &cp) const
+{
+	//draw seed 
+	glPointSize(15);
+	glEnable(GL_LIGHTING);
+
+	for( const auto& p : m_pos)
+	{
+		glTranslated( p[0], p[1], p[2] );
+		if(m_flg) cp.draw( diffR, ambiR, spec, shin);
+		else      cp.draw( diffB, ambiB, spec, shin);
+		glTranslated( -p[0], -p[1],-p[2] );
+	}
+	glDisable(GL_LIGHTING);
+
+}
+
+
+
+void LRGseed::drawAsActive(const TMesh &cp) const
+{
+	float r = (m_flg == 1) ? 1.0f : 0;
+	float b = (m_flg == 1) ? 0 : 1.0f;
+
+	float spec[4] = { 1,1,1,0.3f };
+	float diff[4] = { r,0,b,0.3f };
+	float ambi[4] = { 0.3f*r,0,0.3f*b,0.3f };
+	float shin[1] = { 64.0f };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR , spec);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE  , diff);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT  , ambi);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shin);
+
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_BLEND);
+	glDepthMask(false);
+	t_drawSphere(m_pos[0], m_rad);
+
+	for (int i = 1; i < (int)m_pos.size(); ++i)
+	{
+		t_drawCylinder(m_pos[i-1], m_pos[i], m_rad);
+		t_drawSphere  (m_pos[ i ], m_rad);
+	}
+
+	glDepthMask(true);
+	glDisable(GL_BLEND);
+	glDisable(GL_LIGHTING);
+
+}
 
 
 
