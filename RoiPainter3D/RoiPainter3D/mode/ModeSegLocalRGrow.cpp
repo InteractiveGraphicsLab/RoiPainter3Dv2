@@ -224,10 +224,6 @@ void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 }
 
 
-todo 
-+ add sort function 
-+ update æ‚èà
-
 
 void ModeSegLocalRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 {
@@ -453,12 +449,24 @@ void ModeSegLocalRGrow::dblclkToAddNewSeed(const EVec3f &rayP, const EVec3f &ray
   EVec2i minMax = ImageCore::getInst()->getVolMinMax();
   minV = max( minV, minMax[0]);
   maxV = min( maxV, minMax[1]);
-
-
+  
   m_seeds.push_back( LRGseed( pos, minV, maxV, bNegPos, size) );
 	m_ActiveSeedIdx = (int)m_seeds.size() - 1;
 
-  //TODO SORT SEED
+  //sort seed (Original code is by Hiryu Kamoshita)
+  //negative‚Í‘O”¼‚ÉÏ‚Ş
+  if( m_seeds.back().m_flg == false)
+  {
+    for(int i = (int)m_seeds.size()-1; i > 0 ; --i) 
+	  {
+      //è‘O‚ªnegative‚È‚çI—¹
+		  if( !m_seeds[i-1].m_flg ) break;
+      //‚»‚¤‚Å‚È‚¯‚ê‚Î“ü‚ê‘Ö‚¦
+      swap(m_seeds[i-1], m_seeds[i] );
+      m_ActiveSeedIdx = i-1;
+	  }
+  }
+
   formSegLocalRGrow_updateAllItems();
   formMain_redrawMainPanel();
 }
