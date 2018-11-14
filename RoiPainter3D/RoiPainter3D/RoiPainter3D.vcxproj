@@ -264,6 +264,9 @@
     <EmbeddedResource Include="FormSegGCut.resx">
       <DependentUpon>FormSegGCut.h</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormSegLocalRGrow.resx">
+      <DependentUpon>FormSegLocalRGrow.h</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormSegRGrow.resx">
       <DependentUpon>FormSegRGrow.h</DependentUpon>
     </EmbeddedResource>

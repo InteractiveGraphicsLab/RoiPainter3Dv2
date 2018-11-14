@@ -109,7 +109,6 @@ System::Void FormVisMask::checkbox_lock_CheckedChanged(System::Object^  sender, 
   printf("lock value = %d\n", maskData[tgtMaskId].lock);
 
   formMain_redrawMainPanel();
-
 }
 
 
