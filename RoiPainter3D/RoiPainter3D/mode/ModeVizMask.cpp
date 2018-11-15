@@ -51,12 +51,27 @@ void ModeVizMask::startMode()
 void ModeVizMask::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bL = true;
+  
+  if (isCtrKeyOn())
+  {
+    m_stroke.clear();
+    m_bDrawStr = true;
+  }
+
   ogl->BtnDown_Trans(p);
 }
 
 void ModeVizMask::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
+
+  if (m_bDrawStr)
+  {
+    EVec3f cube = ImageCore::getInst()->getCuboidF();
+    CrssecCore::getInst()->GenerateCurvedCrssec(cube, ogl->GetCamPos(), m_stroke);
+  }
   m_bL = false;
+  m_bDrawStr = false;
+  
   ogl->BtnUp();
   formMain_redrawMainPanel();
 }
@@ -96,7 +111,16 @@ void ModeVizMask::MBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
 void ModeVizMask::MouseMove(const EVec2i &p, OglForCLI *ogl)
 {
   if (!m_bL && !m_bR && !m_bM) return;
-  ogl->MouseMove(p);
+
+  if (m_bDrawStr)
+  {
+    EVec3f rayP, rayD, pos;
+    ogl->GetCursorRay(p, rayP, rayD);
+    m_stroke.push_back(rayP + 0.1f * rayD);
+  }
+  else{
+    ogl->MouseMove(p);
+  }
   formMain_redrawMainPanel();
 }
 
@@ -171,6 +195,8 @@ void ModeVizMask::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec
   ImageCore::getInst()->m_imgMskCol.BindOgl(false);
 
   
+  if (m_bDrawStr) t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
+
   //Cross Section
   glColor3d(1, 1, 1);
   m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, true);

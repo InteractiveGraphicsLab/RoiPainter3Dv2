@@ -30,6 +30,8 @@ void CrssecCore::DrawCrssec
   const EVec3f &C
 )
 {
+  glDisable(GL_CULL_FACE);
+
   //draw curved cross section
   for (int i = 0; i < m_curve_crssec.m_vSize; ++i)
   {
@@ -52,7 +54,6 @@ void CrssecCore::DrawCrssec
   float texYZ[4][3] = { { m_plane_yz, 0, 0 },{ m_plane_yz, 1, 0 },{ m_plane_yz, 1, 1 },{ m_plane_yz, 0, 1 } };
   float texZX[4][3] = { { 0, m_plane_zx, 0 },{ 0, m_plane_zx, 1 },{ 1, m_plane_zx, 1 },{ 1, m_plane_zx, 0 } };
 
-  glDisable(GL_CULL_FACE);
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
