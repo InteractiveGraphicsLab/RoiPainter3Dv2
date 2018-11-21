@@ -819,8 +819,8 @@ void ModeSegLocalRGrow::s_LocalRegionGrow
 
 
 
-const static float diffR[4] = {1   ,0,0,0}, diffB[4] = {0,0,1   ,0} ; const static float diffG[4] = {0,1,0,0};
-const static float ambiR[4] = {0.5f,0,0,0}, ambiB[4] = {0,0,0.5f,0},  ambiG[4] = {0,0.5f,0,0};
+const static float diffR[4] = {1   ,0,0,0}, diffB[4] = {0.3f,0.3f,1   ,0}, diffG[4] = {0,  1 ,0,0};
+const static float ambiR[4] = {0.5f,0,0,0}, ambiB[4] = {0.3f,0.3f,0.8f,0}, ambiG[4] = {0,0.8f,0,0};
 const static float spec [4] = {1   ,1,1,0};
 const static float shin [1] = {56.0f};
 

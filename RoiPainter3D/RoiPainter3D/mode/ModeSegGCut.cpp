@@ -81,6 +81,8 @@ void ModeSegGCut::startMode()
 	m_CpSize = (float) ImageCore::getInst()->getPitchW() * 2;
 	m_CpMesh.initializeIcosaHedron( m_CpSize );
 
+  formSegGCut_Show();
+
 	//compute watershad ------------------
 	if( !m_bWsdInitialized )
   {
@@ -99,7 +101,6 @@ void ModeSegGCut::startMode()
     _beginthread( ModeSegGCut::initWsdNodes_thread, 0, (LPVOID)this); 
   }
 
-  formSegGCut_Show();
 }
 
 
@@ -325,8 +326,8 @@ void ModeSegGCut::drawScene (const EVec3f &cuboid, const EVec3f &camP, const EVe
 
 
 
-	const static float diffR[4] = {1   ,0,0,0}, diffB[4] = {0,0,1,1};
-	const static float ambiR[4] = {0.5f,0,0,0}, ambiB[4] = {0,0,0.5f,1};
+	const static float diffR[4] = {1   ,0,0,0}, diffB[4] = {0.3f,0.3f,1,1};
+	const static float ambiR[4] = {0.5f,0,0,0}, ambiB[4] = {0.3f,0.3f,0.8f,1};
 	const static float  spec[4] = {1   ,1,1,0};
 	const static float  shin[1] = {56.0f};
 	glEnable(GL_LIGHTING);
@@ -381,7 +382,7 @@ static bool t_loadWsdLabel (
 
 	//check user's intension
 	fprintf( stderr, "fname:%s\n\n", fname.c_str());
-	if( CLI_MessageBox_YESNO_Show( "watershedの前計算ファイルが利用できます。利用しますか？", "Use precompute file?") )
+	if(!CLI_MessageBox_YESNO_Show( "watershedの前計算ファイルが利用できます。利用しますか？", "Use precompute file?") )
 	{
 		fclose( fp); 
 		return false;
@@ -868,6 +869,8 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 			(t4-t3)/(double)CLOCKS_PER_SEC );
 
 	delete[] minCut ;
+
+  formMain_redrawMainPanel();
 }
 
 
@@ -991,6 +994,7 @@ void ModeSegGCut::runGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnly
 	delete[] minCut;
 	delete[] v_mapNodeId;
 	vFlg.SetUpdated();
+  formMain_redrawMainPanel();
 }
 
 
