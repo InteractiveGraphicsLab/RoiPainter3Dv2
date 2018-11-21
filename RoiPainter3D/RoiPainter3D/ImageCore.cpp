@@ -876,7 +876,7 @@ void ImageCore::saveVolumeAsTraw3dss(const char *fname)
   }
   fclose(fp);
 
-
+  /*
   //test code just for debug
   float *imgZX = new float[D*W];
   float *imgZY = new float[D*H];
@@ -884,8 +884,8 @@ void ImageCore::saveVolumeAsTraw3dss(const char *fname)
   memset( imgZY, 0, sizeof(float) * D*H);
 
   for( int x = 0; x < W; ++x)
-  for( int y = 0; y < W; ++y)
-  for( int z = 0; z < W; ++z)
+  for( int y = 0; y < H; ++y)
+  for( int z = 0; z < D; ++z)
   {
     imgZX[x + z*W] += vol[x + y*W + z *W*H];
     imgZY[y + z*H] += vol[x + y*W + z *W*H];
@@ -899,4 +899,5 @@ void ImageCore::saveVolumeAsTraw3dss(const char *fname)
   img.Allocate(H,D);
   img.setGrayValue_normalize(imgZY);
   img.SaveAs("zy.bmp", 0);
+  */
 }
