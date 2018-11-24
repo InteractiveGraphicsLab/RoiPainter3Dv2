@@ -121,6 +121,7 @@ public:
 	void loadMask     (const char *fname);
 	void saveMask     (const char *fname);
 	void saveMaskAsFav(const char *fname);
+  void saveVolumeAsTraw3dss(const char *fname);
 
 	//getter & setter for resolution and pitch
 	EVec3f getCuboidF() { return EVec3f((float)(m_Reso[0] * m_Pitch[0]), (float)(m_Reso[1] * m_Pitch[1]), (float)(m_Reso[2] * m_Pitch[2])); }

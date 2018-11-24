@@ -839,3 +839,65 @@ void ImageCore::selectedMsk_setRendSurf(const bool tf)
 
 
 
+
+
+void ImageCore::saveVolumeAsTraw3dss(const char *fname)
+{
+  string f = string(fname);
+  if(f.length() < 9 || f.substr(f.length()-9, 9) != "traw3D_ss" ){
+    f += ".traw3D_ss";
+  }
+    
+  EVec3i res = m_Reso;
+  EVec3f pit = m_Pitch;
+  short *vol = m_volOrig;
+
+	const int     W = res[0];
+	const int     H = res[1];
+	const int     D = res[2];
+	const int WHD = W*H*D;
+	const double px = pit[0];
+	const double py = pit[1];
+	const double pz = pit[2];
+
+  FILE *fp = fopen( fname, "wb" );
+  if( fp == 0 ) return;
+
+  fwrite( &W , sizeof(int   ), 1, fp ); 
+  fwrite( &H , sizeof(int   ), 1, fp ); 
+  fwrite( &D , sizeof(int   ), 1, fp );
+  fwrite( &px, sizeof(double), 1, fp ); 
+  fwrite( &py, sizeof(double), 1, fp ); 
+  fwrite( &pz, sizeof(double), 1, fp );
+  for (int i = 0; i < WHD; ++i)
+  {
+    short v = (short)vol[i];
+    fwrite( &v, sizeof(short), 1, fp );
+  }
+  fclose(fp);
+
+  /*
+  //test code just for debug
+  float *imgZX = new float[D*W];
+  float *imgZY = new float[D*H];
+  memset( imgZX, 0, sizeof(float) * D*W);
+  memset( imgZY, 0, sizeof(float) * D*H);
+
+  for( int x = 0; x < W; ++x)
+  for( int y = 0; y < H; ++y)
+  for( int z = 0; z < D; ++z)
+  {
+    imgZX[x + z*W] += vol[x + y*W + z *W*H];
+    imgZY[y + z*H] += vol[x + y*W + z *W*H];
+  }
+
+  OGLImage2D4 img;
+  img.Allocate(W,D);
+  img.setGrayValue_normalize(imgZX);
+  img.SaveAs("zx.bmp", 0);
+  
+  img.Allocate(H,D);
+  img.setGrayValue_normalize(imgZY);
+  img.SaveAs("zy.bmp", 0);
+  */
+}

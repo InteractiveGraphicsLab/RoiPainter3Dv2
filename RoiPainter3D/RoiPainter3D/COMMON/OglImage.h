@@ -591,6 +591,8 @@ public:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param);
   }
 
+  void setGrayValue_normalize(float* image);
+
   bool IsAllocated() { return image_ ? true : false; }
 private:
   void SendImageToGPU();
@@ -621,14 +623,30 @@ inline bool OglImage2D<CH_RGBA>::Allocate(const char *fname)
   return t_loadImage(fname, resolution_[0], resolution_[1], image_);
 }
 
-
-
 inline bool OglImage2D<CH_RGBA>::SaveAs(const char *fname, int flg_BmpJpgPngTiff)
 {
   t_saveImage(fname, resolution_[0], resolution_[1], image_);
   return true;
 }
 
+
+inline void OglImage2D<CH_RGBA>::setGrayValue_normalize(float* image)
+{
+  const int W = resolution_[0];
+  const int H = resolution_[1];
+  int N = W * H;
+  float minV = +FLT_MAX;
+  float maxV = -FLT_MAX;
+
+  for( int i=0; i < N; ++i ){
+    minV = min(minV, image[i]);
+    maxV = max(maxV, image[i]);
+  }
+  for( int i=0; i < N; ++i ){
+    float v = (image[i] - minV) / (maxV - minV);
+    image_[4*i+0] = image_[4*i+1] = image_[4*i+2] = image_[4*i+3] = (byte)(255 * v); 
+  }
+}
 
 
 

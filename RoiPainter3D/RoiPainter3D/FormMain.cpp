@@ -516,7 +516,9 @@ System::Void FormMain::loadMaskmskToolStripMenuItem_Click(System::Object^  sende
 //
 System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) 
 {
-
+  string fname;
+  if( !t_showSaveFileDlg("traw3d signed short file (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
+  ImageCore::getInst()->saveVolumeAsTraw3dss(fname.c_str());
 }
 
 
