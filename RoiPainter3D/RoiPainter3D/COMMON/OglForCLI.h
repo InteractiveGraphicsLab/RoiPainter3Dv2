@@ -21,8 +21,10 @@
 #pragma once
 #pragma unmanaged
 
-
 #include <windows.h> 
+#undef min
+#undef max
+//windows.hはmin/maxマクロを定義してしまい，ほっておくと衝突を起こす
 
 #include "gl/glew.h"
 #include <gl/gl.h> 

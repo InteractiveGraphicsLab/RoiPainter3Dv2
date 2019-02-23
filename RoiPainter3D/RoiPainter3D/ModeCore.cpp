@@ -16,15 +16,17 @@
 #include "FormSegLocalRGrow.h"
 #include "FormRefStrokeTrim.h"
 
+#include <iostream>
+
 using namespace RoiPainter3D;
 
 
 ModeCore::ModeCore()
 {
-  printf("ModeCore Constructor\n");
+  std::cout << "ModeCore Constructor" << std::endl;
   m_mode    = ModeVizNormal::getInst();
   m_mode_id = MODE_VIS_NORMAL;
-  printf("ModeCore Constructor Done \n");
+  std::cout << "ModeCore Constructor Done" << std::endl;
 }
 
 ModeCore::~ModeCore()
@@ -34,7 +36,7 @@ ModeCore::~ModeCore()
 
 void ModeCore::ModeSwitch(MODE_ID m)
 {
-  printf("\n ModeSwitch %d \n\n", m);
+  std::cout << std::endl << "ModeSwitch " << m << std::endl << std::endl;
 
   if (!m_mode->canEndMode()) return;
 

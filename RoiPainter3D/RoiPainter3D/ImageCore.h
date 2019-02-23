@@ -23,6 +23,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 
 #pragma unmanaged
@@ -62,13 +63,13 @@ public:
 
 	MaskData( const MaskData& v)
 	{
-		fprintf( stderr, "for debug, MaskData copy const\n");
+		std::cout << "for debug, MaskData copy const" << std::endl;
 		Set(v);
 	}
 	
 	MaskData& operator=(const MaskData& v)
 	{
-		fprintf( stderr, "for debug, MaskData operator =\n");
+		std::cout << "for debug, MaskData operator =" << std::endl;
 		Set(v);
 		return *this;
 	}
