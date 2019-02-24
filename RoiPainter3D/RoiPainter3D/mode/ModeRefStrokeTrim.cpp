@@ -441,7 +441,7 @@ void ModeRefStrokeTrim::updateVolFlgByStroke( OglForCLI *ogl)
 
 	delete[] imgInOut;
 
-	std::cout << "...done\n" << std::endl;
+	std::cout << "...done" << std::endl;
 
 	if( !ogl->isDrawing() ) wglMakeCurrent(NULL,NULL);
 

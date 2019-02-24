@@ -35,11 +35,11 @@ typedef Eigen::Matrix4d EMat4d;
 
 
 #ifndef max3
-#define max3(a,b,c)      max((a), max( (b),(c) ))
+#define max3(a,b,c)      std::max((a), std::max( (b),(c) ))
 #endif
 
 #ifndef min3
-#define min3(a,b,c)      min((a), min( (b),(c) ))
+#define min3(a,b,c)      std::min((a), std::min( (b),(c) ))
 #endif
 
 

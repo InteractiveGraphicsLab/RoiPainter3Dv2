@@ -25,8 +25,8 @@ void t_MarchingCubes(
     const short   thresh,
     const int    *minIdx,
     const int    *maxIdx,
-    vector<EVec3f> &Vs, //output vertices
-    vector<TPoly > &Ps  //output polygons 
+    std::vector<EVec3f> &Vs, //output vertices
+    std::vector<TPoly > &Ps  //output polygons 
 );
 
 

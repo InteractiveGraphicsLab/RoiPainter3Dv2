@@ -6,8 +6,9 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <iostream>
+#include <algorithm>
 #include "tmath.h"
-using namespace std;
 
 
 #pragma warning(disable : 4996)
@@ -49,8 +50,8 @@ public:
   EVec3f      *m_vVerts;
   EVec3f      *m_vTexCd; //(u,v,w) 
   EVec3f      *m_vNorms;
-  vector<int> *m_vRingPs;
-  vector<int> *m_vRingVs;
+  std::vector<int> *m_vRingPs;
+  std::vector<int> *m_vRingVs;
 
   //Polygon Info
   int          m_pSize;
@@ -111,8 +112,8 @@ public:
       memcpy(m_vNorms, v.m_vNorms, sizeof(EVec3f) * m_vSize);
       memcpy(m_vTexCd, v.m_vTexCd, sizeof(EVec3f) * m_vSize);
 
-      m_vRingVs = new vector<int>[m_vSize];
-      m_vRingPs = new vector<int>[m_vSize];
+      m_vRingVs = new std::vector<int>[m_vSize];
+      m_vRingPs = new std::vector<int>[m_vSize];
       for (int i = 0; i < m_vSize; ++i)
       {
         for (const auto &k : m_vRingVs[i]) m_vRingVs[i].push_back(k);
@@ -167,10 +168,10 @@ public:
     FILE* fp = fopen(fName, "r");
     if (!fp) return false;
 
-    list<EVec3f>  vList;
-    list<EVec2f>  uvList;
-    list<TPoly >  pList;
-    list<TPoly >  pUvList;
+    std::list<EVec3f>  vList;
+    std::list<EVec2f>  uvList;
+    std::list<TPoly >  pList;
+    std::list<TPoly >  pUvList;
 
     char buf[512];
     while (fgets(buf, 255, fp))
@@ -208,10 +209,10 @@ public:
     fclose(fp);
 
 
-    vector<EVec3f> Vs{ std::begin(vList), std::end(vList) };
-    vector<EVec2f> Ts{ std::begin(uvList), std::end(uvList) };
-    vector<TPoly>  Ps{ std::begin(pList), std::end(pList) };
-    vector<TPoly>  Puv{ std::begin(pUvList), std::end(pUvList) };
+    std::vector<EVec3f> Vs{ std::begin(vList), std::end(vList) };
+    std::vector<EVec2f> Ts{ std::begin(uvList), std::end(uvList) };
+    std::vector<TPoly>  Ps{ std::begin(pList), std::end(pList) };
+    std::vector<TPoly>  Puv{ std::begin(pUvList), std::end(pUvList) };
 
     initialize(Vs, Ps);
 
@@ -221,15 +222,14 @@ public:
     {
       for (int i = 0; i < m_vSize; ++i) m_vTexCd[i] << Ts[i][0], Ts[i][1], 0;
     }
-
-    fprintf(stderr, "loaded object file info : %d %d \n", m_vSize, m_pSize);
+    std::cout << "loaded object file info : " << m_vSize << " " << m_pSize << std::endl;
     return true;
   }
 
 
 
 private:
-  bool isSame(const vector<TPoly> &Ps, const vector<TPoly> &Puv)
+  bool isSame(const std::vector<TPoly> &Ps, const std::vector<TPoly> &Puv)
   {
     if (Ps.size() != Puv.size()) return false;
     for (int i = 0; i < (int)Ps.size(); ++i)
@@ -243,7 +243,7 @@ private:
 
 
 public:
-  void initialize(const vector<EVec3f> &Vs, const vector<TPoly> &Ps)
+  void initialize(const std::vector<EVec3f> &Vs, const std::vector<TPoly> &Ps)
   {
     clear();
 
@@ -253,8 +253,8 @@ public:
       m_vVerts = new EVec3f[m_vSize];
       m_vNorms = new EVec3f[m_vSize];
       m_vTexCd = new EVec3f[m_vSize];
-      m_vRingVs = new vector<int>[m_vSize];
-      m_vRingPs = new vector<int>[m_vSize];
+      m_vRingVs = new std::vector<int>[m_vSize];
+      m_vRingPs = new std::vector<int>[m_vSize];
       for (int i = 0; i < m_vSize; ++i) m_vVerts[i] = Vs[i];
     }
 
@@ -271,13 +271,13 @@ public:
 
 
     //for debug
-    fprintf(stderr, "check data\n");
+    std::cout << "DEBUG: check data" << std::endl;
     for (int i = 0; i < m_pSize; ++i)
     {
       int *idx = m_pPolys[i].idx;
-      if (idx[0] < 0 || idx[0] >= m_vSize) fprintf(stderr, "aaaaaa");
-      if (idx[1] < 0 || idx[1] >= m_vSize) fprintf(stderr, "bbbbbb");
-      if (idx[2] < 0 || idx[2] >= m_vSize) fprintf(stderr, "cccccc");
+      if (idx[0] < 0 || idx[0] >= m_vSize) std::cout << "aaaaaa";
+      if (idx[1] < 0 || idx[1] >= m_vSize) std::cout << "bbbbbb";
+      if (idx[2] < 0 || idx[2] >= m_vSize) std::cout << "cccccc";
     }
   }
 
@@ -296,7 +296,7 @@ public:
         for (const auto &it : m_vRingVs[i]) vs[i] += m_vVerts[it];
         vs[i] /= (float)m_vRingVs[i].size();
       }
-      swap(vs, m_vVerts);
+      std::swap(vs, m_vVerts);
 
     }
     delete[] vs;
@@ -390,12 +390,12 @@ public:
     maxV << -FLT_MAX, -FLT_MAX, -FLT_MAX;
     for (int i = 0; i < m_vSize; ++i)
     {
-      minV[0] = min(minV[0], m_vVerts[i][0]);
-      minV[1] = min(minV[1], m_vVerts[i][1]);
-      minV[2] = min(minV[2], m_vVerts[i][2]);
-      maxV[0] = max(maxV[0], m_vVerts[i][0]);
-      maxV[1] = max(maxV[1], m_vVerts[i][1]);
-      maxV[2] = max(maxV[2], m_vVerts[i][2]);
+      minV[0] = std::min(minV[0], m_vVerts[i][0]);
+      minV[1] = std::min(minV[1], m_vVerts[i][1]);
+      minV[2] = std::min(minV[2], m_vVerts[i][2]);
+      maxV[0] = std::max(maxV[0], m_vVerts[i][0]);
+      maxV[1] = std::max(maxV[1], m_vVerts[i][1]);
+      maxV[2] = std::max(maxV[2], m_vVerts[i][2]);
     }
   }
 
@@ -406,7 +406,7 @@ public:
     EVec3f minV, maxV;
     getBoundBox(minV, maxV);
     EVec3f a = maxV - minV;
-    float s = max(a[0], max(a[1], a[2]));
+    float s = std::max(a[0], std::max(a[1], a[2]));
 
     Translate(-minV);
     Scale(1.0f / s);
@@ -419,17 +419,17 @@ public:
     for (int i = 0; i < m_pSize; ++i)
     {
       int *idx = m_pPolys[i].idx;
-      if( idx[0] < 0 || m_vSize <= idx[0] ) fprintf( stderr, "er1");
-      if( idx[1] < 0 || m_vSize <= idx[1] ) fprintf( stderr, "er2");
-      if( idx[2] < 0 || m_vSize <= idx[2] ) fprintf( stderr, "er3");
+      if( idx[0] < 0 || m_vSize <= idx[0] ) std::cout << "er1";
+      if( idx[1] < 0 || m_vSize <= idx[1] ) std::cout << "er2";
+      if( idx[2] < 0 || m_vSize <= idx[2] ) std::cout << "er3";
     }
 
-    fprintf( stderr, "ch--");
+    std::cout << "ch--";
     GLenum errcode=glGetError();
     if(errcode!=GL_NO_ERROR)
     {
       const GLubyte *errstring=gluErrorString(errcode);
-      fprintf(stderr, "aaaaaa %d %s\n",errcode, errstring);
+      std::cout << "aaaaaa "<< errcode << " " << errstring << std::endl;
     }
     */
   }
@@ -556,10 +556,10 @@ public:
     float a = (float)(r * 0.525731);
     float b = (float)(r * 0.850651);
 
-    vector<EVec3f> Vs = {
+    std::vector<EVec3f> Vs = {
       EVec3f(0, -a,  b), EVec3f(b, 0, a), EVec3f(b, 0,-a), EVec3f(-b, 0, -a), EVec3f(-b, 0, a), EVec3f(-a, b, 0),
       EVec3f(a, b, 0), EVec3f(a,-b, 0), EVec3f(-a,-b, 0), EVec3f(0,-a, -b), EVec3f(0, a, -b), EVec3f(0,  a, b) };
-    vector<TPoly> Ps = {
+    std::vector<TPoly> Ps = {
       TPoly(1,  2,  6), TPoly(1,  7,  2), TPoly(3,  4,  5), TPoly(4,  3,  8),
       TPoly(6,  5, 11), TPoly(5,  6, 10), TPoly(9, 10,  2), TPoly(10, 9,  3),
       TPoly(7,  8,  9), TPoly(8,  7,  0), TPoly(11,  0,  1), TPoly(0,11,  4),
@@ -988,16 +988,16 @@ static void genBinaryVolumeInTriangleMeshX
 
   // insert triangles in BINs -- divide yz space into (BIN_SIZE x BIN_SIZE)	
   const int BIN_SIZE = 100;
-  vector< vector<int> > polyID_Bins(BIN_SIZE * BIN_SIZE, vector<int>());
+  std::vector< std::vector<int> > polyID_Bins(BIN_SIZE * BIN_SIZE, std::vector<int>());
 
   for (int p = 0; p < pSize; ++p)
   {
     EVec3f bbMin, bbMax;
     calcBoundBox(verts[polys[p].idx[0]], verts[polys[p].idx[1]], verts[polys[p].idx[2]], bbMin, bbMax);
-    int yS = min((int)(bbMin[1] / cuboid[1] * BIN_SIZE), BIN_SIZE - 1);
-    int zS = min((int)(bbMin[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
-    int yE = min((int)(bbMax[1] / cuboid[1] * BIN_SIZE), BIN_SIZE - 1);
-    int zE = min((int)(bbMax[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
+    int yS = std::min((int)(bbMin[1] / cuboid[1] * BIN_SIZE), BIN_SIZE - 1);
+    int zS = std::min((int)(bbMin[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
+    int yE = std::min((int)(bbMax[1] / cuboid[1] * BIN_SIZE), BIN_SIZE - 1);
+    int zE = std::min((int)(bbMax[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
     for (int z = zS; z <= zE; ++z) for (int y = yS; y <= yE; ++y) polyID_Bins[z*BIN_SIZE + y].push_back(p);
   }
 
@@ -1010,11 +1010,11 @@ static void genBinaryVolumeInTriangleMeshX
     {
       double y = (0.5 + yI) * px;
       double z = (0.5 + zI) * pz;
-      int bin_yi = min((int)(y / cuboid[1] * BIN_SIZE), BIN_SIZE - 1);
-      int bin_zi = min((int)(z / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
-      vector<int> &trgtBin = polyID_Bins[bin_zi * BIN_SIZE + bin_yi];
+      int bin_yi = std::min((int)(y / cuboid[1] * BIN_SIZE), BIN_SIZE - 1);
+      int bin_zi = std::min((int)(z / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
+      std::vector<int> &trgtBin = polyID_Bins[bin_zi * BIN_SIZE + bin_yi];
 
-      multimap<double, double> blist;// (xPos, normInXdir);
+      std::multimap<double, double> blist;// (xPos, normInXdir);
 
       for (const auto pi : trgtBin) if (pNorm[pi][1] != 0)
       {
@@ -1022,7 +1022,7 @@ static void genBinaryVolumeInTriangleMeshX
         const EVec3f &V1 = verts[polys[pi].idx[1]];
         const EVec3f &V2 = verts[polys[pi].idx[2]];
         double x;
-        if (intersectTriangleToRayX(V0, V1, V2, y, z, x)) blist.insert(make_pair(x, pNorm[pi][0])); //(x 座標, normal[0])
+        if (intersectTriangleToRayX(V0, V1, V2, y, z, x)) blist.insert( std::make_pair(x, pNorm[pi][0])); //(x 座標, normal[0])
       }
 
       //clean blist (edge上で起こった交差重複を削除)
@@ -1053,11 +1053,11 @@ static void genBinaryVolumeInTriangleMeshX
         for (; xI <= pivXi && xI < W; ++xI) binVol[xI + yI * W + zI*WH] = flag;
         flag = !flag;
       }
-      if (flag == true) fprintf(stderr, "error double check here!");
+      if (flag == true) std::cout << "error double check here!" << std::endl;
     }
 
   //clock_t t2 = clock();
-  //printf("compute time : %f %f\n", (t1-t0)/ (double) CLOCKS_PER_SEC, (t2-t1)/ (double) CLOCKS_PER_SEC);
+  //std::cout << "compute time : " << (t1-t0)/ (double) CLOCKS_PER_SEC << " " << (t2-t1)/ (double) CLOCKS_PER_SEC << std::endl;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1102,16 +1102,16 @@ inline void genBinaryVolumeInTriangleMeshY
 
   // insert triangles in BINs -- divide yz space into (BIN_SIZE x BIN_SIZE)	
   const int BIN_SIZE = 20;
-  vector< vector<int> > polyID_Bins(BIN_SIZE * BIN_SIZE, vector<int>());
+  std::vector< std::vector<int> > polyID_Bins(BIN_SIZE * BIN_SIZE, std::vector<int>());
 
   for (int p = 0; p < pSize; ++p)
   {
     EVec3f bbMin, bbMax;
     calcBoundBox(verts[polys[p].idx[0]], verts[polys[p].idx[1]], verts[polys[p].idx[2]], bbMin, bbMax);
-    int xS = min((int)(bbMin[0] / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
-    int zS = min((int)(bbMin[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
-    int xE = min((int)(bbMax[0] / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
-    int zE = min((int)(bbMax[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
+    int xS = std::min((int)(bbMin[0] / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
+    int zS = std::min((int)(bbMin[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
+    int xE = std::min((int)(bbMax[0] / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
+    int zE = std::min((int)(bbMax[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
     for (int z = zS; z <= zE; ++z) for (int x = xS; x <= xE; ++x) polyID_Bins[z*BIN_SIZE + x].push_back(p);
   }
 
@@ -1124,11 +1124,11 @@ inline void genBinaryVolumeInTriangleMeshY
     {
       double x = (0.5 + xI) * px;
       double z = (0.5 + zI) * pz;
-      int bin_xi = min((int)(x / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
-      int bin_zi = min((int)(z / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
-      vector<int> &trgtBin = polyID_Bins[bin_zi * BIN_SIZE + bin_xi];
+      int bin_xi = std::min((int)(x / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
+      int bin_zi = std::min((int)(z / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
+      std::vector<int> &trgtBin = polyID_Bins[bin_zi * BIN_SIZE + bin_xi];
 
-      multimap<double, double> blist;// (xPos, normInXdir);
+      std::multimap<double, double> blist;// (xPos, normInXdir);
 
       for (const auto pi : trgtBin) if (pNorm[pi][1] != 0)
       {
@@ -1137,7 +1137,7 @@ inline void genBinaryVolumeInTriangleMeshY
         const EVec3f &V2 = verts[polys[pi].idx[2]];
         double y;
         if (intersectTriangleToRayY(V0, V1, V2, x, z, y))
-          blist.insert(make_pair(y, pNorm[pi][1])); //(y 座標, normal)
+          blist.insert( std::make_pair(y, pNorm[pi][1])); //(y 座標, normal)
       }
 
       if (blist.size() == 0) continue;
@@ -1170,11 +1170,11 @@ inline void genBinaryVolumeInTriangleMeshY
         for (; yI <= pivYi && yI < H; ++yI) binVol[xI + yI * W + zI*WH] = flag;
         flag = !flag;
       }
-      if (flag == true) fprintf(stderr, "error double check here!");
+      if (flag == true) std::cout << "error double check here!" << std::endl;
     }
 
   //clock_t t2 = clock();
-  //printf("compute time : %f %f\n", (t1-t0)/ (double) CLOCKS_PER_SEC, (t2-t1)/ (double) CLOCKS_PER_SEC);
+  //std::cout << "compute time : " << " " << (t1-t0)/ (double) CLOCKS_PER_SEC << " " << (t2-t1)/ (double) CLOCKS_PER_SEC << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1192,12 +1192,12 @@ static void t_calcBoundBox3D(const int n, const TTriangle* tris, EVec3f &BBmin, 
     const TTriangle& t = tris[i];
     for( int k=0; k < 3; ++k)
     {
-      BBmin[0] = min(BBmin[0], t.verts_[k][0]);
-      BBmin[1] = min(BBmin[1], t.verts_[k][1]);
-      BBmin[2] = min(BBmin[2], t.verts_[k][2]);
-      BBmax[0] = max(BBmax[0], t.verts_[k][0]);
-      BBmax[1] = max(BBmax[1], t.verts_[k][1]);
-      BBmax[2] = max(BBmax[2], t.verts_[k][2]);
+      BBmin[0] = std::min(BBmin[0], t.verts_[k][0]);
+      BBmin[1] = std::min(BBmin[1], t.verts_[k][1]);
+      BBmin[2] = std::min(BBmin[2], t.verts_[k][2]);
+      BBmax[0] = std::max(BBmax[0], t.verts_[k][0]);
+      BBmax[1] = std::max(BBmax[1], t.verts_[k][1]);
+      BBmax[2] = std::max(BBmax[2], t.verts_[k][2]);
     
     }
   }
@@ -1237,7 +1237,7 @@ inline void genBinaryVolumeInTriangleMeshY
 
   // insert triangles in BINs -- divide yz space into (BIN_SIZE x BIN_SIZE)	
   const int BIN_SIZE = 100;
-  vector< vector<int> > polyID_Bins(BIN_SIZE * BIN_SIZE, vector<int>());
+  std::vector< std::vector<int> > polyID_Bins(BIN_SIZE * BIN_SIZE, std::vector<int>());
 
   for (int p = 0; p < num_tris; ++p)
   {
@@ -1245,10 +1245,10 @@ inline void genBinaryVolumeInTriangleMeshY
 
     EVec3f bbMin, bbMax;
     calcBoundBox( t.verts_[0], t.verts_[1], t.verts_[2], bbMin, bbMax);
-    int xS = min((int)(bbMin[0] / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
-    int zS = min((int)(bbMin[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
-    int xE = min((int)(bbMax[0] / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
-    int zE = min((int)(bbMax[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
+    int xS = std::min((int)(bbMin[0] / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
+    int zS = std::min((int)(bbMin[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
+    int xE = std::min((int)(bbMax[0] / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
+    int zE = std::min((int)(bbMax[2] / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
     for (int z = zS; z <= zE; ++z) for (int x = xS; x <= xE; ++x) polyID_Bins[z*BIN_SIZE + x].push_back(p);
   }
 
@@ -1261,18 +1261,18 @@ inline void genBinaryVolumeInTriangleMeshY
     {
       double x = (0.5 + xI) * px;
       double z = (0.5 + zI) * pz;
-      int bin_xi = min((int)(x / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
-      int bin_zi = min((int)(z / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
-      vector<int> &trgtBin = polyID_Bins[bin_zi * BIN_SIZE + bin_xi];
+      int bin_xi = std::min((int)(x / cuboid[0] * BIN_SIZE), BIN_SIZE - 1);
+      int bin_zi = std::min((int)(z / cuboid[2] * BIN_SIZE), BIN_SIZE - 1);
+      std::vector<int> &trgtBin = polyID_Bins[bin_zi * BIN_SIZE + bin_xi];
 
-      multimap<double, double> blist;// (xPos, normInXdir);
+      std::multimap<double, double> blist;// (xPos, normInXdir);
 
       for (const auto pi : trgtBin) if ( norms[pi][1] != 0)
       {
         const TTriangle &t = tris[pi];
         double y;
         if (intersectTriangleToRayY(t.verts_[0], t.verts_[1], t.verts_[2], x, z, y))
-          blist.insert( make_pair(y, norms[pi][1] )); //(y 座標, normal)
+          blist.insert( std::make_pair(y, norms[pi][1] )); //(y 座標, normal)
       }
 
       if (blist.size() == 0) continue;
@@ -1305,11 +1305,11 @@ inline void genBinaryVolumeInTriangleMeshY
         for (; yI <= pivYi && yI < H; ++yI) binVol[xI + yI * W + zI*WH] = flag;
         flag = !flag;
       }
-      if (flag == true) fprintf(stderr, "error double check here!");
+      if (flag == true) std::cout << "error double check here!";
     }
 
   //clock_t t2 = clock();
-  //printf("compute time : %f %f\n", (t1-t0)/ (double) CLOCKS_PER_SEC, (t2-t1)/ (double) CLOCKS_PER_SEC);
+  //std::cout << "compute time : " << (t1-t0)/ (double) CLOCKS_PER_SEC << " " << (t2-t1)/ (double) CLOCKS_PER_SEC << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

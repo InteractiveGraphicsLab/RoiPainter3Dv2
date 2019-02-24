@@ -27,7 +27,7 @@
 
 
 #pragma unmanaged
-
+using namespace std;
 
 class MaskData
 {

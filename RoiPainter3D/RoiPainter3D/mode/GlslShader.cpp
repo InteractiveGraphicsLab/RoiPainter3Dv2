@@ -1,4 +1,5 @@
 #include "GlslShader.h"
+#include <iostream>
 
 #pragma warning(disable : 4996)
 
@@ -25,7 +26,7 @@ int t_readShaderSource(GLuint shader, const char *file)
   //ファイルサイズのメモリを確保 
   const GLchar *source = (GLchar *)malloc(length);
   if (source == NULL) {
-    fprintf(stderr, "Could not allocate read buffer.\n");
+    std::cout << "Could not allocate read buffer." << std::endl;
     return -1;
   }
 
@@ -35,7 +36,7 @@ int t_readShaderSource(GLuint shader, const char *file)
   fclose(fp);
 
   // シェーダのソースプログラムのシェーダオブジェクトへの読み込み
-  if (ret) fprintf(stderr, "Could not read file: %s.\n", file);
+  if (ret) std::cout << "Could not read file : " << file << std::endl;
   else glShaderSource(shader, 1, &source, &length);
 
   free((void *)source);
@@ -59,11 +60,11 @@ void printShaderInfoLog(GLuint shader)
 
       /* シェーダのコンパイル時のログの内容を取得する */
       glGetShaderInfoLog(shader, bufSize, &length, infoLog);
-      fprintf(stderr, "InfoLog:\n%s\n\n", infoLog);
+      std::cout << "InfoLog : \n" << infoLog << std::endl << std::endl;
       free(infoLog);
     }
     else
-      fprintf(stderr, "Could not allocate InfoLog buffer.\n");
+      std::cout << "Could not allocate InfoLog buffer." << std::endl;
   }
 }
 
@@ -75,7 +76,7 @@ bool t_initializeShader
   GLuint &_gl2Program
 )
 {
-  fprintf(stderr, "initializeShader");
+  std::cout << "initializeShader ";
   GLuint  vertShaderId;
   GLuint  fragShaderId;
 
@@ -91,14 +92,14 @@ bool t_initializeShader
   glCompileShader(vertShaderId);
   glGetShaderiv(vertShaderId, GL_COMPILE_STATUS, &isCompiled);
   if (isCompiled == GL_FALSE) {
-    fprintf(stderr, "Compile error in vertex shader.\n");
+    std::cout << "Compile error in vertex shader." << std::endl;
     printShaderInfoLog(vertShaderId);
     return false;
   }
   glCompileShader(fragShaderId);
   glGetShaderiv(fragShaderId, GL_COMPILE_STATUS, &isCompiled);
   if (isCompiled == GL_FALSE) {
-    fprintf(stderr, "Compile error in fragment shader.\n");
+    std::cout << "Compile error in fragment shader." << std::endl;
     printShaderInfoLog(fragShaderId);
     return false;
   }
@@ -115,11 +116,11 @@ bool t_initializeShader
   glLinkProgram(_gl2Program);
   glGetProgramiv(_gl2Program, GL_LINK_STATUS, &isLined);
   if (isLined == GL_FALSE) {
-    fprintf(stderr, "Link error.\n");
+    std::cout << "Link error." << std::endl;
     exit(1);
   }
 
-  fprintf(stderr, "success initialize shader!!\n");
+  std::cout << "success initialize shader!!" << std::endl;
 
   return true;
 }
@@ -152,18 +153,18 @@ void GlslShaderVolume::bind
     m_bInit = true;
   }
   glUseProgram(m_gl2Program);
-  glUniform1i(glGetUniformLocation(m_gl2Program, "u_img3_vol"), UnitID_vol);
+  glUniform1i(glGetUniformLocation(m_gl2Program, "u_img3_vol" ), UnitID_vol);
   glUniform1i(glGetUniformLocation(m_gl2Program, "u_img3_gMag"), UnitID_gMag);
-  glUniform1i(glGetUniformLocation(m_gl2Program, "u_img3_flg"), UnitID_flg);
+  glUniform1i(glGetUniformLocation(m_gl2Program, "u_img3_flg" ), UnitID_flg);
   glUniform1i(glGetUniformLocation(m_gl2Program, "u_img3_mask"), UnitID_mask);
-  glUniform1i(glGetUniformLocation(m_gl2Program, "u_img1_tf"), UnitID_tf);
-  glUniform1i(glGetUniformLocation(m_gl2Program, "u_img1_psu"), UnitID_psu);
+  glUniform1i(glGetUniformLocation(m_gl2Program, "u_img1_tf"  ), UnitID_tf);
+  glUniform1i(glGetUniformLocation(m_gl2Program, "u_img1_psu" ), UnitID_psu);
   glUniform1i(glGetUniformLocation(m_gl2Program, "u_img1_mskC"), UnitID_mskC);
-  glUniform1f(glGetUniformLocation(m_gl2Program, "u_alpha"), alpha);
-  glUniform1i(glGetUniformLocation(m_gl2Program, "u_doPsuedo"), doPsuedo ? 1 : 0);
-  glUniform1i(glGetUniformLocation(m_gl2Program, "u_doHL"), doHL ? 1 : 0);
+  glUniform1f(glGetUniformLocation(m_gl2Program, "u_alpha"    ), alpha);
+  glUniform1i(glGetUniformLocation(m_gl2Program, "u_doPsuedo" ), doPsuedo ? 1 : 0);
+  glUniform1i(glGetUniformLocation(m_gl2Program, "u_doHL"     ), doHL ? 1 : 0);
   glUniform4f(glGetUniformLocation(m_gl2Program, "u_texCdOfst"), (GLfloat)1.0 / reso[0], (GLfloat)1.0 / reso[1], (GLfloat)1.0 / reso[2], 0);
-  glUniform4f(glGetUniformLocation(m_gl2Program, "u_eyePos"), (GLfloat)camPos[0], (GLfloat)camPos[1], (GLfloat)camPos[2], 0);
+  glUniform4f(glGetUniformLocation(m_gl2Program, "u_eyePos"   ), (GLfloat)camPos[0], (GLfloat)camPos[1], (GLfloat)camPos[2], 0);
 }
 
 

@@ -20,10 +20,10 @@ using namespace std;
 
 class GlslShaderVolume
 {
-  const string m_vtxFname;
-  const string m_frgFname;
+  const string m_vtxFname  ;
+  const string m_frgFname  ;
   GLuint       m_gl2Program;
-  bool         m_bInit;
+  bool         m_bInit     ;
 
 public:
 
@@ -36,12 +36,12 @@ public:
 
   void bind
   (
-    int UnitID_vol,//3D 
+    int UnitID_vol ,//3D 
     int UnitID_gMag,//3D 
-    int UnitID_flg,//3D 
+    int UnitID_flg ,//3D 
     int UnitID_mask,//3D
-    int UnitID_tf,//1D
-    int UnitID_psu,//1D
+    int UnitID_tf  ,//1D
+    int UnitID_psu ,//1D
     int UnitID_mskC,//1D
     float  alpha,
     EVec3i reso,
@@ -120,9 +120,9 @@ public:
 
   void bind
   (
-    int UnitID_vol,//3D 
+    int UnitID_vol ,//3D 
     int UnitID_gMag,//3D 
-    int UnitID_flg,//3D 
+    int UnitID_flg ,//3D 
     int UnitID_mask,//3D
     int UnitID_mskC,//1D
     EVec3i reso,
