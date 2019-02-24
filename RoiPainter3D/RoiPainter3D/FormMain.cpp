@@ -4,7 +4,6 @@
 #include "ModeCore.h"
 #include "ViewAngleCore.h"
 
-
 #include "FormVisParam.h"
 #include "FormVisNorm.h"
 #include "FormVisMask.h"
@@ -15,7 +14,7 @@
 #include "FormSegLocalRGrow.h"
 #include "FormRefStrokeTrim.h"
 
-
+#include <iostream>
 
 
 using namespace System;
@@ -33,7 +32,7 @@ using namespace RoiPainter3D;
 
 FormMain::FormMain(void)
 {
-  printf("FormMain constructor\n");
+  std::cout << "FormMain constructor\n";
 
   m_prevKeyID = -1;
   m_ogl = 0;
@@ -44,7 +43,7 @@ FormMain::FormMain(void)
   initCameraPosition(ImageCore::getInst()->getCuboidF());
   m_ogl->SetBgColor(0.3f, 0.3f, 0.3f, 0.5f);
 
-  printf("FormMain constructor .. DONE\n");
+  std::cout << "FormMain constructor .. DONE\n";
 }
 
 
@@ -185,11 +184,11 @@ void FormMain::replaceOtherForms()
 //managedƒNƒ‰ƒX‚Í‚±‚±‚Å‰Šú‰»‚·‚é
 void FormMain::initializeOtherForms()
 {
-  printf("--------initialize form(dialogs)...\n");
+  std::cout << "--------initialize form(dialogs)...\n";
+
   FormVisParam::getInst()->initAllItemsForNewImg();
   FormVisParam::getInst()->Show();
   FormVisParam::getInst()->Location = Point(this->Location.X + this->Width, this->Location.Y);
-
 
   //ˆê“xShow‚µ Hide‚·‚é(‚»‚¤‚µ‚È‚¢‚ÆˆÚ“®‚ªŒø‚©‚È‚¢)
   FormVisNorm ::getInst()->Show();
@@ -212,7 +211,7 @@ void FormMain::initializeOtherForms()
   FormRefStrokeTrim ::getInst()->Hide();
   FormSegThreshfieldPaint::getInst()->Hide();
 
-  printf("--------initialize form(dialogs)...DONE\n");
+  std::cout << "--------initialize form(dialogs)...DONE\n";
 }
 
 
@@ -424,7 +423,7 @@ System::Void FormMain::open2DSlicesToolStripMenuItem_Click      (System::Object^
   if( fNames.size() == 0 || fNames.front().length() < 3) return;
 
   string fext = fNames.front().substr(fNames.front().length()-3, 3);
-  printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
+  std::cout << fext.c_str() << " !!!!!!!!!!!!!!!!"  << std::endl;
 
   //load volume / update visParam / init camera / redraw 
   ImageCore   ::getInst()->loadVolume(fNames,fext);
@@ -456,7 +455,7 @@ System::Void FormMain::open3DVolumetraw3DToolStripMenuItem_Click(System::Object^
   if( fname.length() < 9) return;
 
   string fext = fname.substr(fname.length()-9, 9);
-  printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
+  std::cout << fext.c_str() << "!!!!!!!!!!!!!!!!"  << std::endl;
 
   //load volume / update visParam / init camera / redraw 
   ImageCore   ::getInst()->loadVolume(fname,fext);
@@ -485,7 +484,7 @@ System::Void FormMain::open3DVolumefavToolStripMenuItem_Click   (System::Object^
   if( fname.length() < 3) return;
 
   string fext = fname.substr(fname.length()-3, 3);
-  printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
+  std::cout << fext.c_str() <<" !!!!!!!!!!!!!!!!" << std::endl;
 
   //load volume / update visParam / init camera / redraw 
   ImageCore   ::getInst()->loadVolume(fname,fext);

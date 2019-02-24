@@ -1,3 +1,5 @@
+#version 110
+
 varying vec3 worldCoord;
 varying vec3 globalPos ; //only for polar Cd rendering 
 

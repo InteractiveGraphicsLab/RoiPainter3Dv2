@@ -306,7 +306,7 @@ static bool t_LoadDCMs
 
 	if( pitch[2] < 0)
 	{
-		std::cout << "flip in z" << std::endl;
+		std::cout << "pitchZ is negative --> flip in z direction" << std::endl;
 		pitch[2] *= -1.0;
 		t_flipVolumeInZ(W,H,D, vol);
 	}

@@ -1,10 +1,10 @@
-
 #include "tdcmtk.h"
+
 
 
 #ifndef _DEBUG
 
-
+#pragma unmanaged
 
 
 //ref: http://wiki.nakaguchi.org/index.php?DCMTK
@@ -12,26 +12,26 @@
 
 bool t_getTagValInt(DcmDataset *DataSet, DcmTagKey tagKey, int &value)
 {
-    DcmElement *elem = NULL;
-    DcmTag tag(tagKey);
+  DcmElement *elem = NULL;
+  DcmTag tag(tagKey);
 
-    if ( DataSet->findAndGetElement(tag, elem).bad() || elem->getLength() == 0) return false;
+  if ( DataSet->findAndGetElement(tag, elem).bad() || elem->getLength() == 0) return false;
 
-    Sint16 rvS16;
-    Sint32 rvS32;
-    Uint8  rvU8 ;
-    Uint16 rvU16;
-    Uint32 rvU32;
-    if      ( elem->getSint16( rvS16 ).good() ) { value = (int)rvS16; }
-    else if ( elem->getSint32( rvS32 ).good() ) { value = (int)rvS32; }
-    else if ( elem->getUint8 ( rvU8  ).good() ) { value = (int)rvU8 ; }
-    else if ( elem->getUint16( rvU16 ).good() ) { value = (int)rvU16; }
-    else if ( elem->getUint32( rvU32 ).good() ) { value = (int)rvU32; }
-    else {
-        printf("\n%s is not integer value\n", tag.getTagName());
-        return false;
-    }
-    return true;
+  Sint16 rvS16;
+  Sint32 rvS32;
+  Uint8  rvU8 ;
+  Uint16 rvU16;
+  Uint32 rvU32;
+  if      ( elem->getSint16( rvS16 ).good() ) { value = (int)rvS16; }
+  else if ( elem->getSint32( rvS32 ).good() ) { value = (int)rvS32; }
+  else if ( elem->getUint8 ( rvU8  ).good() ) { value = (int)rvU8 ; }
+  else if ( elem->getUint16( rvU16 ).good() ) { value = (int)rvU16; }
+  else if ( elem->getUint32( rvU32 ).good() ) { value = (int)rvU32; }
+  else {
+    std::cout << std::endl << tag.getTagName() << " is not integer value";
+    return false;
+  }
+  return true;
 }
 
 
@@ -49,7 +49,7 @@ Tdcmtk::Tdcmtk( const char *fname )
 
   if ( status.bad() )
   {
-    printf( "cannot open the file!!!");
+   std::cout << "cannot open the file!!!";
     if ( m_FileFormat )
     {
       delete m_FileFormat;
@@ -93,7 +93,7 @@ Tdcmtk::Tdcmtk( const char *fname )
   t_info( "DCM_PlanarConfiguration %d\n", m_plnConfig);
   t_info( "DCM_PixelRepresentation %d\n", m_pixRepres);
   */
-  printf( "DCM_Rescale Intercept %f Slope %f\n", m_RescaleIntercept, m_RescaleSlope);
+  std::cout << "DCM_Rescale Intercept " << m_RescaleIntercept << " Slope " << m_RescaleSlope << std::endl;
 }
 
 void Tdcmtk::getSize  ( int &W, int &H, int &fNum )
@@ -106,18 +106,13 @@ void Tdcmtk::getSize  ( int &W, int &H, int &fNum )
 /*
 void Tdcmtk::getFormat( int &chNum, int &bitNum, int &bSigned  )
 {
-    chNum   = m_bChNum;
-    bitNum  = m_nBits ;
-    bSigned = m_bSined;
+  chNum   = m_bChNum;
+  bitNum  = m_nBits ;
+  bSigned = m_bSined;
 }
 */
 
 
-
-
-
-
-
-
+#pragma managed
 
 #endif

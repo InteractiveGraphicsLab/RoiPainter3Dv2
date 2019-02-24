@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "FormSegLocalRGrow.h"
 #include "FormMain.h"
 
@@ -114,7 +116,7 @@ System::Void FormSegLocalRGrow::maskList_SelectionChanged(System::Object^  sende
   //maskList->Rows->Clear(); のタイミングで呼ばれてしまうので、その際は何もしない
   if (m_bListUpdating) return;
 
-  printf("selection changed %d %d\n", maskList->CurrentCell->RowIndex, maskList->CurrentCell->ColumnIndex);
+  std::cout << "selection changed " << maskList->CurrentCell->RowIndex << " " << maskList->CurrentCell->ColumnIndex << std::endl;
   ModeSegLocalRGrow::getInst()->m_ActiveSeedIdx = maskList->CurrentCell->RowIndex;
 
   updateSliders();

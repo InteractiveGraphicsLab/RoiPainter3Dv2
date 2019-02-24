@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "ModeVizMask.h"
 #include "../FormVisMask.h"
 #include "../FormVisParam.h"
@@ -20,9 +22,9 @@ ModeVizMask::ModeVizMask() :
   m_crssecShader("shader/crssecVtx.glsl", "shader/crssecFlg_Msk.glsl")
 {
 
-  fprintf(stderr, "ModeVizMask const...----------------------\n");
+  std::cout << "ModeVizMask const...----------------------" << std::endl;
   m_bL = m_bR = m_bM = false;
-  fprintf(stderr, "ModeVizMask DONE -------------------------\n");
+  std::cout << "ModeVizMask DONE -------------------------" << std::endl;
 
 }
 

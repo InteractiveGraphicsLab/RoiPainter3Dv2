@@ -1,3 +1,4 @@
+#include <iostream>
 #include "FormVisMask.h"
 #include "FormMain.h"
 #include "FormMaskIDselection.h"
@@ -60,7 +61,7 @@ System::Void FormVisMask::maskList_SelectionChanged(System::Object^  sender, Sys
   //FormVisMask::updateList の maskList->Rows->Clear(); のタイミングで呼ばれてしまうので、その際は何もしない
   if (m_bListUpdating) return;
 
-  printf("selection changed %d %d\n", maskList->CurrentCell->RowIndex, maskList->CurrentCell->ColumnIndex);
+  std::cout << "selection changed " << maskList->CurrentCell->RowIndex << " " << maskList->CurrentCell->ColumnIndex << std::endl;
   ImageCore::getInst()->m_maskSelectedId = maskList->CurrentCell->RowIndex;
 
   //modify values
@@ -106,7 +107,7 @@ System::Void FormVisMask::checkbox_lock_CheckedChanged(System::Object^  sender, 
   if (tgtMaskId < 0 || maskList->RowCount <= tgtMaskId) return;
 
   maskData[tgtMaskId].lock = checkbox_lock->CheckState == CheckState::Checked ? true : false;
-  printf("lock value = %d\n", maskData[tgtMaskId].lock);
+  std::cout << "lock value = " << maskData[tgtMaskId].lock << std::endl;
 
   formMain_redrawMainPanel();
 }

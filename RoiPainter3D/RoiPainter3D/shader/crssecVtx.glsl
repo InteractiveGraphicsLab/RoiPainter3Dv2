@@ -1,3 +1,4 @@
+#version 110
 
 varying vec3 globalPos;
 

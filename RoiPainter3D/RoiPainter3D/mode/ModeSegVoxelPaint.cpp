@@ -231,8 +231,8 @@ static void t_addPixsInsideLasso
 	const int W = reso[0];
 	const int H = reso[1];
 	const int D = reso[2], WH = W*H;
-
-  fprintf(stderr, "---- %d  %d %d %d\n", id, W,H,D);
+  
+  std::cout << "---- " << id << " " << W << " " << H << " " << D << std::endl;
   Trace(pitch);
 
 	if (id == CRSSEC_XY) 
@@ -245,9 +245,9 @@ static void t_addPixsInsideLasso
 		for (int xi = 0; xi < W; ++xi)
 		{
       int idx = xi + yi * W + zi * WH;
-      printf("a");
+      std::cout << "a";
       if( vFlg[idx] == 0 ) continue;
-      printf("b");
+      std::cout << "b";
       
 			EVec3f p((xi + 0.5f) * pitch[0], (yi + 0.5f) * pitch[1], zPos);
 

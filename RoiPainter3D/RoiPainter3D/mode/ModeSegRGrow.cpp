@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "ModeSegRGrow.h"
 
 #include "ImageCore.h"
@@ -327,7 +329,7 @@ void ModeSegRGrow::runThresholding(short minV, short maxV)
 
 void ModeSegRGrow::runRegionGrow6(short minV, short maxV)
 {
-	fprintf( stderr, "runRegionGrow6...");
+	std::cout << "runRegionGrow6...";
 	const short  *vO   = ImageCore::getInst()->m_volOrig;
 	OglImage3D   &vF   = ImageCore::getInst()->m_volFlg ; 
 	const EVec3i  reso = ImageCore::getInst()->getResolution();
@@ -377,14 +379,14 @@ void ModeSegRGrow::runRegionGrow6(short minV, short maxV)
 	m_bRegionUpdated = true;
   formMain_redrawMainPanel();
 
-	fprintf(stderr, "runRegionGrow6...DONE\n\n");
+	std::cout << "runRegionGrow6...DONE" << std::endl << std::endl;
 
 }
 
 
 void ModeSegRGrow::runRegionGrow26(short minV, short maxV)
 {
-  fprintf( stderr, "runRegionGrow26...");
+  std::cout << "runRegionGrow26..." ;
 	const short  *vO   = ImageCore::getInst()->m_volOrig;
 	OglImage3D   &vF   = ImageCore::getInst()->m_volFlg ; 
 	const EVec3i  reso = ImageCore::getInst()->getResolution();
@@ -457,7 +459,7 @@ void ModeSegRGrow::runRegionGrow26(short minV, short maxV)
 	m_bRegionUpdated = true;
   formMain_redrawMainPanel();
 
-	fprintf(stderr, "runRegionGrow26...DONE\n\n");
+	std::cout << "runRegionGrow26...DONE" << std::endl << std::endl;
 }
 
 

@@ -1,3 +1,5 @@
+#version 110
+
 uniform sampler3D u_img3_vol ;
 uniform sampler3D u_img3_gMag ;
 uniform sampler3D u_img3_flg ;

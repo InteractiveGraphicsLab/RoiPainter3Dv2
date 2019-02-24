@@ -347,7 +347,7 @@ void t_drawSlices(const int sliceNum, const EVec3f &camP, const EVec3f &camF, co
 
     if (pivIdx < 0 || pivIdx >= 7)
     {
-      fprintf(stderr, "strange error");
+      std::cout << "strange error t_drawSlices " << std::endl;
       break;
     }
 

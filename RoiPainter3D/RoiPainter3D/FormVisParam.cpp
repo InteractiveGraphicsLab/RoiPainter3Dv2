@@ -2,6 +2,7 @@
 #include "ImageCore.h"
 #include "FormMain.h"
 
+#include <iostream>
 
 using namespace RoiPainter3D;
 
@@ -27,11 +28,11 @@ FormVisParam::FormVisParam(void)
   /*
   OGLImage2D4 tmpImg;
   tmpImg.Allocate("./shader/psued_bar.bmp");
-  printf("%d %d", tmpImg.GetW(), tmpImg.GetH());
+  std::cout << tmpImg.GetW(), tmpImg.GetH();
   for( int i=0; i < TRANS_FUNC_SIZE; ++i)
   {
     int xi = (int)( i / (double) TRANS_FUNC_SIZE * tmpImg.GetW() ) + 2 * tmpImg.GetW(); 
-    printf("%d  ", xi);
+    std::cout << xi << "  ";
     (*m_imgPsu)[4*i  ] = tmpImg[ 4*xi  ];
     (*m_imgPsu)[4*i+1] = tmpImg[ 4*xi+1];
     (*m_imgPsu)[4*i+2] = tmpImg[ 4*xi+2];

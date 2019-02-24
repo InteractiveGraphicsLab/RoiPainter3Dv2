@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 
 #pragma managed
 
@@ -62,10 +63,9 @@ inline bool t_loadImage(
   }
   else
   {
-    printf("-------------------------error unknown format \n");
+    std::cout << "-------------------------error unknown format" << std::endl;
     return false;
   }
-
 
   bmp->UnlockBits(bmpData);
   return true;
@@ -75,8 +75,8 @@ inline bool t_loadImage(
 
 inline void t_saveImage(
   const char *fname,
-  const int &W,
-  const int &H,
+  const int  &W,
+  const int  &H,
   const unsigned char* rgba)
 {
 

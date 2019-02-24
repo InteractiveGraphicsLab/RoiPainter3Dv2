@@ -1,3 +1,6 @@
+#include <time.h>
+#include <process.h>
+#include <iostream>
 
 #include "ModeSegGCut.h"
 
@@ -10,8 +13,6 @@
 #include "FormVisParam.h"
 #include "FormSegGCut.h"
 
-#include <time.h>
-#include <process.h>
 #include "../3rdparty/riken/TMaxFlow_BK4.h"
 #include "../3rdParty\riken\TWatershedEx.h"
 
@@ -45,8 +46,7 @@ ModeSegGCut::ModeSegGCut() :
   m_bWsdInitialized = false;
   m_bWsdComputing   = false;
 
-
-  printf("ModeSegGCutModeSegGCutfinish  constructor!\n");
+  std::cout << "ModeSegGCutModeSegGCutfinish  constructor!" << std::endl;
 }
 
 
@@ -381,7 +381,7 @@ static bool t_loadWsdLabel (
 	}
 
 	//check user's intension
-	fprintf( stderr, "fname:%s\n\n", fname.c_str());
+	std::cout << "fname: %s" << fname.c_str() << std::endl << std::endl;
 	if(!CLI_MessageBox_YESNO_Show( "watershedの前計算ファイルが利用できます。利用しますか？", "Use precompute file?") )
 	{
 		fclose( fp); 
@@ -424,7 +424,7 @@ void t_constructWsdNodesFromLabel
 	vector<set<int>> &wsdNodeNei
 )
 {
-	fprintf( stderr, "t_constructWsdNodesFromLabel start......");
+	std::cout << "t_constructWsdNodesFromLabel start......";
 
 	time_t t0 = clock();
 
@@ -465,8 +465,8 @@ void t_constructWsdNodesFromLabel
 		}
 	}
 	time_t t1 = clock();
-	printf( "t_constructWsdNodesFromLabel : %d %d %d time %f\n", W,H,D, (t1-t0)/(double)CLOCKS_PER_SEC);
-
+	std::cout << "t_constructWsdNodesFromLabel : " << W << " " << H << " " << D;
+  std::cout << "time : " << (t1-t0)/(double)CLOCKS_PER_SEC << std::endl;
 }
 
 
@@ -479,7 +479,7 @@ void t_constructWsdNodesFromLabel
 //threadとして起動される
 void ModeSegGCut::initWsdNodes_thread(void *pParam)
 {
-	fprintf( stderr, "initWsdNodes_thread start!!\n");
+	std::cout <<  "initWsdNodes_thread start!!" << std::endl;
 
 	ModeSegGCut *P  = (ModeSegGCut*)pParam;
 
@@ -511,7 +511,7 @@ void ModeSegGCut::initWsdNodes_thread(void *pParam)
 	P->m_bWsdComputing   = false;
 	
 
-	fprintf( stderr, "initWsdNodes_thread DONE!!\n");
+	std::cout << "initWsdNodes_thread DONE!!" << std::endl;
 }
 
 
@@ -541,7 +541,8 @@ void t_wsd_DivideOneLabel(
 	const int bI,
 	vector<int > &vLabel)
 {
-	printf( "divide conflict wsd area %d %d   lbl(%d %d)......",fI,bI,vLabel[ fI ],vLabel[ bI ] );
+	std::cout <<  "divide conflict wsd area" << fI << " " << bI << std::endl;
+  std::cout <<  "lbl " << vLabel[ fI ] << " " << vLabel[ bI ] << std::endl;
 
 	if( vLabel[ fI ] != vLabel[ bI ] ) return;
 
@@ -589,9 +590,10 @@ void t_wsd_DivideOneLabel(
 	//fore label の値を元に戻す
 	for( auto &it: vLabel) if( it == F_LABEL ) it = TRGT;
 
-	printf( "done!!\n");
+	std::cout << "done!!" << std::endl;
 
 }
+
 
 
 
@@ -765,7 +767,7 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 	}
 
 	time_t t1 = clock();
-	fprintf( stderr, "graphCut 1....\n");
+	std::cout << "graphCut 1...." << std::endl;
 
 	const EVec3i  reso  = ImageCore::getInst()->getResolution();
 	const short  *vol   = ImageCore::getInst()->m_volOrig  ;
@@ -816,7 +818,7 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 
 
 	time_t t2 = clock();
-	printf( "graphCut %d %d   %zd %zd\n", nodeNum, edgeNum, fWsdId.size(), bWsdId.size() );
+	std::cout << "graphCut " <<  nodeNum << " " << edgeNum << " " << fWsdId.size() << " " << bWsdId.size() << std::endl;
 
 	//t-link
 	vector<EVec2f> tLinkE(nodeNum);
@@ -847,7 +849,7 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 	}
 
 	time_t t3 = clock();
-	printf( "graphCut 2....\n");
+	std::cout << "graphCut 2...." << std::endl;
 
 	//Graph Cut
 	byte *minCut = new byte[ nodeNum + 2 ];
@@ -863,10 +865,9 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 	vFlg.SetUpdated();
 
 	time_t t4 = clock();
-	fprintf( stderr, "graphCut 3....%f %f %f\n", 
-			(t2-t1)/(double)CLOCKS_PER_SEC,
-			(t3-t2)/(double)CLOCKS_PER_SEC,
-			(t4-t3)/(double)CLOCKS_PER_SEC );
+	std::cout << "graphCut 3...." << (t2-t1)/(double)CLOCKS_PER_SEC << " " 
+                                << (t3-t2)/(double)CLOCKS_PER_SEC << " " 
+                                << (t4-t3)/(double)CLOCKS_PER_SEC ;
 
 	delete[] minCut ;
 
@@ -999,10 +1000,5 @@ void ModeSegGCut::runGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnly
 
 
 
-
-
 #pragma managed
-
-
-
 

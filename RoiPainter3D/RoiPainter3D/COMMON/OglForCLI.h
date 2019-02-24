@@ -31,6 +31,7 @@
 #include <gl/glu.h> 
 #include "tmath.h"
 
+#include <iostream>
 
 class OglForCLI
 {
@@ -109,9 +110,11 @@ public:
     GLenum err = glewInit();
     if (err != GLEW_OK) 
     {
-      fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+      std::cout << "glew Error: " << glewGetErrorString(err) << std::endl;
     }
-
+    
+    printInfo();
+    
     wglMakeCurrent(0, 0);
 
     return;
@@ -122,6 +125,21 @@ public:
     wglMakeCurrent(m_hdc, m_hglrc);
   }
 
+private:
+  void printInfo()
+  {
+    std::cout << std::endl;
+    std::cout << "-------- OpenGL/GLSL Version Info ----------- "<< std::endl;
+    std::cout << "OpenGL :" << glGetString(GL_VERSION) << std::endl;
+    std::cout << "GLSL   :" << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+    std::cout << "Vendor :" << glGetString(GL_VENDOR)   << std::endl;
+    std::cout << "GPU    :" << glGetString(GL_RENDERER) << std::endl;
+    std::cout << "--------------------------------------------- " << std::endl;
+    //std::cout << "extensions "<< std::endl;
+    //std::cout << glGetString(GL_EXTENSIONS) << std::endl;
+  }
+
+public:
 
   void OnDrawBegin(
     int viewW, 

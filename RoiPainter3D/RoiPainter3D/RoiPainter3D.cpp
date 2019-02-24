@@ -24,7 +24,6 @@ using namespace RoiPainter3D;
 int main()
 {
   std::cout << "start main function" << std::endl ;
-
   //Initialize non-managed Singletons
   //非managedなシングルトンはここで初期化
   //だたしこのタイミングでは、Formを生成しshowしてはだめ．
