@@ -51,7 +51,7 @@ public:
 
 	//setter//
 	inline void Set(unsigned short val){
-		m_val   = min( WSD_HMAX, max( val, WSD_HMIN) );
+		m_val   = std::min( (unsigned short)WSD_HMAX, std::max( val, (unsigned short)WSD_HMIN) );
 		m_dist  = 0       ;
 		m_label = TWS_INIT;
 		m_neighbours.reserve( 26 );

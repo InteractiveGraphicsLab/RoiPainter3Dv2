@@ -15,19 +15,21 @@
 //
 // Start development at 2017/7/7
 
-
-
-
 #pragma once
-#pragma unmanaged
-
 
 #include <windows.h> 
+#undef min
+#undef max
+
+#include <iostream> 
 
 #include "gl/glew.h"
 #include <gl/gl.h> 
 #include <gl/glu.h> 
 #include "tmath.h"
+
+#pragma unmanaged
+
 
 
 class OglForCLI
@@ -107,7 +109,7 @@ public:
     GLenum err = glewInit();
     if (err != GLEW_OK) 
     {
-      fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+      std::cout << "Error: " << glewGetErrorString(err) << "\n";
     }
 
     wglMakeCurrent(0, 0);

@@ -358,7 +358,7 @@ public:
     int N = resolution_[0] * resolution_[1] * resolution_[2];
 
 #pragma omp parallel for 
-    for (int i = 0; i < N; ++i) volume_[i] = (byte)max(0, min(255, (v[i] - minV) * rate));
+    for (int i = 0; i < N; ++i) volume_[i] = (byte)std::max(0.f, std::min(255.f, (v[i] - minV) * rate));
 
     is_updated_ = true;
   }
@@ -382,7 +382,7 @@ public:
     {
       for (int i = 0; i < WH; ++i)
       {
-        volume_[z * WH + i] = (byte)max(0, min(255, (slices[z][i] - minV) * rate));
+        volume_[z * WH + i] = (byte) std::max(0.0f, std::min(255.f, (slices[z][i] - minV) * rate));
       }
     }
 

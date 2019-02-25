@@ -172,9 +172,9 @@ CRSSEC_ID CrssecCore::PickCrssec(bool bXY, bool bYZ, bool bZX, bool bCrvSrf, con
 
 void CrssecCore::MoveCrssec(EVec3i reso, EVec3f pitch, CRSSEC_ID id, short delta)
 {
-  if      (id == CRSSEC_XY) m_plane_xy = (float)min(1.0, max(0, m_plane_xy + delta / 120.0f / (float)reso[0]));
-  else if (id == CRSSEC_YZ) m_plane_yz = (float)min(1.0, max(0, m_plane_yz + delta / 120.0f / (float)reso[1]));
-  else if (id == CRSSEC_ZX) m_plane_zx = (float)min(1.0, max(0, m_plane_zx + delta / 120.0f / (float)reso[2]));
+  if      (id == CRSSEC_XY) m_plane_xy = (float)std::min(1.0f, std::max(0.f, m_plane_xy + delta / 120.0f / (float)reso[0]));
+  else if (id == CRSSEC_YZ) m_plane_yz = (float)std::min(1.0f, std::max(0.f, m_plane_yz + delta / 120.0f / (float)reso[1]));
+  else if (id == CRSSEC_ZX) m_plane_zx = (float)std::min(1.0f, std::max(0.f, m_plane_zx + delta / 120.0f / (float)reso[2]));
   else if (id == CRSSEC_CURVE) m_curve_crssec.Translate(m_curve_crssec_norm * delta / 120.0f * pitch[0]);
 }
 

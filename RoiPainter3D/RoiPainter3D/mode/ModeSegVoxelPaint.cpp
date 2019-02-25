@@ -181,7 +181,7 @@ static float c_calcAngle
 	float bn = b.norm();
 	if (an == 0 || bn == 0) return 0;
 	
-	float cosTheta = min(1,a.dot(b) / an / bn );
+	float cosTheta = min(1.0f, a.dot(b) / an / bn );
 	return ( a.cross(b)).dot(axis) > 0 ? acos(cosTheta): -acos(cosTheta);
 }
 
