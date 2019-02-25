@@ -2,7 +2,6 @@
 
 #pragma unmanaged
 
-
 //--------------------------------------------------------------------------
 // This file is released under 3-clause modified bsd license.
 //
@@ -62,10 +61,10 @@ public:
 
   //init_size     : キューが最初に用意しておくメモリサイズ (要素数)
   //increase_size : 要素数が用意したメモリの上限に達したときに再確保するメモリサイズ (要素数)
-  TQueue(const int init_size = T_QUEUE_INIT_SIZE, const int increase_size = T_QUEUE_ADD_SIZE) : m_INCREASE_SIZE(max(20, increase_size))
+  TQueue(const int init_size = T_QUEUE_INIT_SIZE, const int increase_size = T_QUEUE_ADD_SIZE) : m_INCREASE_SIZE( std::max(20, increase_size))
   {
     printf("TQueue standard constractor\n");
-    m_size = max(10, init_size);
+    m_size = std::max(10, init_size);
     m_data = new T[m_size];
     m_tail = m_head = 0;
   }
@@ -182,7 +181,6 @@ public:
     Q.pop_front();
   }
 };
-
 
 #pragma managed
 

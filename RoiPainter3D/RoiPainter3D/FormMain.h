@@ -1,8 +1,10 @@
 #pragma once
 
+
 #include "COMMON/OglForCLI.h"
 #include "COMMON/OglImage.h"
 
+#pragma managed
 
 namespace RoiPainter3D {
 

@@ -17,15 +17,14 @@
 
 #pragma once
 
+#include <iostream> 
+#include "gl/glew.h"
+#include <gl/gl.h> 
+#include <gl/glu.h> 
 #include <windows.h> 
 #undef min
 #undef max
 
-#include <iostream> 
-
-#include "gl/glew.h"
-#include <gl/gl.h> 
-#include <gl/glu.h> 
 #include "tmath.h"
 
 #pragma unmanaged
@@ -367,5 +366,4 @@ private:
   }
 
 };
-
 #pragma managed

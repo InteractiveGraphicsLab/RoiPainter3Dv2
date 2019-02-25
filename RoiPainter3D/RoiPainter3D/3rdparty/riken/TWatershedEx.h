@@ -2,9 +2,8 @@
 
 #include <vector>
 #include <list>
-using namespace std;
 
-
+#pragma unmanaged
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -166,7 +165,7 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 			if( p.getIntValue() != h){ heightIndex1 = pIdx; break; }
 
 			p.setLabelToMASK();
-			vector<TWsPixelEx*> &neighbours = p.getNeighbours();
+			std::vector<TWsPixelEx*> &neighbours = p.getNeighbours();
 			for(int i=0 ; i< (int) neighbours.size() ; i++) if( neighbours[i]->getLabel() >= 0 ) //basin or watershed
 			{		    
 				p.setDistance(1);
@@ -179,7 +178,7 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 	    //今のキューの中身 -->  mark pix pix pix ... pix でmarkはfictitiousで、pixは、既存のbasin/watershedに隣接した領域
 
 		int curdist = 1;
-	    while(true) //extend basins 
+	  while(true) //extend basins 
 		{
 			TWsPixelEx *p = queue.fifo_remove();
 
@@ -196,7 +195,7 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 
 			//neighborsの状況によりpをラべリング * 以下に説明あり
 			bool hasNeighboringWsPix = false;
-			vector<TWsPixelEx*> &neighbours = p->getNeighbours();	
+			std::vector<TWsPixelEx*> &neighbours = p->getNeighbours();	
 			for(int i = 0; i < (int)neighbours.size(); ++i) 
 			{
 				TWsPixelEx &q = *neighbours[i];
@@ -217,8 +216,8 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 		}
 
 	    //Detect and process new minima at level h 
-	    for(int pIdx = heightIndex2 ; pIdx < size; pIdx++) 
-		{
+    for(int pIdx = heightIndex2 ; pIdx < size; pIdx++) 
+    {
 			TWsPixelEx &p = *sortedPixPtr[ pIdx ];
 			if(p.getIntValue() != h) { heightIndex2 = pIdx; break; } // This pixel is at level h+1	
 
@@ -261,24 +260,24 @@ inline int wsd_cmpindexEx(const void *a, const void *b)
 
 inline void TWatershed2DEx(int W, int H, const byte *img, int *pixel_labels)
 {
-	//construct pixels and sort it///////////////////////////////////////////////
-	const int WH = W * H;
-	TWsPixelEx *pixels        = new TWsPixelEx [WH];//
-	TWsPixelEx **sortedPixPtr = new TWsPixelEx*[WH];//sortしたもの
-	for(int i = 0; i < WH; ++i) sortedPixPtr[i] = &pixels[i];
+  //construct pixels and sort it///////////////////////////////////////////////
+  const int WH = W * H;
+  TWsPixelEx *pixels        = new TWsPixelEx [WH];//
+  TWsPixelEx **sortedPixPtr = new TWsPixelEx*[WH];//sortしたもの
+  for(int i = 0; i < WH; ++i) sortedPixPtr[i] = &pixels[i];
 
-	//輝度値とneighborsをセット
-	int idx = 0;
-	for(int y = 0; y < H; ++y) 
-	for(int x = 0; x < W; ++x, ++idx) 
-	{
-		pixels[ idx ].Set( img[idx] );
-		for( int dy = -1; dy <=1 ; ++dy )
-		for( int dx = -1; dx <=1 ; ++dx ) if( dx != 0 || dy != 0 )
-		{
-			if( y + dy >= 0 && y + dy < H && x + dx >= 0 && x + dx < W )		
-				pixels[idx].addNeighbour( &pixels[idx + dx + dy * W] );
-		}	
+  //輝度値とneighborsをセット
+  int idx = 0;
+  for(int y = 0; y < H; ++y) 
+  for(int x = 0; x < W; ++x, ++idx) 
+  {
+    pixels[ idx ].Set( img[idx] );
+    for( int dy = -1; dy <=1 ; ++dy )
+    for( int dx = -1; dx <=1 ; ++dx ) if( dx != 0 || dy != 0 )
+    {
+	    if( y + dy >= 0 && y + dy < H && x + dx >= 0 && x + dx < W )		
+		    pixels[idx].addNeighbour( &pixels[idx + dx + dy * W] );
+    }	
 	}
 	qsort( sortedPixPtr, WH, sizeof(TWsPixelEx*), wsd_cmpindexEx );
 
@@ -496,3 +495,4 @@ void t_wsd_RemoveOneVoxWsdLabel( vector<int> &v_labels)
 }
 
 
+#pragma managed

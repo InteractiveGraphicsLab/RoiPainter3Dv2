@@ -10,12 +10,12 @@
 // Singletonで実装
 // パラメータ変更に伴い、ImageCoreとFormMainに classにアクセスする
 
-
-
 #define TRANS_FUNC_SIZE 256
 #define HIST_BIN_SIZE   256
 
 #include "COMMON/OglImage.h"
+
+#pragma managed
 
 namespace RoiPainter3D {
 

@@ -10,11 +10,7 @@
 //+ maskId     image
 //+ transfer functions (as images)
 //-------------------------------------
-
-
-
 #pragma once
-
 
 #include "./COMMON/OglForCLI.h"
 #include "./COMMON/OglImage.h"
@@ -32,14 +28,14 @@ class MaskData
 {
 
 public:
-  string name     ;
+  std::string name     ;
   TMesh  surf     ;
   EVec3i color    ;
   double alpha    ;
   bool   bRendSurf;
   bool   lock     ;
 
-	MaskData(string _name, EVec3i _color, double _alpha, bool _bRendSurf, bool _lock = false) 
+	MaskData(std::string _name, EVec3i _color, double _alpha, bool _bRendSurf, bool _lock = false) 
 	{
 		name      = _name;
 		color     = _color;
@@ -86,7 +82,7 @@ private:
 	EVec3i  m_Reso ;
 	EVec3f  m_Pitch;
   EVec2i  m_volMinMax;
-	string  m_filePath;
+	std::string  m_filePath;
 
   
 public:
@@ -100,7 +96,7 @@ public:
 	OglImage1D<CH_RGBA> m_imgMskCol; // func: maskID    --> color
 
 	  int               m_maskSelectedId; // -1:none, 0...:maskID
-	vector<MaskData>    m_maskData      ;
+	std::vector<MaskData> m_maskData      ;
 
 	
 
@@ -116,8 +112,8 @@ public:
 	void updateVisVolume(short minV, short maxV);
 
 	//I/O Loaders volume 
-	bool loadVolume   (vector<string> fnames, string fext);
-	bool loadVolume   (string fname         , string fext) ;
+	bool loadVolume   (std::vector<std::string> fnames, std::string fext);
+	bool loadVolume   (std::string fname              , std::string fext) ;
 	void loadMask     (const char *fname);
 	void saveMask     (const char *fname);
 	void saveMaskAsFav(const char *fname);
@@ -127,7 +123,7 @@ public:
 	EVec3f getCuboidF() { return EVec3f((float)(m_Reso[0] * m_Pitch[0]), (float)(m_Reso[1] * m_Pitch[1]), (float)(m_Reso[2] * m_Pitch[2])); }
 	EVec3i getResolution() { return m_Reso; }
 
-  string getFilePath(){ return m_filePath;}
+  std::string getFilePath(){ return m_filePath;}
 
 
 	//getter/setter for pitch 
@@ -146,17 +142,17 @@ public:
 
   int getVoxelIndex(const EVec3f& position)
   {
-    const int x = min(m_Reso[0] - 1, (int)(position[0] / m_Pitch[0]));
-    const int y = min(m_Reso[1] - 1, (int)(position[1] / m_Pitch[1]));
-    const int z = min(m_Reso[2] - 1, (int)(position[2] / m_Pitch[2]));
+    const int x = std::min(m_Reso[0] - 1, (int)(position[0] / m_Pitch[0]));
+    const int y = std::min(m_Reso[1] - 1, (int)(position[1] / m_Pitch[1]));
+    const int z = std::min(m_Reso[2] - 1, (int)(position[2] / m_Pitch[2]));
     return x + y * m_Reso[0] + z * m_Reso[0] * m_Reso[1];
   }
   EVec4i getVoxelIndex4i(const EVec3f& position)
   {
     EVec4i v;
-    v[0] = min(m_Reso[0] - 1, (int)(position[0] / m_Pitch[0]));
-    v[1] = min(m_Reso[1] - 1, (int)(position[1] / m_Pitch[1]));
-    v[2] = min(m_Reso[2] - 1, (int)(position[2] / m_Pitch[2]));
+    v[0] = std::min(m_Reso[0] - 1, (int)(position[0] / m_Pitch[0]));
+    v[1] = std::min(m_Reso[1] - 1, (int)(position[1] / m_Pitch[1]));
+    v[2] = std::min(m_Reso[2] - 1, (int)(position[2] / m_Pitch[2]));
     v[3] = v[0] + v[1] * m_Reso[0] + v[2] * m_Reso[0] * m_Reso[1];
     return v;
   }
@@ -183,7 +179,7 @@ public:
   void selectedMsk_erode   ();
   void selectedMsk_dilate  ();
   void selectedMsk_fillHole();
-  void selectedMsk_expObj  (const string &fname);
+  void selectedMsk_expObj  (const std::string &fname);
 
 
 	//void ActvMsk_fillPsuedoHoleAsNewRegion();

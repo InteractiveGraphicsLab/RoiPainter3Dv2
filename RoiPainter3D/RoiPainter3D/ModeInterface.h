@@ -13,10 +13,10 @@
 //
 //------------------------------------------------------------------------------------------
 
-
-
 #include "COMMON/OglForCLI.h"
 #include "CrsSecCore.h"
+
+#pragma unmanaged
 
 #define ONMOVE_SLICE_RATE 0.5
 

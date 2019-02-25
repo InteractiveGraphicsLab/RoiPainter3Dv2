@@ -424,7 +424,6 @@ void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
     t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
 }
 
-#pragma managed
 
 
 
@@ -899,3 +898,6 @@ inline bool isInRad(
 }
 
 */
+
+
+#pragma managed

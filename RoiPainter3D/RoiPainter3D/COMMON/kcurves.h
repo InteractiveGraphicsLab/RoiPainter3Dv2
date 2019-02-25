@@ -1,20 +1,23 @@
 #pragma once
 
-#pragma unmanaged 
 
+#pragma unmanaged 
 //Eigen 
 #include "./3rdparty/Eigen/Dense"
 #include "./3rdparty/Eigen/Geometry"
 #include "./3rdparty/Eigen/Sparse"
 
-#include <stdio.h>
+//stl
+#include <iostream>
+#include <vector>
+
+#pragma unmanaged 
 
 
+#ifndef EVec2i
 typedef Eigen::Vector2i EVec2i;
 typedef Eigen::Vector2d EVec2d;
-
-#include <vector>
-using namespace std;
+#endif 
 
 
 
@@ -43,7 +46,7 @@ inline double getRealSolutionOfCubicFunc
 
 inline void Trace(EVec2d &p)
 {
-	printf( "%f %f\n", p[0], p[1]);
+	std::cout << p[0] << " " << p[1] << "\n";
 }
 
 inline double TriangleArea(const EVec2d &p0, const EVec2d &p1, const EVec2d &p2)
@@ -56,7 +59,7 @@ inline double TriangleArea(const EVec2d &p0, const EVec2d &p1, const EVec2d &p2)
 	double area = v1_len * v2_len * sqrt( 1.0 - cosT * cosT);
 
 
-	//printf( "area== %f %f\n", cosT, area);
+	//std::cout << "area== " << cosT << " " << area << "\n";
 	//Trace(v1);
 	//Trace(v2);
 	return area;
@@ -85,7 +88,7 @@ inline void EigenSparseMatPractice()
 	Eigen::VectorXd b(5);
 
 	//fill A
-	vector< Eigen::Triplet<double> > entries; //{row, col, val}
+	std::vector< Eigen::Triplet<double> > entries; //{row, col, val}
 	entries.push_back( Eigen::Triplet<double>(0,0, 2) );
 	entries.push_back( Eigen::Triplet<double>(1,0, 3) );
 
@@ -117,7 +120,7 @@ inline void EigenSparseMatPractice()
 	Eigen::SparseLU<ESpMat> LU(A);  
 	Eigen::VectorXd x = LU.solve(b);
 	
-	//printf("%f %f %f %f %f\n", x[0], x[1], x[2], x[3], x[4]);
+  //std::cout << x[0] << " " << x[1] << " " << x[2] << " " << x[3]<< " " << x[4] << "\n";
 	return;
 }
 
@@ -158,19 +161,19 @@ const int ITER_NUM = 15;
 
 inline void compute_kCurves
 (
-	const vector<EVec2d> &cps,
+	const std::vector<EVec2d> &cps,
 
 	int  sampleN, //sampling number of each curve segment
-	vector<EVec2d> &controlPoints, 	
-	vector<EVec2d> &points	
+	std::vector<EVec2d> &controlPoints, 	
+	std::vector<EVec2d> &points	
 )
 {
 	if( cps.size() < 3 ) return;
 	if( sampleN < 3) sampleN = 3;
 
 	const int N = (int)cps.size();
-	vector<double> lambda(N, 0.5), ti(N);
-	vector<EVec2d> Ci0(N), Ci1 = cps, Ci2(N);
+	std::vector<double> lambda(N, 0.5), ti(N);
+	std::vector<EVec2d> Ci0(N), Ci1 = cps, Ci2(N);
 
 	for( int iter = 0; iter < ITER_NUM; ++iter)
 	{
@@ -213,7 +216,7 @@ inline void compute_kCurves
 		//4. update C1
 		ESpMat A(N,N);
 		Eigen::VectorXd b1(N), b2(N);
-		vector< Eigen::Triplet<double> > entries; //{row, col, val}
+		std::vector< Eigen::Triplet<double> > entries; //{row, col, val}
 
 		for( int i = 0; i < N; ++i)
 		{
@@ -264,7 +267,4 @@ inline void compute_kCurves
 	}
 }
 
-#pragma managed 
-
-
-
+#pragma managed

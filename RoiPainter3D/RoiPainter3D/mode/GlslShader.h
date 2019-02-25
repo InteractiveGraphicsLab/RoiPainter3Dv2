@@ -10,24 +10,22 @@ written by Takashi Ijiri, Tomofumi Naritra
 This file contains multiple classes managing glsl shaders.
 -------------------------------------*/
 
-
 #include "./COMMON/OglForCLI.h"
-
 #include <string>
-using namespace std;
 
+#pragma unmanaged
 
 
 class GlslShaderVolume
 {
-  const string m_vtxFname;
-  const string m_frgFname;
+  const std::string m_vtxFname;
+  const std::string m_frgFname;
   GLuint       m_gl2Program;
   bool         m_bInit;
 
 public:
 
-  GlslShaderVolume(string vtxFname, string frgFname) :
+  GlslShaderVolume(std::string vtxFname, std::string frgFname) :
     m_vtxFname(vtxFname), m_frgFname(frgFname)
   {
     m_bInit = false;
@@ -62,14 +60,14 @@ public:
 
 class GlslShaderVolumePolar
 {
-  const string m_vtxFname;
-  const string m_frgFname;
+  const std::string m_vtxFname;
+  const std::string m_frgFname;
   GLuint       m_gl2Program;
   bool         m_bInit;
 
 public:
 
-  GlslShaderVolumePolar(string vtxFname, string frgFname) :
+  GlslShaderVolumePolar(std::string vtxFname, std::string frgFname) :
     m_vtxFname(vtxFname), m_frgFname(frgFname)
   {
     m_bInit = false;
@@ -104,14 +102,14 @@ public:
 
 class GlslShaderCrsSec
 {
-  const string m_vtxFname;
-  const string m_frgFname;
+  const std::string m_vtxFname;
+  const std::string m_frgFname;
   GLuint       m_gl2Program;
   bool         m_bInit;
 
 public:
 
-  GlslShaderCrsSec(string vtxFname, string frgFname) :
+  GlslShaderCrsSec(std::string vtxFname, std::string frgFname) :
     m_vtxFname(vtxFname), m_frgFname(frgFname)
   {
     m_bInit = false;
@@ -136,4 +134,5 @@ public:
   }
 };
 
+#pragma managed
 

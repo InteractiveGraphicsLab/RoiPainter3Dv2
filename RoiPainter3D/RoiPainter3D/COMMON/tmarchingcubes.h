@@ -1,12 +1,15 @@
-﻿#ifndef __T_TMARCHINGCUBES_H_INCLUDED__
-#define __T_TMARCHINGCUBES_H_INCLUDED__
+﻿#pragma once
 
-#include "tmesh.h"
-
+//stl
 #include <time.h>
 #include <vector>
 #include <map>
+
+//own
+#include "tmesh.h"
 #include "tqueue.h"
+
+#pragma unmanaged
 
 namespace marchingcubes
 {
@@ -25,8 +28,8 @@ void t_MarchingCubes(
     const short   thresh,
     const int    *minIdx,
     const int    *maxIdx,
-    vector<EVec3f> &Vs, //output vertices
-    vector<TPoly > &Ps  //output polygons 
+    std::vector<EVec3f> &Vs, //output vertices
+    std::vector<TPoly > &Ps  //output polygons 
 );
 
 
@@ -69,5 +72,5 @@ void t_MarchingCubes(
 };
 
 
+#pragma unmanaged
 
-#endif

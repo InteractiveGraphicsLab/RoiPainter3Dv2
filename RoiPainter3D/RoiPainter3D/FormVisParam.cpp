@@ -4,6 +4,7 @@
 
 
 using namespace RoiPainter3D;
+using namespace std;
 
 
 FormVisParam::FormVisParam(void)

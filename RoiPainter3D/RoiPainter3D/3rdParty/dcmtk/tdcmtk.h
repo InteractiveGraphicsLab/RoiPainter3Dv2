@@ -1,12 +1,11 @@
-#ifndef TDCMTK_H
-#define TDCMTK_H
+#pragma once
 
-#pragma unmanaged
 
 // DCMTK
-
 #ifndef _DEBUG
 #include "./include/dcmtk/dcmdata/dctk.h"
+
+#pragma unmanaged
 
 #pragma comment(lib, "dcmdata.lib")
 #pragma comment(lib, "oflog.lib")
@@ -15,6 +14,12 @@
 #pragma comment(lib, "netapi32.lib")
 #pragma comment(lib, "ws2_32.lib"  )
 #pragma comment(lib, "wsock32.lib" )
+
+
+
+
+
+
 class Tdcmtk
 {
   DcmFileFormat* m_FileFormat;
@@ -137,7 +142,11 @@ private:
 
 };
 
+#pragma managed
+
+
 #else
+
 
 class Tdcmtk
 {
@@ -215,7 +224,3 @@ private:
 */
 
 
-#pragma managed
-
-
-#endif // TDCMTK_H

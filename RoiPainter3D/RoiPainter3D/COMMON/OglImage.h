@@ -1,8 +1,10 @@
 #pragma once
 
-#include "OglForCLI.h"
 #include "tqueue.h"
+#include "OglForCLI.h"
 #include "timageloader.h"
+
+#pragma unmanaged
 
 enum OGL_IMAGE_CH
 {
@@ -639,8 +641,8 @@ inline void OglImage2D<CH_RGBA>::setGrayValue_normalize(float* image)
   float maxV = -FLT_MAX;
 
   for( int i=0; i < N; ++i ){
-    minV = min(minV, image[i]);
-    maxV = max(maxV, image[i]);
+    minV = std::min(minV, image[i]);
+    maxV = std::max(maxV, image[i]);
   }
   for( int i=0; i < N; ++i ){
     float v = (image[i] - minV) / (maxV - minV);
@@ -872,5 +874,4 @@ void t_sobel3D(const int W, const int H, const int D, const T1* vol, T2* res)
   }
 }
 
-
-
+#pragma managed

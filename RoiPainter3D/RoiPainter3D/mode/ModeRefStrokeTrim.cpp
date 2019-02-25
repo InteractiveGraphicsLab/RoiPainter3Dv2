@@ -331,7 +331,6 @@ void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 
 
 
-#pragma managed
 
 
 
@@ -448,3 +447,5 @@ void ModeRefStrokeTrim::updateVolFlgByStroke( OglForCLI *ogl)
 	vFlg.SetUpdated();
 	m_bModified = true;
 }
+
+#pragma managed

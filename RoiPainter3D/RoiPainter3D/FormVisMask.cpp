@@ -8,6 +8,7 @@
 using namespace System::Runtime::InteropServices;
 
 using namespace RoiPainter3D;
+using namespace std;
 
 
 

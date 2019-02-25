@@ -5,6 +5,7 @@
 
 
 
+using namespace std;
 using namespace RoiPainter3D;
 
 

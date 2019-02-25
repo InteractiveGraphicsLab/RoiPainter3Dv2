@@ -1,18 +1,19 @@
 ﻿#pragma once
 
+
+//unmanagedを明示してからinclude 
 #pragma unmanaged
-
-
-using namespace std;
-
-
 //Eigen 
 #include <Dense>
 #include <Geometry> 
 
 //stl
+#include <iostream>
 #include <vector>
 #include <list>
+
+#pragma unmanaged
+
 
 typedef Eigen::Vector2i EVec2i;
 typedef Eigen::Vector2d EVec2d;
@@ -35,14 +36,12 @@ typedef Eigen::Matrix4d EMat4d;
 
 
 #ifndef max3
-#define max3(a,b,c)      max((a), max( (b),(c) ))
+#define max3(a,b,c) std::max((a), std::max( (b),(c) ))
 #endif
 
 #ifndef min3
-#define min3(a,b,c)      min((a), min( (b),(c) ))
+#define min3(a,b,c) std::min((a), std::min( (b),(c) ))
 #endif
-
-
 
 
 inline void Trace(const EVec3d &v)
@@ -270,7 +269,7 @@ inline float t_dist(const EVec3f &p1, const EVec3f &p2)
 
 
 template<class T>
-inline T t_calcGravityCenter(const vector<T> &vs)
+inline T t_calcGravityCenter(const std::vector<T> &vs)
 {
   T gc(0, 0, 0);
   for (const auto &p : vs) gc += p;
@@ -281,14 +280,14 @@ inline T t_calcGravityCenter(const vector<T> &vs)
 
 
 template<class T>
-inline void t_curveSmoothing(int TIME, vector<T> &curve)
+inline void t_curveSmoothing(int TIME, std::vector<T> &curve)
 {
   const int N = (int)curve.size();
   if (N < 3) return;
 
   for (int time = 0; time < TIME; ++time)
   {
-    vector<T> c(curve.size());
+    std::vector<T> c(curve.size());
 
     c[0] = 0.25*curve[N - 1] + 0.5*curve[0] + 0.25*curve[1];
     for (int i = 1; i < N - 1; ++i) c[i] = 0.25*curve[i - 1] + 0.5*curve[i] + 0.25*curve[i + 1];
@@ -427,17 +426,17 @@ inline bool t_solve2by2LinearEquation(const double a, const double b,
 
 
 
-static void t_calcBoundBox2D(const vector<EVec2i> &verts, EVec2i &BBmin, EVec2i &BBmax)
+static void t_calcBoundBox2D(const std::vector<EVec2i> &verts, EVec2i &BBmin, EVec2i &BBmax)
 {
   BBmin << INT_MAX, INT_MAX;
   BBmax << INT_MIN, INT_MIN;
 
   for (int i = 0; i < (int)verts.size(); ++i)
   {
-    BBmin[0] = min(BBmin[0], verts[i][0]);
-    BBmin[1] = min(BBmin[1], verts[i][1]);
-    BBmax[0] = max(BBmax[0], verts[i][0]);
-    BBmax[1] = max(BBmax[1], verts[i][1]);
+    BBmin[0] = std::min(BBmin[0], verts[i][0]);
+    BBmin[1] = std::min(BBmin[1], verts[i][1]);
+    BBmax[0] = std::max(BBmax[0], verts[i][0]);
+    BBmax[1] = std::max(BBmax[1], verts[i][1]);
   }
 }
 
@@ -450,12 +449,12 @@ static void t_calcBoundBox3D(const int N, const EVec3f* verts, EVec3f &BBmin, EV
 
   for (int i = 0; i < N; ++i)
   {
-    BBmin[0] = min(BBmin[0], (float)verts[i][0]);
-    BBmin[1] = min(BBmin[1], (float)verts[i][1]);
-    BBmin[2] = min(BBmin[2], (float)verts[i][2]);
-    BBmax[0] = max(BBmax[0], (float)verts[i][0]);
-    BBmax[1] = max(BBmax[1], (float)verts[i][1]);
-    BBmax[2] = max(BBmax[2], (float)verts[i][2]);
+    BBmin[0] = std::min(BBmin[0], (float)verts[i][0]);
+    BBmin[1] = std::min(BBmin[1], (float)verts[i][1]);
+    BBmin[2] = std::min(BBmin[2], (float)verts[i][2]);
+    BBmax[0] = std::max(BBmax[0], (float)verts[i][0]);
+    BBmax[1] = std::max(BBmax[1], (float)verts[i][1]);
+    BBmax[2] = std::max(BBmax[2], (float)verts[i][2]);
   }
 }
 
@@ -524,7 +523,7 @@ static double c_findShortestPathByDP(
   double **edgeCostH, //2pN x (qN+1) NotChanged
   double **costArray, //2pN x (qN+1)
   int    **fromArray, //2pN x (qN+1)
-  list<pair<int, int>> &path
+  std::list<std::pair<int, int>> &path
 )
 {
   for (int p = 0; p < 2 * pN; ++p)
@@ -552,13 +551,13 @@ static double c_findShortestPathByDP(
 
   int p = pivPi + pN;
   int q = qN;
-  path.push_front(make_pair(p, q));
+  path.push_front( std::make_pair(p, q) );
 
   while (true)
   {
     if (fromArray[p][q] == 1) p--;
     else q--;
-    path.push_front(make_pair(p, q));
+    path.push_front(std::make_pair(p, q));
 
     if (p == pivPi && q == 0) break;
   }
@@ -576,10 +575,10 @@ enum POLY_MACH_METRIC
 
 inline void c_polylineMatching
 (
-  const vector<EVec3f>   &P,
-  const vector<EVec3f>   &Q,
+  const std::vector<EVec3f>   &P,
+  const std::vector<EVec3f>   &Q,
   const POLY_MACH_METRIC metric,
-  list<pair<int, int>>   &matchedIds
+  std::list<std::pair<int, int>>   &matchedIds
 )
 {
   matchedIds.clear();
@@ -622,7 +621,7 @@ inline void c_polylineMatching
 
   for (int pivPi = 0; pivPi < pNum; ++pivPi)
   {
-    list <pair<int, int>> pivPiPath;
+    std::list< std::pair<int, int> > pivPiPath;
     double pivPiCost = c_findShortestPathByDP(pivPi, pNum, qNum, edgeCostV, edgeCostH, costArray, fromArray, pivPiPath);
     if (pivPiCost < minCost)
     {
@@ -647,7 +646,4 @@ inline void c_polylineMatching
 
 
 
-
-
 #pragma managed
-

@@ -1,8 +1,6 @@
 #pragma once
 
-
 #pragma managed
-
 
 inline bool t_loadImage(
   const char *fname,
