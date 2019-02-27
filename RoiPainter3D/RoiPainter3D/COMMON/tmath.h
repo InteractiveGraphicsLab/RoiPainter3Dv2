@@ -14,7 +14,6 @@
 
 #pragma unmanaged
 
-
 typedef Eigen::Vector2i EVec2i;
 typedef Eigen::Vector2d EVec2d;
 typedef Eigen::Vector2f EVec2f;
@@ -46,37 +45,34 @@ typedef Eigen::Matrix4d EMat4d;
 
 inline void Trace(const EVec3d &v)
 {
-  fprintf(stderr, "%f %f %f\n", v[0], v[1], v[2]);
+  std::cout << v[0] << " " << v[1] << " " << v[2] << "\n";
 }
 
 
 inline void Trace(const EVec3f &v)
 {
-  fprintf(stderr, "%f %f %f\n", v[0], v[1], v[2]);
+  std::cout << v[0] << " " << v[1] << " " << v[2] << "\n";
 }
 
 
 inline void Trace(const EVec2d &v)
 {
-  fprintf(stderr, "%f %f \n", v[0], v[1]);
+  std::cout << v[0] << " " << v[1] << " " <<  "\n";
 }
 
 inline void Trace(const EMat4d &m)
 {
-  for (int i = 0; i < 4; i++) printf("%lf %lf %lf %lf\n", m(i, 0), m(i, 1), m(i, 2), m(i, 3));
-
+  for (int i = 0; i < 4; i++) std::cout << m(i,0) << " " << m(i,1) << " " << m(i,2) << " " << m(i,3) << "\n";
 }
 
 inline void Trace(const EMat3d &m)
 {
-  for (int i = 0; i < 3; i++) printf("%lf %lf %lf\n", m(i, 0), m(i, 1), m(i, 2));
-
+  for (int i = 0; i < 3; i++) std::cout << m(i,0) << " " << m(i,1) << " " << m(i,2) << "\n";
 }
 
 inline void Trace(const EMat3f &m)
 {
-  for (int i = 0; i < 3; i++) printf("%lf %lf %lf\n", m(i, 0), m(i, 1), m(i, 2));
-
+  for (int i = 0; i < 3; i++) std::cout << m(i,0) << " " << m(i,1) << " " << m(i,2) << "\n";
 }
 
 

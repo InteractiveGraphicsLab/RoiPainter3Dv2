@@ -2,6 +2,7 @@
 #pragma warning(disable : 4996)
 
 //stl
+#include <iostream>
 #include <list>
 #include <vector>
 #include <set>
@@ -9,7 +10,6 @@
 
 #include "tmath.h"
 #include "OglForCLI.h"
-
 
 #pragma unmanaged
 
@@ -209,9 +209,9 @@ public:
     fclose(fp);
 
 
-    std::vector<EVec3f> Vs{ std::begin(vList), std::end(vList) };
-    std::vector<EVec2f> Ts{ std::begin(uvList), std::end(uvList) };
-    std::vector<TPoly>  Ps{ std::begin(pList), std::end(pList) };
+    std::vector<EVec3f> Vs { std::begin(vList  ), std::end(vList  ) };
+    std::vector<EVec2f> Ts { std::begin(uvList ), std::end(uvList ) };
+    std::vector<TPoly>  Ps { std::begin(pList  ), std::end(pList  ) };
     std::vector<TPoly>  Puv{ std::begin(pUvList), std::end(pUvList) };
 
     initialize(Vs, Ps);
@@ -223,7 +223,7 @@ public:
       for (int i = 0; i < m_vSize; ++i) m_vTexCd[i] << Ts[i][0], Ts[i][1], 0;
     }
 
-    fprintf(stderr, "loaded object file info : %d %d \n", m_vSize, m_pSize);
+    std::cout << "loaded object file info :" << m_vSize << " " << m_pSize << "\n";
     return true;
   }
 
@@ -235,9 +235,9 @@ private:
     if (Ps.size() != Puv.size()) return false;
     for (int i = 0; i < (int)Ps.size(); ++i)
     {
-      if (Ps[i].idx[0] != Puv[i].idx[0] ||
-        Ps[i].idx[1] != Puv[i].idx[1] ||
-        Ps[i].idx[2] != Puv[i].idx[2]) return false;
+      if ( Ps[i].idx[0] != Puv[i].idx[0] ||
+           Ps[i].idx[1] != Puv[i].idx[1] ||
+           Ps[i].idx[2] != Puv[i].idx[2]) return false;
     }
     return true;
   }
@@ -272,13 +272,13 @@ public:
 
 
     //for debug
-    fprintf(stderr, "check data\n");
+    std::cout << "for debug : check data\n";
     for (int i = 0; i < m_pSize; ++i)
     {
       int *idx = m_pPolys[i].idx;
-      if (idx[0] < 0 || idx[0] >= m_vSize) fprintf(stderr, "aaaaaa");
-      if (idx[1] < 0 || idx[1] >= m_vSize) fprintf(stderr, "bbbbbb");
-      if (idx[2] < 0 || idx[2] >= m_vSize) fprintf(stderr, "cccccc");
+      if (idx[0] < 0 || idx[0] >= m_vSize) std::cout << "aaaaaa";
+      if (idx[1] < 0 || idx[1] >= m_vSize) std::cout << "bbbbbb";
+      if (idx[2] < 0 || idx[2] >= m_vSize) std::cout << "cccccc";
     }
   }
 
@@ -358,17 +358,25 @@ public:
     }
   }
 
-  void Translate(const EVec3f t) { for (int i = 0; i < m_vSize; ++i) m_vVerts[i] += t; }
-  void Scale(const float  s) { for (int i = 0; i < m_vSize; ++i) m_vVerts[i] *= s; }
-  void Rotate(Eigen::AngleAxis<float> &R) { for (int i = 0; i < m_vSize; ++i) m_vVerts[i] = R * m_vVerts[i]; }
-  void Rotate(const EMat3f &R) { for (int i = 0; i < m_vSize; ++i) m_vVerts[i] = R * m_vVerts[i]; }
+  void Translate(const EVec3f t) { 
+    for (int i = 0; i < m_vSize; ++i) m_vVerts[i] += t; 
+  }
+  void Scale(const float  s) { 
+    for (int i = 0; i < m_vSize; ++i) m_vVerts[i] *= s; 
+  }
+  void Rotate(Eigen::AngleAxis<float> &R) { 
+    for (int i = 0; i < m_vSize; ++i) m_vVerts[i] = R * m_vVerts[i]; 
+  }
+  void Rotate(const EMat3f &R) { 
+    for (int i = 0; i < m_vSize; ++i) m_vVerts[i] = R * m_vVerts[i]; 
+  }
 
   void MultMat(const EMat4f M)
   {
     EMat3f R;
     R << M(0, 0), M(0, 1), M(0, 2),
-      M(1, 0), M(1, 1), M(1, 2),
-      M(2, 0), M(2, 1), M(2, 2);
+         M(1, 0), M(1, 1), M(1, 2),
+         M(2, 0), M(2, 1), M(2, 2);
     EVec3f t(M(0, 3), M(1, 3), M(2, 3));
     for (int i = 0; i < m_vSize; ++i) m_vVerts[i] = R * m_vVerts[i] + t;
   }
@@ -420,17 +428,17 @@ public:
     for (int i = 0; i < m_pSize; ++i)
     {
       int *idx = m_pPolys[i].idx;
-      if( idx[0] < 0 || m_vSize <= idx[0] ) fprintf( stderr, "er1");
-      if( idx[1] < 0 || m_vSize <= idx[1] ) fprintf( stderr, "er2");
-      if( idx[2] < 0 || m_vSize <= idx[2] ) fprintf( stderr, "er3");
+      if( idx[0] < 0 || m_vSize <= idx[0] ) std::cout << "er1";
+      if( idx[1] < 0 || m_vSize <= idx[1] ) std::cout << "er2";
+      if( idx[2] < 0 || m_vSize <= idx[2] ) std::cout << "er3";
     }
 
-    fprintf( stderr, "ch--");
+    std::cout << "ch--";
     GLenum errcode=glGetError();
     if(errcode!=GL_NO_ERROR)
     {
-      const GLubyte *errstring=gluErrorString(errcode);
-      fprintf(stderr, "aaaaaa %d %s\n",errcode, errstring);
+      const GLubyte *errstring = gluErrorString(errcode);
+      std::cout << "aaaaaa " << errcode << " " << errstring;
     }
     */
   }
@@ -438,8 +446,6 @@ public:
   void draw() const
   {
     checkError();
-
-
 
     if (m_vSize == 0 || m_pSize == 0) return;
 
@@ -1054,11 +1060,11 @@ static void genBinaryVolumeInTriangleMeshX
         for (; xI <= pivXi && xI < W; ++xI) binVol[xI + yI * W + zI*WH] = flag;
         flag = !flag;
       }
-      if (flag == true) fprintf(stderr, "error double check here!");
+      if (flag == true) std::cout << "error double check here!\n";
     }
 
   //clock_t t2 = clock();
-  //printf("compute time : %f %f\n", (t1-t0)/ (double) CLOCKS_PER_SEC, (t2-t1)/ (double) CLOCKS_PER_SEC);
+  //std::cout << "compute time : " << (t1-t0)/ (double) CLOCKS_PER_SEC << " " << (t2-t1)/ (double) CLOCKS_PER_SEC) << "\n";
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1171,11 +1177,11 @@ inline void genBinaryVolumeInTriangleMeshY
         for (; yI <= pivYi && yI < H; ++yI) binVol[xI + yI * W + zI*WH] = flag;
         flag = !flag;
       }
-      if (flag == true) fprintf(stderr, "error double check here!");
+      if (flag == true) std::cout << "error double check here!";
     }
 
   //clock_t t2 = clock();
-  //printf("compute time : %f %f\n", (t1-t0)/ (double) CLOCKS_PER_SEC, (t2-t1)/ (double) CLOCKS_PER_SEC);
+  //std::cout << "compute time : " << (t1-t0)/ (double) CLOCKS_PER_SEC << " " << (t2-t1)/ (double) CLOCKS_PER_SEC) << "\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1199,7 +1205,6 @@ static void t_calcBoundBox3D(const int n, const TTriangle* tris, EVec3f &BBmin, 
       BBmax[0] = std::max(BBmax[0], t.verts_[k][0]);
       BBmax[1] = std::max(BBmax[1], t.verts_[k][1]);
       BBmax[2] = std::max(BBmax[2], t.verts_[k][2]);
-    
     }
   }
 }
@@ -1307,11 +1312,11 @@ inline void genBinaryVolumeInTriangleMeshY
         for (; yI <= pivYi && yI < H; ++yI) binVol[xI + yI * W + zI*WH] = flag;
         flag = !flag;
       }
-      if (flag == true) fprintf(stderr, "error double check here!");
+      if (flag == true) std::cout << "error double check here!";
     }
   }
   //clock_t t2 = clock();
-  //printf("compute time : %f %f\n", (t1-t0)/ (double) CLOCKS_PER_SEC, (t2-t1)/ (double) CLOCKS_PER_SEC);
+  //std::cout << "compute time : " << (t1-t0)/ (double) CLOCKS_PER_SEC << " " << (t2-t1)/ (double) CLOCKS_PER_SEC) << "\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
