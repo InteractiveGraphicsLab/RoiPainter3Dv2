@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <list>
 
@@ -355,20 +356,20 @@ void t_wsd_CalcLabelFromGMag
 {
 	if( W * H > 1024*1024*4 ) 
 	{ 
-		printf( "データサイズが大きすぎます\n"); 
+		std::cout <<  "データサイズが大きすぎます\n" ; 
 		return;
 	}
 
 	const int stepZ = 2 * 1024 * 1024 / ( W * H) ;
 	const int iterN = ( D % stepZ == 0 ) ? D / stepZ  :  D / stepZ + 1;
-	printf( "watershed (%d %d %d), stepZ:%d iterN:%d \n", W,H,D, stepZ, iterN);
+  std::cout << "watershed ( " << W << " " << H << " " << D << ") stepZ: " << stepZ << "iterN: "<<  iterN << "\n";
 
 
 	vector< vector<int> > tmpLabels( iterN, vector<int>() );
 	
 	for( int i = 0; i < iterN; ++i)
 	{
-    printf( "was %d/%d \n", i, iterN );
+    std::cout << "was " << i << "/" << iterN  << "\n";
 		int z0 = i * stepZ;
 		int tmpD = ( z0 + stepZ <= D ) ? stepZ : D - z0;
 		TWatershed3DEx( W, H, tmpD, &gMagVol[ W * H * z0 ], volCoef, tmpLabels[i], 0 );
@@ -454,7 +455,7 @@ void t_wsd_CollapseWsdPixels3D(
 		}
 		if( !boundExist ) break;
 
-		//fprintf( stderr, "t_wsd_CollapseWsdPixels3D loop end \n");
+		//std::cout << "t_wsd_CollapseWsdPixels3D loop end \n";
 	}
 
 	delete[] visFlg;

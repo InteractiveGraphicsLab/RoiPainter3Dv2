@@ -1,10 +1,11 @@
-
 #include "tdcmtk.h"
+#include <iostream>
+
+
+#pragma unmanaged
 
 
 #ifndef _DEBUG
-
-
 
 
 //ref: http://wiki.nakaguchi.org/index.php?DCMTK
@@ -28,7 +29,7 @@ bool t_getTagValInt(DcmDataset *DataSet, DcmTagKey tagKey, int &value)
     else if ( elem->getUint16( rvU16 ).good() ) { value = (int)rvU16; }
     else if ( elem->getUint32( rvU32 ).good() ) { value = (int)rvU32; }
     else {
-        printf("\n%s is not integer value\n", tag.getTagName());
+        std::cout << "\n\n" << tag.getTagName() << " is not integer value\n";
         return false;
     }
     return true;
@@ -49,7 +50,7 @@ Tdcmtk::Tdcmtk( const char *fname )
 
   if ( status.bad() )
   {
-    printf( "cannot open the file!!!");
+    std::cout <<  "cannot open the file!!! \n";
     if ( m_FileFormat )
     {
       delete m_FileFormat;
@@ -93,7 +94,7 @@ Tdcmtk::Tdcmtk( const char *fname )
   t_info( "DCM_PlanarConfiguration %d\n", m_plnConfig);
   t_info( "DCM_PixelRepresentation %d\n", m_pixRepres);
   */
-  printf( "DCM_Rescale Intercept %f Slope %f\n", m_RescaleIntercept, m_RescaleSlope);
+  std::cout << "DCM_Rescale Intercept: " << m_RescaleIntercept << " Slope: " << m_RescaleSlope << "\n";
 }
 
 void Tdcmtk::getSize  ( int &W, int &H, int &fNum )
@@ -113,11 +114,7 @@ void Tdcmtk::getFormat( int &chNum, int &bitNum, int &bSigned  )
 */
 
 
-
-
-
-
-
-
-
 #endif
+
+
+#pragma managed

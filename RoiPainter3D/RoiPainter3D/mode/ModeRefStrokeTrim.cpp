@@ -1,6 +1,7 @@
 
 #include "ModeRefStrokeTrim.h"
 
+#include <iostream>
 #include "ImageCore.h"
 #include "ModeCore.h"
 #include "CrsSecCore.h"
@@ -261,7 +262,7 @@ void ModeRefStrokeTrim::keyDown(int nChar)
   if (nChar == 'Z')
 	{
     // 変更前の状態を一個だけ持っておく実装（今後複数回のundoに対応したい）
-    printf( "undo!!");
+    std::cout << "UNDO !!\n" ;
 
 		OglImage3D &vFlg  = ImageCore::getInst()->m_volFlg ;
 		EVec3i r = ImageCore::getInst()->getResolution();
@@ -394,7 +395,7 @@ void ModeRefStrokeTrim::updateVolFlgByStroke( OglForCLI *ogl)
   
 
   //gen 2D in/out image 
-  printf("get 2D foreground image\n");
+  std::cout << "get 2D foreground image\n";
 	byte *imgInOut = new byte[ vp[2] * vp[3] ];
 	memset( imgInOut, 0, sizeof(byte) * vp[2] * vp[3] );
 
@@ -418,7 +419,7 @@ void ModeRefStrokeTrim::updateVolFlgByStroke( OglForCLI *ogl)
 
 
   //compute projection of all foreground voxels
-  printf("compute projection of all voxels\n");
+  std::cout << "compute projection of all voxels\n";
 #pragma omp parallel for
 	for (int z = 0; z < r[2]; ++z)
 	{
@@ -440,7 +441,7 @@ void ModeRefStrokeTrim::updateVolFlgByStroke( OglForCLI *ogl)
 
 	delete[] imgInOut;
 
-	printf( "...done\n");
+	std::cout << "...done\n";
 
 	if( !ogl->isDrawing() ) wglMakeCurrent(NULL,NULL);
 

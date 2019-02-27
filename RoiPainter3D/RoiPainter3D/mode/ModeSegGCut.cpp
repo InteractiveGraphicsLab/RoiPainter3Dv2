@@ -12,6 +12,8 @@
 
 #include <time.h>
 #include <process.h>
+#include <iostream>
+
 #include "../3rdparty/riken/TMaxFlow_BK4.h"
 #include "../3rdParty\riken\TWatershedEx.h"
 
@@ -42,11 +44,13 @@ ModeSegGCut::ModeSegGCut() :
 	m_volumeShader("shader/volVtx.glsl"   , "shader/volFlg_Seg.glsl"   ),
 	m_crssecShader("shader/crssecVtx.glsl", "shader/crssecFlg_Seg.glsl")
 {
+  std::cout << "ModeSegGCut constructor start\n";
+
   m_bWsdInitialized = false;
   m_bWsdComputing   = false;
 
 
-  printf("ModeSegGCutModeSegGCutfinish  constructor!\n");
+  std::cout << "ModeSegGCut constructor done \n";
 }
 
 
@@ -381,7 +385,8 @@ static bool t_loadWsdLabel (
 	}
 
 	//check user's intension
-	fprintf( stderr, "fname:%s\n\n", fname.c_str());
+	std::cout << "fname: " << fname.c_str() << "\n";
+
 	if(!CLI_MessageBox_YESNO_Show( "watershedの前計算ファイルが利用できます。利用しますか？", "Use precompute file?") )
 	{
 		fclose( fp); 
@@ -424,7 +429,7 @@ void t_constructWsdNodesFromLabel
 	vector<set<int>> &wsdNodeNei
 )
 {
-	fprintf( stderr, "t_constructWsdNodesFromLabel start......");
+	std::cout << "t_constructWsdNodesFromLabel start......";
 
 	time_t t0 = clock();
 
@@ -465,7 +470,8 @@ void t_constructWsdNodesFromLabel
 		}
 	}
 	time_t t1 = clock();
-	printf( "t_constructWsdNodesFromLabel : %d %d %d time %f\n", W,H,D, (t1-t0)/(double)CLOCKS_PER_SEC);
+	std::cout <<  "t_constructWsdNodesFromLabel : "
+    << W << " " << H << " " << D << " time:" <<(t1-t0)/(double)CLOCKS_PER_SEC << "\n";
 
 }
 
@@ -479,7 +485,7 @@ void t_constructWsdNodesFromLabel
 //threadとして起動される
 void ModeSegGCut::initWsdNodes_thread(void *pParam)
 {
-	fprintf( stderr, "initWsdNodes_thread start!!\n");
+	std::cout << "initWsdNodes_thread start!!\n";
 
 	ModeSegGCut *P  = (ModeSegGCut*)pParam;
 
@@ -511,7 +517,7 @@ void ModeSegGCut::initWsdNodes_thread(void *pParam)
 	P->m_bWsdComputing   = false;
 	
 
-	fprintf( stderr, "initWsdNodes_thread DONE!!\n");
+	std::cout << "initWsdNodes_thread DONE!!\n";
 }
 
 
@@ -541,7 +547,8 @@ void t_wsd_DivideOneLabel(
 	const int bI,
 	vector<int > &vLabel)
 {
-	printf( "divide conflict wsd area %d %d   lbl(%d %d)......",fI,bI,vLabel[ fI ],vLabel[ bI ] );
+	std::cout << "divide conflict wsd area " << fI << " " << bI 
+            << "Label_pair:" << vLabel[ fI ] << " and " << vLabel[ bI ] << "\n";
 
 	if( vLabel[ fI ] != vLabel[ bI ] ) return;
 
@@ -589,7 +596,7 @@ void t_wsd_DivideOneLabel(
 	//fore label の値を元に戻す
 	for( auto &it: vLabel) if( it == F_LABEL ) it = TRGT;
 
-	printf( "done!!\n");
+	std::cout << "done!!\n";
 
 }
 
@@ -765,7 +772,7 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 	}
 
 	time_t t1 = clock();
-	fprintf( stderr, "graphCut 1....\n");
+	std::cout << "graphCut 1....\n";
 
 	const EVec3i  reso  = ImageCore::getInst()->getResolution();
 	const short  *vol   = ImageCore::getInst()->m_volOrig  ;
@@ -816,7 +823,7 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 
 
 	time_t t2 = clock();
-	printf( "graphCut %d %d   %zd %zd\n", nodeNum, edgeNum, fWsdId.size(), bWsdId.size() );
+	std::cout << "graphCut " << nodeNum << " " << edgeNum << " "  << fWsdId.size() << " " << bWsdId.size() << "\n";
 
 	//t-link
 	vector<EVec2f> tLinkE(nodeNum);
@@ -847,7 +854,7 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 	}
 
 	time_t t3 = clock();
-	printf( "graphCut 2....\n");
+	std::cout << "graphCut 2....\n";
 
 	//Graph Cut
 	byte *minCut = new byte[ nodeNum + 2 ];
@@ -863,10 +870,10 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 	vFlg.SetUpdated();
 
 	time_t t4 = clock();
-	fprintf( stderr, "graphCut 3....%f %f %f\n", 
-			(t2-t1)/(double)CLOCKS_PER_SEC,
-			(t3-t2)/(double)CLOCKS_PER_SEC,
-			(t4-t3)/(double)CLOCKS_PER_SEC );
+  std::cout << "graphCut 3.... time ..." 
+			      << (t2-t1)/(double)CLOCKS_PER_SEC
+			      << (t3-t2)/(double)CLOCKS_PER_SEC
+			      << (t4-t3)/(double)CLOCKS_PER_SEC << "\n";
 
 	delete[] minCut ;
 

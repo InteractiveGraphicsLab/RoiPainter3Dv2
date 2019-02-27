@@ -1,12 +1,13 @@
 #include "CrsSecCore.h"
 
 #include "./COMMON/OglForCLI.h"
+#include <iostream>
 #include <map>
 #include <vector>
 
 using namespace std;
 
-
+#pragma unmanaged
 
 CrssecCore::CrssecCore()
 {
@@ -347,7 +348,7 @@ void t_drawSlices(const int sliceNum, const EVec3f &camP, const EVec3f &camF, co
 
     if (pivIdx < 0 || pivIdx >= 7)
     {
-      fprintf(stderr, "strange error");
+      std::cout << "-------------strange error at t_drawSlices --------------\n";
       break;
     }
 
@@ -566,3 +567,5 @@ void CrssecCore::GenerateCurvedCrssec(const EVec3f &cube, const EVec3f &camP, co
   m_curve_crssec_norm.normalize();
 
 }
+
+#pragma managed

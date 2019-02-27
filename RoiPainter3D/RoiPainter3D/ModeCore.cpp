@@ -1,5 +1,7 @@
 #include "ModeCore.h"
 
+#include <iostream>
+
 #include "Mode/ModeVizNormal.h"
 #include "Mode/ModeVizMask.h"
 #include "Mode/ModeSegRGrow.h"
@@ -21,10 +23,10 @@ using namespace RoiPainter3D;
 
 ModeCore::ModeCore()
 {
-  printf("ModeCore Constructor\n");
+  std::cout << "ModeCore Constructor\n";
   m_mode    = ModeVizNormal::getInst();
   m_mode_id = MODE_VIS_NORMAL;
-  printf("ModeCore Constructor Done \n");
+  std::cout << "ModeCore Constructor Done \n";
 }
 
 ModeCore::~ModeCore()
@@ -34,7 +36,7 @@ ModeCore::~ModeCore()
 
 void ModeCore::ModeSwitch(MODE_ID m)
 {
-  printf("\n ModeSwitch %d \n\n", m);
+  std::cout << "\n ModeSwitch " << m << "\n\n";
 
   if (!m_mode->canEndMode()) return;
 

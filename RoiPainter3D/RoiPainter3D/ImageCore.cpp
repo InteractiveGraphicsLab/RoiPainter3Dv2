@@ -1,4 +1,7 @@
 #include "ImageCore.h"
+
+#include <iostream>
+
 #include "FormStackOrder.h"
 
 #include "climessagebox.h"
@@ -12,13 +15,13 @@
 
 ImageCore::ImageCore()
 {
-  fprintf(stderr, "CONSTRUCTOR ImageCore ...\n");
+  std::cout << "CONSTRUCTOR ImageCore ...\n";
 
 	m_volOrig = 0;
 	loadVolume("init","init");
 	m_imgMskCol.Allocate(256);
   m_maskSelectedId = -1;
-  fprintf(stderr, "CONSTRUCTOR ImageCore ...DONE !\n");
+  std::cout << "CONSTRUCTOR ImageCore ...DONE !\n";
 }
 
 
@@ -149,7 +152,7 @@ static bool t_LoadFAV(
 	short* &vol)
 {
 
-	printf("t_LoadFAV");
+	std::cout << "t_LoadFAV";
 	
 	FavLibrary::Fav fav;
 	fav.read( fname.c_str() );
@@ -161,10 +164,10 @@ static bool t_LoadFAV(
 	FavLibrary::Structure  &structure = obj.structure;		;
 	FavLibrary::Grid       &grid      = obj.grid     ;
 	FavLibrary::BitPerVoxel bitPerVox = structure.getBitPerVoxel();
-	printf("%d!!  %d , %d\n", (int)fav.getObjects().size(), id, bitPerVox ) ;
+	std::cout << "(objSize, id, bitPerVox) = "<< (int)fav.getObjects().size() << " " << id << " " << bitPerVox << "\n" ;
 
 	FavLibrary::ColorMode cMode = structure.getColorMode();
-	printf("mode %d\n", structure.getColorMode());
+	std::cout << "mode " << structure.getColorMode() << "\n";
 
 	const int W = (int)structure.getDimensionX();
 	const int H = (int)structure.getDimensionY();
@@ -175,13 +178,12 @@ static bool t_LoadFAV(
 	pitch << 1, 1, 1;
 	vol = new short[W*H*D];
 
-	fprintf(stderr, "dimension %d %d %d\n", W, H, D);
-
-	fprintf( stderr, "%d\n", (int) structure.get_voxel_map()      ->size());
-	fprintf( stderr, "%d\n", (int) structure.get_voxel_map_16bit()->size());
-	fprintf( stderr, "%d\n", (int) structure.get_alpha_map()      ->size());
-	fprintf( stderr, "%d\n", (int) structure.get_color_map()      ->size());
-	fprintf( stderr, "%d\n", (int) structure.get_color_map_16bit()->size());
+  std::cout << "dimension ", << W << " " << H << " " << D << "\n"; 
+  std::cout << (int) structure.get_voxel_map()      ->size() << "\n";
+  std::cout << (int) structure.get_voxel_map_16bit()->size() << "\n";
+  std::cout << (int) structure.get_alpha_map()      ->size() << "\n";
+  std::cout << (int) structure.get_color_map()      ->size() << "\n";
+  std::cout << (int) structure.get_color_map_16bit()->size() << "\n";
 
   
 	for( int z = 0; z < D; ++z)
@@ -193,7 +195,7 @@ static bool t_LoadFAV(
 		    //int r = structure.getColorRed  (x, y, z);
 		    //int g = structure.getColorGreen(x, y, z);
 		    //int b = structure.getColorBlue (x, y, z);
-		    //fprintf(stderr, "%d %d %d -- ", r,g,b);
+		    //std::cout << r << " " << g << " " << b << "-- ";
 		    //vol[x + y * W + z * W*H] = r+g+b;
 	    }
     }
@@ -246,7 +248,7 @@ static bool t_LoadBMP_TIFs
 				vol[ x + y * W + z * WH ] = (short) ( (slice[ I ] + slice[ I+1 ] + slice[ I+2 ]) / 3) ;
 			}
 		}
-		if( z%50 ==0 ) printf( "%d/%d done\n", z, (int)fnames.size());
+		if( z%50 ==0 ) std::cout << z << "/" << (int)fnames.size() << "done\n";
 	}
 
 	pitch << 1,1,1;	
@@ -283,7 +285,7 @@ static bool t_LoadDCMs
 	for (int z = 0; z < D; ++z)
 	{
 		Tdcmtk tdcm( fnames[z].c_str() );
-		fprintf( stderr, "%f\n", tdcm.getZPos());
+		std::cout << tdcm.getZPos() << "\n";
 
 		int tW, tH, tfNum;
 		tdcm.getSize(tW, tH, tfNum);
@@ -300,13 +302,13 @@ static bool t_LoadDCMs
 
 		tdcm.getPixelsAs<short>( &vol[z*W*H] );
 
-		printf( "(%d/%d)", z, D);
+		std::cout << "(" << z << "/" << D << ")";
 	}
 
 
 	if( pitch[2] < 0)
 	{
-		printf( "flip in z\n");
+		std::cout << "flip in z (pitch[2] is negative)\n";
 		pitch[2] *= -1.0;
 		t_flipVolumeInZ(W,H,D, vol);
 	}
@@ -334,7 +336,7 @@ static bool t_LoadDCM3D(
 	pitch[2] = 1;//pitch[0];
 	System::Windows::Forms::MessageBox::Show("pitch情報は読み込んでいません。正しい値をダイアログより指定してしてください");
 
-	printf( "resolution %d %d %d\n", reso[0], reso[1], reso[2]);
+	std::cout << "resolution " << reso[0] << " " << reso[1] << " " << reso[2] << "\n";
 
 	vol = new short[ reso[0] * reso[1] * reso[2] ];
 	tdcm.getPixels3DAs<short>( vol );
@@ -356,7 +358,7 @@ static bool t_LoadPVM3D(
 
 	byte *buf = readPVMvolume(fname.c_str(), &W, &H, &D,&components, &px,&py,&pz );
 
-	printf( "load pvm %d %d %d %d\n", W,H,D,components);
+  std::cout << "load pvm " << W << " " << H << " " << D << " " << components << "\n";
 
 	reso  << W, H, D;
 	pitch << px, py, pz;
@@ -558,7 +560,7 @@ void ImageCore::loadMask(const char *fname)
 		char *name = new char[nLen + 1];
 		fread(name, sizeof(char), nLen + 1, fp);
 
-		printf("%d %s\n", nLen, name);
+		std::cout << nLen << " " << name << "\n";
 
 		m_maskData.push_back( MaskData(string(name), EVec3i(col[0],col[1],col[2]), alpha, 0, lock?true:false) );
 
@@ -594,7 +596,7 @@ void ImageCore::saveMask( const char* fname)
 		fwrite(&nLen          , sizeof(int ),  1    , fp);
 		fwrite(it.name.c_str(), sizeof(char), nLen+1, fp);
 
-		printf("%d %s\n", nLen, it.name.c_str());
+		std::cout << nLen << " " << it.name.c_str() << "\n";
 	}
 	fclose(fp);
 }
@@ -654,7 +656,7 @@ void ImageCore::selectedMsk_marge   (const int &trgtMaskID)
   }
 
 
-  fprintf(stderr, "active %d, trgt, %d\n", m_maskSelectedId, trgtMaskID);
+  std::cout << "active " << m_maskSelectedId << " trgt "<< trgtMaskID << "\n";
   const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
 
   for (int i = 0; i < N; ++i) if ( m_volMsk[i] == trgtMaskID) m_volMsk[i] = m_maskSelectedId;
@@ -674,7 +676,7 @@ void ImageCore::selectedMsk_erode()
 {
   if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
 
-  printf( "mask erode...\n");
+  std::cout << "mask erode...\n";
   
   const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
 
@@ -687,7 +689,7 @@ void ImageCore::selectedMsk_erode()
   m_volMsk.SetUpdated();
   delete[] flgs;
 
-  printf( "mask erode...DONE\n");
+  std::cout << "mask erode...DONE\n";
 }
 
 
@@ -696,7 +698,7 @@ void ImageCore::selectedMsk_dilate  ()
 {
   if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
 
-  printf( "mask dilate...\n");
+  std::cout << "mask dilate...\n";
   const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
 
   byte* flgs = new byte[N];
@@ -713,7 +715,7 @@ void ImageCore::selectedMsk_dilate  ()
   m_volMsk.SetUpdated();
 
   delete[] flgs;
-  printf( "mask dilate...DONE\n");
+  std::cout << "mask dilate...DONE\n";
 }
 
 
@@ -722,7 +724,7 @@ void ImageCore::selectedMsk_fillHole()
 {
   if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
 
-  printf( "mask fillhole...\n");
+  std::cout << "mask fillhole...\n";
   const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
   
   byte* flgs = new byte[ N ]; //0:back, 255:trgt_mask_id
@@ -741,7 +743,7 @@ void ImageCore::selectedMsk_fillHole()
 
   delete[] flgs;
 
-  fprintf(stderr, "fillhole...DONE\n");
+  std::cout << "fillhole...DONE\n";
 }
 
 

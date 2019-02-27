@@ -210,7 +210,8 @@ inline void compute_kCurves
 			double d = - Ci0_pi.squaredNorm();
 
 			ti[i] = (a==0) ? 0.5 : getRealSolutionOfCubicFunc(b/a, c/a, d/a);
-			//printf( " ti %f (%f %f %f %f)\n", ti[i], a,b,c,d);
+      //std::cout << "ti " << ti[i] << " " 
+      //          << "(" << a << " " << b << " " << c << " " << d << "\n";
 		}
 
 		//4. update C1

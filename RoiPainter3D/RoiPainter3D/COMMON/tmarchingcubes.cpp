@@ -1,7 +1,9 @@
 ﻿#include "tmarchingcubes.h"
 
 #include "tqueue.h"
+
 #include <time.h>
+#include <iostream>
 #include <vector>
 #include <map>
 #include <omp.h>
@@ -719,7 +721,9 @@ void t_MarchingCubesParallel(
   int sum_polys = 0;
   for( int i=0; i < thread_num; ++i) sum_polys += polys_thread[i].size();
 
-  fprintf(stderr, "AAA Mesh size vtx: %d  polys : %d, time: %f\n", sum_verts, sum_polys, (t2-t0)/(double)CLOCKS_PER_SEC);
+  std::cout << "Mesh size vtx: " << sum_verts 
+            <<       " polys : " << sum_polys
+            <<       " time  : " << (t2-t0)/(double)CLOCKS_PER_SEC << "\n";
 
   delete[] v_flg;
   delete[] cell_edges;
@@ -811,7 +815,7 @@ void marchingcubes::t_MarchingCubes(
   {
     swap(edgeNex, edgePiv);
     for (int i = 0; i < cWH; ++i) edgeNex[i].Set(-1, -1, -1);
-    if (cz % 100 == 0) fprintf(stderr, "%d/%d done...\n", cz, cellZe - cellZs);
+    if (cz % 100 == 0) std::cout << cz << "/" << cellZe - cellZs << "done\n";
 
     double p[8];
 
@@ -925,7 +929,9 @@ void marchingcubes::t_MarchingCubes(
 
   clock_t t1 = clock();
 
-  fprintf(stderr, "Mesh size vtx: %d  polys : %d, time: %f\n", (int)Vs.size(), (int)Ps.size(), (t1-t0)/(double)CLOCKS_PER_SEC);
+  std::cout << "Mesh size vtx: " << Vs.size() 
+            <<       " polys : " << Ps.size()
+            <<        " time : " << (t1-t0)/(double)CLOCKS_PER_SEC << "\n";
 
   delete[] edgePiv;
   delete[] edgeNex;
@@ -1090,7 +1096,7 @@ void marchingcubes::t_MarchingCubes_PolygonSoup(
 
   clock_t t1 = clock();
 
-  fprintf(stderr, "AAAA: polys : %d, time: %f\n", polygon_verts_num, (t1-t0)/(double)CLOCKS_PER_SEC);
+  std::cout << "AAAA: polys : " << polygon_verts_num << " time: " << (t1-t0)/(double)CLOCKS_PER_SEC << "\n";
 }
 
 

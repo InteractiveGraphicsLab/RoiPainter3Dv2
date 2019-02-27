@@ -10,9 +10,11 @@
 #include "FormSegLocalRGrow.h"
 #include "climessagebox.h"
 
+#include <iostream>
 #include <deque>
 
 using namespace RoiPainter3D;
+
 
 #pragma unmanaged
 
@@ -566,7 +568,7 @@ void ModeSegLocalRGrow::runLocalRegionGrow()
 	delete[] flg;
 
   vFlg.SetUpdated();
-	printf("Local Region Grow done\n");
+	std::cout << "Local Region Grow done\n";
 }
 
 
@@ -687,7 +689,7 @@ static void calcDistTrans
 	float R
 )	
 {
-	printf( "start Distance Transform...\n");
+	std::cout << "start Distance Transform...\n";
 	const EVec3f cuboid = ImageCore::getInst()->getCuboidF();
 	const EVec3i res    = ImageCore::getInst()->getResolution();
 	const int WHD = res[0] * res[1] * res[2];
@@ -727,7 +729,7 @@ static void calcDistTrans
 	}
 
 	delete[] flg;
-	printf("...Distance Transform Done\n");
+	std::cout << "...Distance Transform Done \n";
 }
 
 

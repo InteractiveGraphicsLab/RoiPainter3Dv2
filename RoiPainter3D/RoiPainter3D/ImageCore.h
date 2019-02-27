@@ -17,12 +17,12 @@
 #include "./COMMON/tmath.h"
 #include "./COMMON/tmesh.h"
 
+#include <iostream>
 #include <vector>
 #include <string>
 
 
 #pragma unmanaged
-
 
 class MaskData
 {
@@ -58,13 +58,13 @@ public:
 
 	MaskData( const MaskData& v)
 	{
-		fprintf( stderr, "for debug, MaskData copy const\n");
+		std::cout <<  "for debug, MaskData copy const\n";
 		Set(v);
 	}
 	
 	MaskData& operator=(const MaskData& v)
 	{
-		fprintf( stderr, "for debug, MaskData operator =\n");
+		std::cout << "for debug, MaskData operator =\n";
 		Set(v);
 		return *this;
 	}

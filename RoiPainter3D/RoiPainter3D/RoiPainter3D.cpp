@@ -1,7 +1,8 @@
 // RoiPainter3D.cpp : メイン プロジェクト ファイルです。
 
 #include "FormMain.h"
-#include <stdio.h>
+#include <iostream>
+
 #include "ImageCore.h"
 #include "ModeCore.h"
 #include "CrsSecCore.h"
@@ -23,7 +24,7 @@ using namespace RoiPainter3D;
 [STAThreadAttribute]
 int main()
 {
-  printf("start main function\n");
+  std::cout << "start main function\n";
 
   //Initialize non-managed Singletons
   //非managedなシングルトンはここで初期化
@@ -42,9 +43,9 @@ int main()
   ModeSegVoxelPaint::getInst();
   ModeRefStrokeTrim::getInst();
 
-  printf("FormMain::getInst()->ShowDialog() \n");
+  std::cout << "FormMain::getInst()->ShowDialog() \n";
   FormMain::getInst()->ShowDialog();
-  printf("aaaa FormMain::getInst()->ShowDialog() \n");
+  std::cout << "aaaa FormMain::getInst()->ShowDialog() \n";
 
   return 0;
 }
