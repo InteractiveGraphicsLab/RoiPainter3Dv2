@@ -212,7 +212,7 @@ static bool t_IsInsideLasso
 
 
 //lasso‚Ì“à‘¤‚É‚ ‚évoxel‚ð fore/back‚É•ÏX
-//bFore = true  --> vFlg 1 --> 255‚É
+//bFore = true  --> vFlg 1   --> 255‚É
 //bFore = false --> vFlg 255 --> 1‚É
 static void t_addPixsInsideLasso
 (
@@ -230,15 +230,21 @@ static void t_addPixsInsideLasso
 	const int D = reso[2], WH = W*H;
 
   vector<EVec3f> lasso_resample;
-  const int resampleN = std::max( 10, (int)lasso.size() / 3);
+  const int resampleN = std::max( 10, std::min( (int)lasso.size(), (int)( t_verts_Length(lasso, true)/pitch[0]) ));
+
   t_verts_ResampleEqualInterval( resampleN, lasso, lasso_resample);
 
+  //compute bounding box
   EVec3f BBmin, BBmax;
   t_verts_GetBoundBox( lasso_resample, BBmin, BBmax);
-
-  EVec3i BBminIdx ( (int) (BBmin[0]/pitch[0] ), (int) (BBmin[1]/pitch[1] ), (int) (BBmin[2]/pitch[2] ) );
-  EVec3i BBmaxIdx ( (int) (BBmax[0]/pitch[0] ), (int) (BBmax[1]/pitch[1] ), (int) (BBmax[2]/pitch[2] ) );
-  //TODO ‚±‚±‚©‚ç
+  EVec3i BBminIdx ( (int) (BBmin[0]/pitch[0] )-1, (int) (BBmin[1]/pitch[1] )-1, (int) (BBmin[2]/pitch[2] )-1 );
+  EVec3i BBmaxIdx ( (int) (BBmax[0]/pitch[0] )+1, (int) (BBmax[1]/pitch[1] )+1, (int) (BBmax[2]/pitch[2] )+1 );
+  BBminIdx[0] = max( 0 ,BBminIdx[0]);
+  BBminIdx[1] = max( 0 ,BBminIdx[1]);
+  BBminIdx[2] = max( 0 ,BBminIdx[2]);
+  BBmaxIdx[0] = min(W-1,BBmaxIdx[0]);
+  BBmaxIdx[1] = min(H-1,BBmaxIdx[1]);
+  BBmaxIdx[2] = min(D-1,BBmaxIdx[2]);
 
 	if (id == CRSSEC_XY) 
   {
@@ -246,20 +252,19 @@ static void t_addPixsInsideLasso
 		const int   zi   = (int)(zPos / pitch[2]);
 
 #pragma omp parallel for
-		for (int yi = 0; yi < H; ++yi)
-		for (int xi = 0; xi < W; ++xi)
-		{
-      int idx = xi + yi * W + zi * WH;
-      if( vFlg[idx] == 0 ) continue;
+		for (int yi = BBminIdx[1]; yi < BBmaxIdx[1]; ++yi)
+    {
+		  for (int xi = BBminIdx[0]; xi < BBmaxIdx[0]; ++xi)
+		  {
+        int idx = xi + yi * W + zi * WH;
+        if( vFlg[idx] == 0 ) continue;
+			  if (  bFore && vFlg[idx] ==255 ) continue;
+			  if ( !bFore && vFlg[idx] ==1   ) continue;
       
-			EVec3f p((xi + 0.5f) * pitch[0], (yi + 0.5f) * pitch[1], zPos);
-
-			if ( bFore ){
-        if ( vFlg[idx] == 1  &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 255;
-      }else{
-        if ( vFlg[idx] ==255 &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 1  ;
-      }
-		}
+			  EVec3f p((xi + 0.5f) * pitch[0], (yi + 0.5f) * pitch[1], zPos);
+        if ( t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = bFore ? 255 : 1;
+		  }
+    }
 	}
 	
 	if (id == CRSSEC_YZ) 
@@ -268,43 +273,40 @@ static void t_addPixsInsideLasso
 		const int   xi   = (int)(xPos / pitch[0]);
 
 #pragma omp parallel for
-		for (int zi = 0; zi < D; ++zi)
-		for (int yi = 0; yi < H; ++yi)
-		{
-      int idx = xi + yi * W + zi * WH;
-      if( vFlg[idx] == 0 ) continue;
-      
-			EVec3f p(xPos, (yi + 0.5f) * pitch[1], (zi + 0.5f) * pitch[2]);
+		for (int zi = BBminIdx[2]; zi < BBmaxIdx[2]; ++zi)
+    {
+		  for (int yi = BBminIdx[1]; yi < BBmaxIdx[1]; ++yi)
+		  {
+        int idx = xi + yi * W + zi * WH;
+        if( vFlg[idx] == 0 ) continue;
+        if (  bFore && vFlg[idx] ==255 ) continue;
+			  if ( !bFore && vFlg[idx] ==1   ) continue;
 
-			if ( bFore ){
-        if ( vFlg[idx] == 1  &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 255;
-      }else{
-        if ( vFlg[idx] ==255 &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 1  ;
-		  }
-	  }
+			  EVec3f p(xPos, (yi + 0.5f) * pitch[1], (zi + 0.5f) * pitch[2]);
+        if ( t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = bFore ? 255 : 1;
+	    }
+    }
   }
 
-		
 	if (id == CRSSEC_ZX) 
   {
 		const float yPos = lasso_resample.front()[1];
 		const int   yi   = (int)(yPos / pitch[1]);
 
 #pragma omp parallel for
-		for (int zi = 0; zi < D; ++zi)
-		for (int xi = 0; xi < W; ++xi)
-		{
-      int idx = xi + yi * W + zi * WH;
-      if( vFlg[idx] == 0 ) continue;
+		for (int zi = BBminIdx[2]; zi < BBmaxIdx[2]; ++zi)
+    {
+		  for (int xi = BBminIdx[0]; xi < BBmaxIdx[0]; ++xi)
+		  {
+        int idx = xi + yi * W + zi * WH;
+        if( vFlg[idx] == 0 ) continue;
+        if (  bFore && vFlg[idx] ==255 ) continue;
+			  if ( !bFore && vFlg[idx] ==1   ) continue;
       
-			EVec3f p((xi + 0.5f) * pitch[0], yPos, (zi + 0.5f) * pitch[2]);
-
-			if ( bFore ){
-        if ( vFlg[idx] == 1  &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 255;
-      }else{
-        if ( vFlg[idx] ==255 &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 1  ;
+			  EVec3f p((xi + 0.5f) * pitch[0], yPos, (zi + 0.5f) * pitch[2]);
+        if ( t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = bFore ? 255 : 1;
 		  }
-		}
+    }
 	}
 }
 

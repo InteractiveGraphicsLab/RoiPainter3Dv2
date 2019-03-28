@@ -32,9 +32,9 @@ class CrssecCore
   float  m_plane_zx; //[0,1]
 
   //curved cross section 
-  EVec3f         m_curve_crssec_norm;
-  TMesh          m_curve_crssec     ;
-  vector<EVec2i> m_curve_crssec_edge;
+  EVec3f  m_curve_crssec_norm;
+  TMesh   m_curve_crssec     ;
+  std::vector<EVec2i> m_curve_crssec_edge;
 
   CrssecCore();
 public:
@@ -69,7 +69,7 @@ public:
     if (fixId != CRSSEC_ZX) m_plane_zx = pos[1] / (pitch[1] * reso[1]);
   }
 
-  void  GenerateCurvedCrssec(const EVec3f &cuboid, const EVec3f &camP, const vector<EVec3f> &stroke);
+  void  GenerateCurvedCrssec(const EVec3f &cuboid, const EVec3f &camP, const std::vector<EVec3f> &stroke);
   void  ClearCurvedCrossec(){ m_curve_crssec.clear(); m_curve_crssec_edge.clear(); }
 
   float GetPlaneXyPosition() { return m_plane_xy; }

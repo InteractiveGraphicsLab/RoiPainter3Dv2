@@ -41,3 +41,20 @@
  	- rename
 	- windows.hの max/minを無効化
  + ModeSegVoxelPaint
+    - lasso paintを高速化
+ 	- rename
+
+ + kcurves
+   - remove using namespace std;
+   - replace printf --> std::cout << 
+ + tmath
+   - remove using namespace std;
+   - replace printf --> std::cout <<
+   - TODO YET 関数名
++ tmesh
+   - remove using namespace std;
+   - replace printf --> std::cout << 
+   - TODO YET 関数名
+TODO Mode*のリファクタリング
+ + 
+

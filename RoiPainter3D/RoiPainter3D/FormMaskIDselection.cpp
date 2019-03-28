@@ -3,16 +3,14 @@
 #include "ImageCore.h"
 
 
-
-
 using namespace RoiPainter3D;
-
+using namespace std;
 
 
 System::Void FormMaskIDselection::initList() {
   m_bListInit = true;
 
-  const vector<MaskData> &maskData = ImageCore::GetInst()->m_mask_data;
+  const vector<MaskData> &maskData       = ImageCore::GetInst()->m_mask_data;
   const int              &maskSelectedId = ImageCore::GetInst()->m_active_mask_id;
 
   //初期化
@@ -53,7 +51,7 @@ System::Void FormMaskIDselection::initList() {
 System::Void FormMaskIDselection::maskIdList_SelectionChanged(System::Object^  sender, System::EventArgs^  e){
   //FormVisMask::updateList の maskList->Rows->Clear(); のタイミングで呼ばれてしまうので、その際は何もしない
   if (m_bListInit) return;
-  printf("selection changed %d %d\n", maskIdList->CurrentCell->RowIndex, maskIdList->CurrentCell->ColumnIndex);
+  std::cout << "selection changed " << maskIdList->CurrentCell->RowIndex << " " << maskIdList->CurrentCell->ColumnIndex << "\n";
   m_activeId = maskIdList->CurrentCell->RowIndex;
 }
 

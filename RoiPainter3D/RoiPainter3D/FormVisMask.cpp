@@ -6,9 +6,8 @@
 
 
 using namespace System::Runtime::InteropServices;
-
 using namespace RoiPainter3D;
-
+using namespace std;
 
 
 
@@ -60,7 +59,7 @@ System::Void FormVisMask::maskList_SelectionChanged(System::Object^  sender, Sys
   //FormVisMask::updateList の maskList->Rows->Clear(); のタイミングで呼ばれてしまうので、その際は何もしない
   if (m_bListUpdating) return;
 
-  printf("selection changed %d %d\n", maskList->CurrentCell->RowIndex, maskList->CurrentCell->ColumnIndex);
+  std::cout << "selection changed " << maskList->CurrentCell->RowIndex << " " << maskList->CurrentCell->ColumnIndex << "\n";
   ImageCore::GetInst()->m_active_mask_id = maskList->CurrentCell->RowIndex;
 
   //modify values
@@ -106,7 +105,7 @@ System::Void FormVisMask::checkbox_lock_CheckedChanged(System::Object^  sender, 
   if (tgtMaskId < 0 || maskList->RowCount <= tgtMaskId) return;
 
   maskData[tgtMaskId].m_b_locked = checkbox_lock->CheckState == CheckState::Checked ? true : false;
-  printf("lock value = %d\n", maskData[tgtMaskId].m_b_locked);
+  std::cout << "lock value = " << maskData[tgtMaskId].m_b_locked << "\n";
 
   formMain_redrawMainPanel();
 }

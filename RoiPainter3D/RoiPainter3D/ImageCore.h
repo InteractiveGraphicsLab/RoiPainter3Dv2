@@ -31,14 +31,14 @@ class MaskData
 {
 
 public:
-  string m_name     ;
+  std::string m_name     ;
   TMesh  m_surface     ;
   EVec3i m_color    ;
   double m_alpha    ;
   bool   m_b_drawsurface;
   bool   m_b_locked     ;
 
-	MaskData(string _name, EVec3i _color, double _alpha, bool _bRendSurf, bool _lock = false) 
+	MaskData(std::string _name, EVec3i _color, double _alpha, bool _bRendSurf, bool _lock = false) 
 	{
 		m_name      = _name;
 		m_color     = _color;
@@ -78,25 +78,25 @@ class ImageCore
 
 private:
 	//volume info 
-	EVec3i  m_resolution ;
-	EVec3f  m_pitch;
-  EVec2i  m_vol_minmax;
-	string  m_filepath;
+	EVec3i      m_resolution ;
+	EVec3f      m_pitch;
+  EVec2i      m_vol_minmax;
+	std::string m_filepath;
 
 public:
 	//volume images
-	short              *m_vol_orig  ; // original volume (1D array representation)
-	float              *m_vol_origgm; // gradiente magnitude volume  (1D array representation)
-	OglImage3D          m_vol       ; // 8 bit bolume (tone mapping) 
-	OglImage3D          m_vol_flag  ; // 8 bit flag volume 
-	OglImage3D          m_vol_mask  ; // 8 bit mask volume  
-	OglImage3D          m_vol_gm    ; // 8 bit gradient magnitude volume
+	short      *m_vol_orig  ; // original volume (1D array representation)
+	float      *m_vol_origgm; // gradiente magnitude volume  (1D array representation)
+	OglImage3D  m_vol       ; // 8 bit bolume (tone mapping) 
+	OglImage3D  m_vol_flag  ; // 8 bit flag volume 
+	OglImage3D  m_vol_mask  ; // 8 bit mask volume  
+	OglImage3D  m_vol_gm    ; // 8 bit gradient magnitude volume
 
 
 	OglImage1D<CH_RGBA> m_img_maskcolor ; // func: maskID    --> color
 
-	int                 m_active_mask_id; // -1:none, 0...:maskID
-	vector<MaskData>    m_mask_data     ;
+	int m_active_mask_id; // -1:none, 0...:maskID
+	std::vector<MaskData> m_mask_data     ;
 
 
   //singleton
@@ -110,8 +110,8 @@ public:
 	void UpdateOGLVolume( short windowlv_min,  short windowlv_max);
 
 	//I/O Loaders volume 
-	bool  LoadVolume   (vector<string> fnames, string fext);
-	bool  LoadVolume   (string fname         , string fext) ;
+	bool  LoadVolume   (std::vector<std::string> fnames, std::string fext);
+	bool  LoadVolume   (std::string fname              , std::string fext) ;
 	void  LoadMask     (const char *fname);
 	void  SaveMask     (const char *fname);
 	void  SaveMaskAsFav(const char *fname);
@@ -126,7 +126,7 @@ public:
 
 	EVec3i GetResolution() { return m_resolution; }
 
-  string GetFilePath(){ return m_filepath;}
+  std::string GetFilePath(){ return m_filepath;}
 
 	//getter/setter for pitch 
 	EVec3f GetPitch()  { return m_pitch; }
@@ -144,18 +144,18 @@ public:
 
   int GetVoxelIndex(const EVec3f& position)
   {
-    const int x = min(m_resolution[0] - 1, (int)(position[0] / m_pitch[0]));
-    const int y = min(m_resolution[1] - 1, (int)(position[1] / m_pitch[1]));
-    const int z = min(m_resolution[2] - 1, (int)(position[2] / m_pitch[2]));
+    const int x = std::min(m_resolution[0] - 1, (int)(position[0] / m_pitch[0]));
+    const int y = std::min(m_resolution[1] - 1, (int)(position[1] / m_pitch[1]));
+    const int z = std::min(m_resolution[2] - 1, (int)(position[2] / m_pitch[2]));
     return x + y * m_resolution[0] + z * m_resolution[0] * m_resolution[1];
   }
 
   EVec4i GetVoxelIndex4i(const EVec3f& position)
   {
     EVec4i v;
-    v[0] = min(m_resolution[0] - 1, (int)(position[0] / m_pitch[0]));
-    v[1] = min(m_resolution[1] - 1, (int)(position[1] / m_pitch[1]));
-    v[2] = min(m_resolution[2] - 1, (int)(position[2] / m_pitch[2]));
+    v[0] = std::min(m_resolution[0] - 1, (int)(position[0] / m_pitch[0]));
+    v[1] = std::min(m_resolution[1] - 1, (int)(position[1] / m_pitch[1]));
+    v[2] = std::min(m_resolution[2] - 1, (int)(position[2] / m_pitch[2]));
     v[3] = v[0] + v[1] * m_resolution[0] + v[2] * m_resolution[0] * m_resolution[1];
     return v;
   }
@@ -179,7 +179,7 @@ public:
   void ActiveMask_Erode    ( );
   void ActiveMask_Dilate   ( );
   void ActiveMask_FillHole ( );
-  void ActiveMask_ExportObj(const string &fname);
+  void ActiveMask_ExportObj(const std::string &fname);
 
 private:
 	void UpdateGradMagnituteVolume();

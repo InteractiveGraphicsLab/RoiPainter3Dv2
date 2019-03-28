@@ -9,12 +9,16 @@
 #include "./3rdparty/vvv/ddsbase.h"
 
 #include "./Mode/ModeSegGCut.h"
-
 #include <iostream>
+
+
+
+#pragma unmanaged
+
+
 
 using namespace RoiPainter3D;
 
-#pragma unmanaged
 
 
 
@@ -159,7 +163,7 @@ static bool t_LoadFAV(
 	short* &vol)
 {
 
-	printf("t_LoadFAV");
+	std::cout << "t_LoadFAV";
 	
 	FavLibrary::Fav fav;
 	fav.read( fname.c_str() );
@@ -171,10 +175,10 @@ static bool t_LoadFAV(
 	FavLibrary::Structure  &structure = obj.structure;		;
 	FavLibrary::Grid       &grid      = obj.grid     ;
 	FavLibrary::BitPerVoxel bitPerVox = structure.getBitPerVoxel();
-	printf("%d!!  %d , %d\n", (int)fav.getObjects().size(), id, bitPerVox ) ;
+	std::cout << fav.getObjects().size() << " " << id << " " << bitPerVox << "\n";
 
 	FavLibrary::ColorMode cMode = structure.getColorMode();
-	printf("mode %d\n", structure.getColorMode());
+	std::cout << "mode " << structure.getColorMode() << "\n";
 
 	const int W = (int)structure.getDimensionX();
 	const int H = (int)structure.getDimensionY();
@@ -185,13 +189,12 @@ static bool t_LoadFAV(
 	pitch << 1, 1, 1;
 	vol = new short[W*H*D];
 
-	fprintf(stderr, "dimension %d %d %d\n", W, H, D);
-
-	fprintf( stderr, "%d\n", (int) structure.get_voxel_map()      ->size());
-	fprintf( stderr, "%d\n", (int) structure.get_voxel_map_16bit()->size());
-	fprintf( stderr, "%d\n", (int) structure.get_alpha_map()      ->size());
-	fprintf( stderr, "%d\n", (int) structure.get_color_map()      ->size());
-	fprintf( stderr, "%d\n", (int) structure.get_color_map_16bit()->size());
+	std::cout << "dimension << W << " " << H << " " << D << "\n";
+	std::cout << structure.get_voxel_map()      ->size() << "\n";
+	std::cout << structure.get_voxel_map_16bit()->size() << "\n";
+	std::cout << structure.get_alpha_map()      ->size() << "\n";
+	std::cout << structure.get_color_map()      ->size() << "\n";
+	std::cout << structure.get_color_map_16bit()->size() << "\n";
 
   
 	for( int z = 0; z < D; ++z)
@@ -203,7 +206,7 @@ static bool t_LoadFAV(
 		    //int r = structure.getColorRed  (x, y, z);
 		    //int g = structure.getColorGreen(x, y, z);
 		    //int b = structure.getColorBlue (x, y, z);
-		    //fprintf(stderr, "%d %d %d -- ", r,g,b);
+		    //std::cout << r << " " << g << " " << b << "--" ;
 		    //vol[x + y * W + z * W*H] = r+g+b;
 	    }
     }
@@ -256,7 +259,7 @@ static bool t_LoadBMP_TIFs
 				vol[ x + y * W + z * WH ] = (short) ( (slice[ I ] + slice[ I+1 ] + slice[ I+2 ]) / 3) ;
 			}
 		}
-		if( z%50 ==0 ) printf( "%d/%d done\n", z, (int)fnames.size());
+		if( z % 50 ==0 ) std::cout << z << " / " << fnames.size() << "done\n";
 	}
 
 	pitch << 1,1,1;	
@@ -293,7 +296,7 @@ static bool t_LoadDCMs
 	for (int z = 0; z < D; ++z)
 	{
 		Tdcmtk tdcm( fnames[z].c_str() );
-		fprintf( stderr, "%f\n", tdcm.getZPos());
+		std::cout << tdcm.getZPos() << "\n";
 
 		int tW, tH, tfNum;
 		tdcm.getSize(tW, tH, tfNum);
@@ -310,12 +313,12 @@ static bool t_LoadDCMs
 
 		tdcm.getPixelsAs<short>( &vol[z*W*H] );
 
-		printf( "(%d/%d)", z, D);
+		std::cout << "(" << z << "/" << D << ")\n";
 	}
 
 	if( pitch[2] < 0)
 	{
-		printf( "flip in z\n");
+		std::cout << "flip in z\n";
 		pitch[2] *= -1.0;
 		t_FlipVolumeInZ(W,H,D, vol);
 	}
@@ -564,7 +567,7 @@ void ImageCore::LoadMask(const char *fname)
 		char *name = new char[nLen + 1];
 		fread(name, sizeof(char), nLen + 1, fp);
 
-		printf("%d %s\n", nLen, name);
+		std::cout << nLen << " " << name << "\n";
 
 		m_mask_data.push_back( MaskData(string(name), EVec3i(col[0],col[1],col[2]), alpha, 0, lock?true:false) );
 
@@ -600,7 +603,7 @@ void ImageCore::SaveMask( const char* fname)
 		fwrite(&nLen          , sizeof(int ),  1    , fp);
 		fwrite(it.m_name.c_str(), sizeof(char), nLen+1, fp);
 
-		printf("%d %s\n", nLen, it.m_name.c_str());
+		std::cout << nLen << " " << it.m_name.c_str() << "\n";
 	}
 	fclose(fp);
 }
@@ -658,8 +661,7 @@ void ImageCore::ActiveMask_Marge   (const int &trgtMaskID)
     return;
   }
 
-
-  fprintf(stderr, "active %d, trgt, %d\n", m_active_mask_id, trgtMaskID);
+  std::cout << "active " << m_active_mask_id << ", trgt " << trgtMaskID << "\n";
   const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
   for (int i = 0; i < N; ++i) if ( m_vol_mask[i] == trgtMaskID) m_vol_mask[i] = m_active_mask_id;
@@ -679,7 +681,7 @@ void ImageCore::ActiveMask_Erode()
 {
   if ( m_active_mask_id <= 0 || m_mask_data.size() <= m_active_mask_id) return;
 
-  printf( "mask erode...\n");
+  std::cout << "mask erode...\n";
   
   const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
@@ -692,7 +694,7 @@ void ImageCore::ActiveMask_Erode()
   m_vol_mask.SetUpdated();
   delete[] flgs;
 
-  printf( "mask erode...DONE\n");
+  std::cout << "mask erode...DONE\n";
 }
 
 
@@ -701,7 +703,7 @@ void ImageCore::ActiveMask_Dilate  ()
 {
   if ( m_active_mask_id <= 0 || m_mask_data.size() <= m_active_mask_id) return;
 
-  printf( "mask dilate...\n");
+  std::cout << "mask dilate...\n";
   const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
   byte* flgs = new byte[N];
@@ -718,7 +720,7 @@ void ImageCore::ActiveMask_Dilate  ()
   m_vol_mask.SetUpdated();
 
   delete[] flgs;
-  printf( "mask dilate...DONE\n");
+  std::cout << "mask dilate...DONE\n";
 }
 
 
@@ -727,7 +729,7 @@ void ImageCore::ActiveMask_FillHole()
 {
   if ( m_active_mask_id <= 0 || m_mask_data.size() <= m_active_mask_id) return;
 
-  printf( "mask fillhole...\n");
+  std::cout << "mask fillhole...\n";
   const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
   
   byte* flgs = new byte[ N ]; //0:back, 255:trgt_mask_id
@@ -746,7 +748,7 @@ void ImageCore::ActiveMask_FillHole()
 
   delete[] flgs;
 
-  fprintf(stderr, "fillhole...DONE\n");
+  std::cout << "fillhole...DONE\n";
 }
 
 

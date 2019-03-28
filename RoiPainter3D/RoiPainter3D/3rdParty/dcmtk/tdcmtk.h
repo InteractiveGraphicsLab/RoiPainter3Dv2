@@ -57,13 +57,13 @@ public:
 	{
 		if (!m_dataSet)
 		{
-			fprintf(stderr, "fails to open the file");
+			std::cout << "fails to open the file\n";
 			return false;
 		}
 
 		if (m_bitsAlloc == 16 && m_pixRepres) 
 		{
-			fprintf(stderr, "READ PIXELS 16bit - Signded! findAndGetSint16Array\n"); 
+			std::cout << "READ PIXELS 16bit - Signded! findAndGetSint16Array\n"; 
 			const Sint16 *v = 0;
 			unsigned long psize = 0;
 			if ( m_dataSet->findAndGetUint16Array( DCM_PixelData, (const Uint16*&) v, &psize,false ).bad() ) return false;
@@ -73,7 +73,7 @@ public:
 		}
 		else if (m_bitsAlloc == 16 && !m_pixRepres)
 		{
-			fprintf(stderr, "READ PIXELS 16bit - UnSigned!  findAndGetUint16Array\n"); 
+			std::cout << "READ PIXELS 16bit - UnSigned!  findAndGetUint16Array\n"; 
 			const Uint16 *v = 0;
 			unsigned long psize = 0;
 			if ( m_dataSet->findAndGetUint16Array( DCM_PixelData, (const Uint16*&) v, &psize,false ).bad() ) return false;
@@ -83,7 +83,7 @@ public:
 		}
 		else
 		{
-			fprintf(stderr, "this file type is not implemeted yet\n");
+			std::cout << "this file type is not implemeted yet\n";
 			return false;
 		}
 
@@ -97,13 +97,13 @@ public:
 	{
 		if (!m_dataSet)
 		{
-			fprintf(stderr, "fails to open the file");
+			std::cout << "fails to open the file\n";
 			return false;
 		}
 
 		if (m_bitsAlloc == 16 && m_pixRepres) 
 		{
-			fprintf(stderr, "READ PIXELS 16bit - Signded! findAndGetSint16Array \n"); 
+			std::cout << "READ PIXELS 16bit - Signded! findAndGetSint16Array \n"; 
 			const Sint16 *v = 0;
 			unsigned long psize = 0;
 			if ( m_dataSet->findAndGetUint16Array( DCM_PixelData, (const Uint16*&) v, &psize,false ).bad() ) return false;
@@ -113,7 +113,7 @@ public:
 		}
 		else if (m_bitsAlloc == 16 && !m_pixRepres)
 		{
-			fprintf(stderr, "READ PIXELS 16bit - Signded! findAndGetUint16Array\n"); 
+			std::cout << "READ PIXELS 16bit - Signded! findAndGetUint16Array\n"; 
 			const Uint16 *v = 0;
 			unsigned long psize = 0;
 			if ( m_dataSet->findAndGetUint16Array( DCM_PixelData, (const Uint16*&) v, &psize,false ).bad() ) return false;
@@ -123,7 +123,7 @@ public:
 		}
 		else
 		{
-			fprintf(stderr, "this file type is not implemeted yet\n");
+			std::cout << "this file type is not implemeted yet\n";
 			return false;
 		}
 		return true;

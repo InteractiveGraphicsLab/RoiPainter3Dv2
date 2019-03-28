@@ -4,13 +4,13 @@
 
 
 using namespace RoiPainter3D;
-
+using namespace std;
 
 FormVisParam::FormVisParam(void)
 {
   InitializeComponent();
 
-  this->ControlBox = false;
+  this->ControlBox  = false;
   this->MaximizeBox = false;
   m_isMouseOn = false;
 
@@ -23,22 +23,6 @@ FormVisParam::FormVisParam(void)
   //load transfer function image 
   m_imgPsu = new OglImage1D<CH_RGBA>();
   m_imgPsu->AllocateHeuImg(TRANS_FUNC_SIZE);
-
-  /*
-  OGLImage2D4 tmpImg;
-  tmpImg.Allocate("./shader/psued_bar.bmp");
-  printf("%d %d", tmpImg.GetW(), tmpImg.GetH());
-  for( int i=0; i < TRANS_FUNC_SIZE; ++i)
-  {
-    int xi = (int)( i / (double) TRANS_FUNC_SIZE * tmpImg.GetW() ) + 2 * tmpImg.GetW(); 
-    printf("%d  ", xi);
-    (*m_imgPsu)[4*i  ] = tmpImg[ 4*xi  ];
-    (*m_imgPsu)[4*i+1] = tmpImg[ 4*xi+1];
-    (*m_imgPsu)[4*i+2] = tmpImg[ 4*xi+2];
-    (*m_imgPsu)[4*i+3] = tmpImg[ 4*xi+3];
-  }
-  */
-
 }
 
 

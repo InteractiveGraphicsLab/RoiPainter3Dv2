@@ -62,7 +62,7 @@ inline bool t_loadImage(
   }
   else
   {
-    printf("-------------------------error unknown format \n");
+    std::cout << "-------------------------error unknown format \n";
     return false;
   }
 

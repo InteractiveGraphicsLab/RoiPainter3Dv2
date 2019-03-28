@@ -354,7 +354,7 @@ void t_DrawCuboidSlices(const int sliceNum, const EVec3f &camP, const EVec3f &ca
 
     if (pivIdx < 0 || pivIdx >= 7)
     {
-      fprintf(stderr, "strange error");
+      std::cout << "strange error";
       break;
     }
 

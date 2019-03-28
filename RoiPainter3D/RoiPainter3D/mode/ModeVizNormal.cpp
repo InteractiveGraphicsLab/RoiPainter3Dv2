@@ -1,4 +1,3 @@
-
 #include "ModeVizNormal.h"
 
 #include "ImageCore.h"
@@ -9,6 +8,7 @@
 #include "FormVisParam.h"
 #include "FormVisNorm.h"
 
+#include <iostream>
 
 using namespace RoiPainter3D;
 
@@ -24,12 +24,12 @@ ModeVizNormal::ModeVizNormal() :
   m_volumeShader("shader/volVtx.glsl"   , "shader/volFlg.glsl"),
   m_crssecShader("shader/crssecVtx.glsl", "shader/crssecFlg.glsl")
 {
-  fprintf(stderr, "ModeVizNormal...\n");
+  std::cout << "ModeVizNormal...\n";
 
   m_bL = m_bR = m_bM = false;
   m_bDrawStr = false;
 
-  fprintf(stderr, "ModeVizNormal done\n");
+  std::cout << "ModeVizNormal done\n";
 }
 
 
@@ -42,12 +42,12 @@ bool ModeVizNormal::canEndMode()
 
 void ModeVizNormal::startMode()
 {
-  fprintf(stderr, "ModeVizNormal...startMode----------\n");
+  std::cout << "ModeVizNormal...startMode----------\n";
 
   m_bL = m_bR = m_bM = false;
   formVisNorm_Show();
 
-  fprintf(stderr, "ModeVizNormal...startMode DONE-----\n");
+  std::cout << "ModeVizNormal...startMode DONE-----\n";
 }
 
 
@@ -158,17 +158,8 @@ void ModeVizNormal::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 }
 
 
-
 void ModeVizNormal::keyDown(int nChar) {}
 void ModeVizNormal::keyUp(int nChar) {}
-
-
-
-
-
-
-
-
 
 void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
 {
@@ -217,7 +208,6 @@ void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
   }
-
 
 }
     

@@ -183,7 +183,7 @@ public:
     {
       for (int i = 0; i < WH; ++i)
       {
-        m_volume[z * WH + i] = (byte)max(0.f, min(255.f, (slices[z][i] - minV) * rate));
+        m_volume[z * WH + i] = (byte)std::max(0.f, std::min(255.f, (slices[z][i] - minV) * rate));
       }
     }
 
@@ -406,8 +406,8 @@ inline void OglImage2D<CH_RGBA>::SetGrayValue_normalize(float* image)
   float maxV = -FLT_MAX;
 
   for( int i=0; i < N; ++i ){
-    minV = min(minV, image[i]);
-    maxV = max(maxV, image[i]);
+    minV = std::min( minV, image[i]);
+    maxV = std::max( maxV, image[i]);
   }
   for( int i=0; i < N; ++i ){
     float v = (image[i] - minV) / (maxV - minV);
@@ -483,7 +483,7 @@ public:
     for (int i = 0; i < N; ++i)
     {
       EVec3f C;
-      if (i < 1 * S) C << 1, (i - 0 * S) / S, 0;
+      if      (i < 1 * S) C << 1, (i - 0 * S) / S, 0;
       else if (i < 2 * S) C << 1 - (i - 1 * S) / S, 1, 0;
       else if (i < 3 * S) C << 0, 1, (i - S * 2) / S;
       else if (i < 4 * S) C << 0, 1 - (i - S * 3) / S, 1;
@@ -493,7 +493,6 @@ public:
       m_image[4 * i + 1] = (byte)(C[1] * 255);
       m_image[4 * i + 2] = (byte)(C[2] * 255);
     }
-
   }
 
 
