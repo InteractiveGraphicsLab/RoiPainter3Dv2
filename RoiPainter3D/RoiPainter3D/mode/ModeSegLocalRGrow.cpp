@@ -447,8 +447,8 @@ void ModeSegLocalRGrow::dblclkToAddNewSeed(const EVec3f &rayP, const EVec3f &ray
 	float size = bNegPos ? cuboid[0] * 0.05f : cuboid[0] * 0.02f;
 
   EVec2i minMax = ImageCore::GetInst()->GetVolMinMax();
-  minV = max( minV, minMax[0]);
-  maxV = min( maxV, minMax[1]);
+  minV = max( minV, (short)minMax[0]);
+  maxV = min( maxV, (short)minMax[1]);
   
   m_seeds.push_back( LRGseed( pos, minV, maxV, bNegPos, size) );
 	m_ActiveSeedIdx = (int)m_seeds.size() - 1;

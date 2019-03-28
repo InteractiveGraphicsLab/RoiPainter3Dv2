@@ -11,6 +11,7 @@
 #include "FormMaskIDselection.h"
 #include "climessagebox.h"
 
+#include <algorithm>
 
 using namespace RoiPainter3D;
 
@@ -181,33 +182,29 @@ static float c_calcAngle
 	float bn = b.norm();
 	if (an == 0 || bn == 0) return 0;
 	
-	float cosTheta = min(1,a.dot(b) / an / bn );
+	float cosTheta = min(1.f, a.dot(b) / an / bn );
 	return ( a.cross(b)).dot(axis) > 0 ? acos(cosTheta): -acos(cosTheta);
 }
 
 
 //íçñ⁄ÇµÇƒÇ¢ÇÈì_Ç™ lasso ÇÃì‡ë§Ç≈Ç†ÇÈÇ©îªíË
-static bool c_isInsideLasso
+static bool t_IsInsideLasso
 (
 	const EVec3f         &pos, 
 	const vector<EVec3f> &lassoPosLst, 
 	const CRSSEC_ID &id
 ) 
 { 
+  const int N = (int)lassoPosLst.size();
 
-	EVec3f axis = 
-		(id == CRSSEC_XY) ? EVec3f(0, 0, 1) :
-		(id == CRSSEC_YZ) ? EVec3f(1, 0, 0) : EVec3f(0, 1, 0);
+	EVec3f axis = (id == CRSSEC_XY) ? EVec3f(0, 0, 1) :
+		            (id == CRSSEC_YZ) ? EVec3f(1, 0, 0) : EVec3f(0, 1, 0);
 
 	float sumTheta = 0;
-
-	for (auto itr = lassoPosLst.begin(); itr != lassoPosLst.end(); ++itr) 
-	{
-		auto nextItr = itr;
-		++nextItr;
-		if(nextItr == lassoPosLst.end()) nextItr = lassoPosLst.begin();
-		sumTheta += c_calcAngle(pos, *itr, *nextItr, axis);
-	}
+  for( int i=0; i < N; ++i)
+  {
+		sumTheta += c_calcAngle(pos, lassoPosLst[ i ], lassoPosLst[ (i==N-1)?0:i+1 ], axis);
+  }
 
 	return fabs(2 * M_PI - fabs(sumTheta)) < M_PI * 0.5;
 }
@@ -219,11 +216,11 @@ static bool c_isInsideLasso
 //bFore = false --> vFlg 255 --> 1Ç…
 static void t_addPixsInsideLasso
 (
-	const CRSSEC_ID      id      ,
-	const EVec3i         reso    ,
-	const EVec3f         pitch   ,
-	const vector<EVec3f> &lassoPs,
-	const bool           bFore   ,
+	const CRSSEC_ID       id   ,
+	const EVec3i          reso ,
+	const EVec3f          pitch,
+	const vector<EVec3f> &lasso,
+	const bool            bFore,
 
    		  OglImage3D     &vFlg
 )
@@ -232,12 +229,20 @@ static void t_addPixsInsideLasso
 	const int H = reso[1];
 	const int D = reso[2], WH = W*H;
 
-  fprintf(stderr, "---- %d  %d %d %d\n", id, W,H,D);
-  Trace(pitch);
+  vector<EVec3f> lasso_resample;
+  const int resampleN = std::max( 10, (int)lasso.size() / 3);
+  t_verts_ResampleEqualInterval( resampleN, lasso, lasso_resample);
+
+  EVec3f BBmin, BBmax;
+  t_verts_GetBoundBox( lasso_resample, BBmin, BBmax);
+
+  EVec3i BBminIdx ( (int) (BBmin[0]/pitch[0] ), (int) (BBmin[1]/pitch[1] ), (int) (BBmin[2]/pitch[2] ) );
+  EVec3i BBmaxIdx ( (int) (BBmax[0]/pitch[0] ), (int) (BBmax[1]/pitch[1] ), (int) (BBmax[2]/pitch[2] ) );
+  //TODO Ç±Ç±Ç©ÇÁ
 
 	if (id == CRSSEC_XY) 
   {
-		const float zPos = lassoPs.begin()->z();
+		const float zPos = lasso_resample.front()[2];
 		const int   zi   = (int)(zPos / pitch[2]);
 
 #pragma omp parallel for
@@ -245,23 +250,21 @@ static void t_addPixsInsideLasso
 		for (int xi = 0; xi < W; ++xi)
 		{
       int idx = xi + yi * W + zi * WH;
-      printf("a");
       if( vFlg[idx] == 0 ) continue;
-      printf("b");
       
 			EVec3f p((xi + 0.5f) * pitch[0], (yi + 0.5f) * pitch[1], zPos);
 
 			if ( bFore ){
-        if ( vFlg[idx] == 1  &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 255;
+        if ( vFlg[idx] == 1  &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 255;
       }else{
-        if ( vFlg[idx] ==255 &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 1  ;
+        if ( vFlg[idx] ==255 &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 1  ;
       }
 		}
 	}
 	
 	if (id == CRSSEC_YZ) 
   {
-		const float xPos = lassoPs.begin()->x();
+		const float xPos = lasso_resample.front()[0];
 		const int   xi   = (int)(xPos / pitch[0]);
 
 #pragma omp parallel for
@@ -274,9 +277,9 @@ static void t_addPixsInsideLasso
 			EVec3f p(xPos, (yi + 0.5f) * pitch[1], (zi + 0.5f) * pitch[2]);
 
 			if ( bFore ){
-        if ( vFlg[idx] == 1  &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 255;
+        if ( vFlg[idx] == 1  &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 255;
       }else{
-        if ( vFlg[idx] ==255 &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 1  ;
+        if ( vFlg[idx] ==255 &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 1  ;
 		  }
 	  }
   }
@@ -284,7 +287,7 @@ static void t_addPixsInsideLasso
 		
 	if (id == CRSSEC_ZX) 
   {
-		const float yPos = lassoPs.begin()->y();
+		const float yPos = lasso_resample.front()[1];
 		const int   yi   = (int)(yPos / pitch[1]);
 
 #pragma omp parallel for
@@ -297,9 +300,9 @@ static void t_addPixsInsideLasso
 			EVec3f p((xi + 0.5f) * pitch[0], yPos, (zi + 0.5f) * pitch[2]);
 
 			if ( bFore ){
-        if ( vFlg[idx] == 1  &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 255;
+        if ( vFlg[idx] == 1  &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 255;
       }else{
-        if ( vFlg[idx] ==255 &&  c_isInsideLasso(p, lassoPs, id) ) vFlg[idx] = 1  ;
+        if ( vFlg[idx] ==255 &&  t_IsInsideLasso(p, lasso_resample, id) ) vFlg[idx] = 1  ;
 		  }
 		}
 	}

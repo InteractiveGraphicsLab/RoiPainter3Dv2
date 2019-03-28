@@ -467,7 +467,7 @@ void ModeSegRGrow::runRegionGrow26(short minV, short maxV)
 
 void ModeSegRGrow::runDilation()
 {
-	t_morpho3D_dilate(ImageCore::GetInst()->m_vol_flag);
+	t_Dilate3D(ImageCore::GetInst()->m_vol_flag);
 	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_bRegionUpdated = true;
   formMain_redrawMainPanel();
@@ -475,7 +475,7 @@ void ModeSegRGrow::runDilation()
 
 void ModeSegRGrow::runErosion()
 {
-	t_morpho3D_erode(ImageCore::GetInst()->m_vol_flag);
+	t_Erode3D(ImageCore::GetInst()->m_vol_flag);
 	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_bRegionUpdated = true;
   formMain_redrawMainPanel();
@@ -488,7 +488,7 @@ void ModeSegRGrow::runFillHole()
 	OglImage3D flg(ImageCore::GetInst()->m_vol_flag);
 	const int N = flg.GetW() * flg.GetH() * flg.GetD();
 	for (int i = 0; i < N; ++i) flg[i] = (flg[i] == 255) ? 255 : 0;
-	t_morpho3D_FillHole(flg);
+	t_FillHole3D(flg);
 
   // update flg volume (never change voxel with vflg[i]==0)
 	OglImage3D &trgt = ImageCore::GetInst()->m_vol_flag;

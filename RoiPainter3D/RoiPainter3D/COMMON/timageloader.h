@@ -12,7 +12,7 @@ inline bool t_loadImage(
 {
 
   System::String ^s = gcnew System::String(fname);
-  System::Drawing::Image^ img = System::Drawing::Image::FromFile(s);
+  System::Drawing::Image^  img = System::Drawing::Image::FromFile(s);
   System::Drawing::Bitmap^ bmp = gcnew System::Drawing::Bitmap(img);
 
   if (bmp->Width == 0 || bmp->Height == 0) return false;
@@ -68,6 +68,10 @@ inline bool t_loadImage(
 
 
   bmp->UnlockBits(bmpData);
+  delete(bmp);
+  delete(img);
+  delete(s);
+
   return true;
 }
 
@@ -113,6 +117,9 @@ inline void t_saveImage(
   else if (ext == ".jpg") bmp->Save(fname_str, System::Drawing::Imaging::ImageFormat::Jpeg);
   else if (ext == ".png") bmp->Save(fname_str, System::Drawing::Imaging::ImageFormat::Png);
   else if (ext == ".tif") bmp->Save(fname_str, System::Drawing::Imaging::ImageFormat::Tiff);
+
+  delete(bmp);
+  delete(fname_str);
 }
 
 

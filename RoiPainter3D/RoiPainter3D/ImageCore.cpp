@@ -317,7 +317,7 @@ static bool t_LoadDCMs
 	{
 		printf( "flip in z\n");
 		pitch[2] *= -1.0;
-		t_flipVolumeInZ(W,H,D, vol);
+		t_FlipVolumeInZ(W,H,D, vol);
 	}
 
 	return true;
@@ -446,7 +446,7 @@ bool ImageCore::LoadVolume(vector<string> fnames, string fext)
 		else
 		{
       int flg = RoiPainter3D::formStackOrder_showModalDialog();
-			if (flg == 1) t_flipVolumeInZ<short>( m_resolution[0], m_resolution[1], m_resolution[2], m_vol_orig);
+			if (flg == 1) t_FlipVolumeInZ<short>( m_resolution[0], m_resolution[1], m_resolution[2], m_vol_orig);
 		}
 	}
 	else 
@@ -487,7 +487,7 @@ void ImageCore::UpdateGradMagnituteVolume()
 	const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
 	memset( m_vol_origgm, 0, sizeof(float) * N);
-	t_sobel3D<short>( m_resolution[0], m_resolution[1], m_resolution[2], m_vol_orig, m_vol_origgm);
+	t_Sobel3D<short>( m_resolution[0], m_resolution[1], m_resolution[2], m_vol_orig, m_vol_origgm);
 
 	float minV, maxV;
 	t_getMaxMinOfArray<float>( N, m_vol_origgm, minV, maxV);
@@ -686,7 +686,7 @@ void ImageCore::ActiveMask_Erode()
   byte* flgs = new byte[N];
 
   for (int i = 0; i < N; ++i) flgs[i] = (m_vol_mask[i] == m_active_mask_id) ? 255 : 1;
-  t_erode3D( m_resolution[0], m_resolution[1], m_resolution[2], flgs);
+  t_Erode3D( m_resolution[0], m_resolution[1], m_resolution[2], flgs);
   for (int i = 0; i < N; ++i) if (m_vol_mask[i] == m_active_mask_id && flgs[i] == 1) m_vol_mask[i] = 0;
 
   m_vol_mask.SetUpdated();
@@ -710,7 +710,7 @@ void ImageCore::ActiveMask_Dilate  ()
               (m_mask_data[m_vol_mask[i]].m_b_locked   ) ? 0 : 1;
   }
 
-  t_dilate3D( m_resolution[0], m_resolution[1], m_resolution[2], flgs);
+  t_Dilate3D( m_resolution[0], m_resolution[1], m_resolution[2], flgs);
 
   for (int i = 0; i < N; ++i) {
     if (flgs[i] == 255) m_vol_mask[i] = m_active_mask_id;
@@ -736,7 +736,7 @@ void ImageCore::ActiveMask_FillHole()
     flgs[i] = (m_vol_mask[i] == m_active_mask_id) ? 255 : 0;
   } 
 
-  t_fillHole3D(m_resolution[0], m_resolution[1], m_resolution[2], flgs);
+  t_FillHole3D(m_resolution[0], m_resolution[1], m_resolution[2], flgs);
 
   for (int i = 0; i < N; ++i)
   {

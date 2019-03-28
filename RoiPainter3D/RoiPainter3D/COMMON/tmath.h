@@ -408,6 +408,33 @@ inline void t_verts_Smoothing(const int times, std::vector<EVec3f> &verts)
 
 
 
+inline void t_verts_GetBoundBox
+(
+  const std::vector<EVec3f> &verts,
+  EVec3f &BBmin,
+  EVec3f &BBmax
+)
+{
+  BBmin << FLT_MAX, FLT_MAX, FLT_MAX;
+  BBmax <<-FLT_MAX,-FLT_MAX,-FLT_MAX;
+  
+  for( const auto &v : verts ){
+    BBmin[0] = min(BBmin[0], v[0]);
+    BBmin[1] = min(BBmin[1], v[1]);
+    BBmin[2] = min(BBmin[2], v[2]);
+    BBmax[0] = max(BBmax[0], v[0]);
+    BBmax[1] = max(BBmax[1], v[1]);
+    BBmax[2] = max(BBmax[2], v[2]);
+  }
+}
+
+
+
+
+
+
+
+
 
 //	  | a b | |s|    w1
 //    | c d | |t|  = w2

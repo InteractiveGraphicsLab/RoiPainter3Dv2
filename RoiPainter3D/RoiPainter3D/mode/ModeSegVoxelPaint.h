@@ -1,22 +1,15 @@
 #pragma once
 
-
-//
 // class ModeSegVoxelPaint
 // support 
 //   1. Segmentation Voxel paint  : paint modeである領域を生成する 
 //   2. Refinement   Voxel paint  : paint modeである領域を修正する
 //
-// 二種類のモードをこのクラスがサポートする
-
-
+// 二種類のペイントモード（直接ペイント・らっそ）をサポートする
 
 #include "ModeInterface.h"
 #include "GlslShader.h"
 #include <vector>
-
-using namespace::std;
-
 
 
 #pragma unmanaged
@@ -31,9 +24,9 @@ class ModeSegVoxelPaint : public ModeInterface
   int  m_refineMaskId  ; 
 
   //mouse manipuration
-	bool      m_bPaintVoxel;
-	bool      m_bDrawLasso ;
-  CRSSEC_ID m_lassoTrgtId;
+	bool       m_bPaintVoxel;
+	bool       m_bDrawLasso ;
+  CRSSEC_ID  m_lassoTrgtId;
 	vector<EVec3f>  m_lasso;
 	vector<EVec4i>  m_paintVoxels;
 

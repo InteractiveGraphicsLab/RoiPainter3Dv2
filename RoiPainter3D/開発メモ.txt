@@ -34,3 +34,10 @@
  	- rename
 	- pragma unmanaged追加
 	- 関数のインタフェース微修正
+ + OGLImage.h
+ 	- rename
+	- pragma unmanaged追加
+ + OglForCLI 
+ 	- rename
+	- windows.hの max/minを無効化
+ + ModeSegVoxelPaint

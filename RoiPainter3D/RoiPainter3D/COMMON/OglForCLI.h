@@ -19,16 +19,20 @@
 
 
 #pragma once
-#pragma unmanaged
+
+#include <windows.h>
+#undef min
+#undef max
 
 
-#include <windows.h> 
+#include <iostream> 
 
 #include "gl/glew.h"
 #include <gl/gl.h> 
 #include <gl/glu.h> 
 #include "tmath.h"
 
+#pragma unmanaged
 
 class OglForCLI
 {
@@ -61,7 +65,7 @@ public:
     if (dc == 0) return;
 
     m_cam_position     = EVec3f(0, 0, 10);
-    m_cam_center        = EVec3f(0, 0, 0 );
+    m_cam_center       = EVec3f(0, 0, 0 );
     m_cam_updir        = EVec3f(0, 1, 0 );
     m_background_color = EVec4f(0, 0, 0, 0.5);
 
@@ -93,7 +97,6 @@ public:
       0, 0, 0                         // layer masks ignored
     };
 
-
     int pfmt = ChoosePixelFormat(m_hdc, &pfd);
     if (pfmt == 0) return;
     if (!SetPixelFormat(m_hdc, pfmt, &pfd)) return;
@@ -102,18 +105,17 @@ public:
     if ( (m_hglrc = wglCreateContext(m_hdc) ) == 0) return;
     if ( (wglMakeCurrent(m_hdc, m_hglrc)    ) == 0) return;
 
-
-
     GLenum err = glewInit();
     if (err != GLEW_OK) 
     {
-      fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+      std::cout << "Error: \n" << glewGetErrorString(err) << "\n";
     }
 
     wglMakeCurrent(0, 0);
 
     return;
   }
+
 
   void oglMakeCurrent() const
   {
@@ -122,8 +124,8 @@ public:
 
 
   void OnDrawBegin(
-    int viewW, 
-    int viewH, 
+    int    screem_width, 
+    int    screen_height, 
     double fovY = 45.0, 
     double view_near = 0.02, 
     double view_far = 700.0)
@@ -133,18 +135,18 @@ public:
     m_is_rendering = true;
     oglMakeCurrent();
 
-    glViewport(0, 0, viewW, viewH);
+    glViewport(0, 0, screem_width, screen_height);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fovY, viewW / (double)viewH, view_near, view_far);
+    gluPerspective(fovY, screem_width / (double)screen_height, view_near, view_far);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     gluLookAt(m_cam_position[0], m_cam_position[1], m_cam_position[2],
-      m_cam_center[0], m_cam_center[1], m_cam_center[2],
-      m_cam_updir[0], m_cam_updir[1], m_cam_updir[2]);
+              m_cam_center[0], m_cam_center[1], m_cam_center[2],
+              m_cam_updir [0], m_cam_updir [1], m_cam_updir [2]);
     glClearColor((float)m_background_color[0], (float)m_background_color[1], (float)m_background_color[2], (float)m_background_color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ACCUM_BUFFER_BIT);
   }
@@ -158,16 +160,10 @@ public:
   }
 
 
-
-
-
-
-
-
   inline bool   isDrawing() const { return m_is_rendering; }
   inline EVec3f GetCamPos() const { return m_cam_position; }
-  inline EVec3f GetCamCnt() const { return m_cam_center; }
-  inline EVec3f GetCamUp()  const { return m_cam_updir; }
+  inline EVec3f GetCamCnt() const { return m_cam_center  ; }
+  inline EVec3f GetCamUp()  const { return m_cam_updir   ; }
   inline void   SetCam(const EVec3f &pos, const EVec3f &cnt, const EVec3f &up) { m_cam_position = pos; m_cam_center = cnt; m_cam_updir = up; }
   inline void   SetBgColor(EVec4f bg) { m_background_color = bg; }
   inline void   SetBgColor(float r, float g, float b, float a) { m_background_color << r, g, b, a; }
@@ -210,10 +206,10 @@ public:
       float theta = -dX / 200.0f;
       float phi = -dY / 200.0f;
 
-      EVec3f axis = ((m_cam_center - m_cam_position).cross(m_cam_updir)).normalized();
-      Eigen::AngleAxisf rotTheta = Eigen::AngleAxisf(theta, m_cam_updir);
-      Eigen::AngleAxisf rotPhi = Eigen::AngleAxisf(phi, axis);
-      m_cam_updir = rotPhi * rotTheta * m_cam_updir;
+      EVec3f x_dir = ((m_cam_center - m_cam_position).cross(m_cam_updir)).normalized();
+      Eigen::AngleAxisf rotTheta(theta, m_cam_updir);
+      Eigen::AngleAxisf rotPhi  (  phi, x_dir      );
+      m_cam_updir    = rotPhi * rotTheta * m_cam_updir;
       m_cam_position = rotPhi * rotTheta * (m_cam_position - m_cam_center) + m_cam_center;
     }
     else if (m_mousebtn_state == BTN_ZOOM)
@@ -224,8 +220,8 @@ public:
     else if (m_mousebtn_state == BTN_TRANS)
     {
       float c = (m_cam_position - m_cam_center).norm() / 900.0f;
-      EVec3f Xdir = ((m_cam_position - m_cam_center).cross(m_cam_updir)).normalized();
-      EVec3f t = c * dX * Xdir + c * dY * m_cam_updir;
+      EVec3f x_dir = ((m_cam_position - m_cam_center).cross(m_cam_updir)).normalized();
+      EVec3f t = c * dX * x_dir + c * dY * m_cam_updir;
       m_cam_position += t;
       m_cam_center += t;
     }
@@ -341,8 +337,8 @@ private:
     {
       GLenum light = (i == 0) ? GL_LIGHT0 : (i == 1) ? GL_LIGHT1 : GL_LIGHT2;
       glLightfv(light, GL_POSITION, lPosi[i].data());
-      glLightfv(light, GL_AMBIENT, lambi[i].data());
-      glLightfv(light, GL_DIFFUSE, ldiff[i].data());
+      glLightfv(light, GL_AMBIENT , lambi[i].data());
+      glLightfv(light, GL_DIFFUSE , ldiff[i].data());
       glLightfv(light, GL_SPECULAR, lspec[i].data());
       glEnable(light);
     }
