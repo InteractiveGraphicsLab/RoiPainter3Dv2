@@ -25,4 +25,12 @@
 	- インデント
 	- rename
 	- pragma unmanaged追加
-
+	- 各関数については見直しが必要
+ + ModeCore
+	- インデント
+	- rename
+	- pragma unmanaged追加
+ + ViewAngleCore
+ 	- rename
+	- pragma unmanaged追加
+	- 関数のインタフェース微修正

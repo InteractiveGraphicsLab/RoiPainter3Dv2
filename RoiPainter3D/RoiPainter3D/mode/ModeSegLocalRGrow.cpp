@@ -108,7 +108,7 @@ void ModeSegLocalRGrow::finishSegmentation()
 
   m_seeds.clear();
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
-	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
 	formMain_redrawMainPanel();
 }
 
@@ -119,7 +119,7 @@ void ModeSegLocalRGrow::cancelSegmentation()
 {
   m_seeds.clear();
   formSegLocalRGrow_updateAllItems();
-  ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+  ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
   formMain_redrawMainPanel();
 }
 

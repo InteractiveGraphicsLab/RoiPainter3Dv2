@@ -59,26 +59,26 @@ void ModeSegVoxelPaint::startMode()
 	const int N = r[0] * r[1] * r[2];
 
 
-  if(ModeCore::getInst()->getCurrentModeId() == MODE_SEG_VOXPAINT)
+  if(ModeCore::GetInst()->GetCurrentModeId() == MODE_SEG_VOXPAINT)
   {
     //segmentation mode
     for (int i = 0; i < N; ++i) vFlg[i] = (mask[vMask[i]].m_b_locked) ? 0 : 1;
   }
-  else if(ModeCore::getInst()->getCurrentModeId() == MODE_REF_VOXPAINT )
+  else if(ModeCore::GetInst()->GetCurrentModeId() == MODE_REF_VOXPAINT )
   {
     //refinement mode
     m_bRefinmentMode = true;
     m_refineMaskId = formMaskIdSelection_showModalDialog();
     if( m_refineMaskId  == -1)
     {
-      ModeCore::getInst()->ModeSwitch(MODE_VIS_MASK);
+      ModeCore::GetInst()->ModeSwitch(MODE_VIS_MASK);
       return;
     }
     
     if( m_refineMaskId  == 0)
     {
       CLI_MessageBox_OK_Show("MASK_id = 0 is not editable here ", "message");
-      ModeCore::getInst()->ModeSwitch(MODE_VIS_MASK);
+      ModeCore::GetInst()->ModeSwitch(MODE_VIS_MASK);
       return;
     }
 
@@ -89,7 +89,7 @@ void ModeSegVoxelPaint::startMode()
   else
   {
     //never comes here 
-    ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+    ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
     return;
   }
 
@@ -120,7 +120,7 @@ void ModeSegVoxelPaint::finishSegmentation()
 
     }
     vMask.SetUpdated();
-    ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+    ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
   }
   else 
   {
@@ -138,13 +138,13 @@ void ModeSegVoxelPaint::finishSegmentation()
       return;
     }
     ImageCore::GetInst()->StoreForegroundAsNewMask();
-    ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+    ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
   }
 }
 
 void ModeSegVoxelPaint::cancelSegmentation()
 {
-    ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+    ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
     formMain_redrawMainPanel();
 }
 

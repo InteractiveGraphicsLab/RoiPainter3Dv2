@@ -130,7 +130,7 @@ void ModeSegGCut::finishSegm ()
 	m_bCPs.clear();
 
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
-	ModeCore ::getInst()->ModeSwitch( MODE_VIS_MASK );
+	ModeCore ::GetInst()->ModeSwitch( MODE_VIS_MASK );
 	formMain_redrawMainPanel();	
 }
 
@@ -140,7 +140,7 @@ void ModeSegGCut::cancelSegm ()
   //CPを削除（しないと、canEndModeでダイアログが表示される)
 	m_fCPs.clear();
 	m_bCPs.clear();
-	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
 	formMain_redrawMainPanel();	
 }
 

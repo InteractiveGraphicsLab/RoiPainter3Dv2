@@ -12,12 +12,11 @@ class ModeCore
   MODE_ID        m_mode_id;
   ModeInterface* m_mode;
 
-
   ModeCore();
 public:
   ~ModeCore();
 
-  static ModeCore* getInst() {
+  static ModeCore* GetInst() {
     static ModeCore p;
     return &p;
   }
@@ -35,14 +34,14 @@ public:
   void MBtnDblClk(const EVec2i &p, OglForCLI *ogl) { m_mode->MBtnDclk(p, ogl); }
   void MouseMove (const EVec2i &p, OglForCLI *ogl) { m_mode->MouseMove(p, ogl); }
   void MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl) { m_mode->MouseWheel(p, zDelta, ogl); }
-  void keyUp  (int nChar) { m_mode->keyUp  (nChar); }
-  void keyDown(int nChar) { m_mode->keyDown(nChar); }
+  void KeyUp  (int nChar) { m_mode->keyUp  (nChar); }
+  void KeyDown(int nChar) { m_mode->keyDown(nChar); }
 
-  void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF) {
+  void DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF) {
     m_mode->drawScene(cuboid, camP, camF);
   }
 
-  MODE_ID getCurrentModeId(){ return m_mode_id; }
+  MODE_ID GetCurrentModeId(){ return m_mode_id; }
 
 };
 

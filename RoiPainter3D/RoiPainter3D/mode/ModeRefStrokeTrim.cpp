@@ -56,13 +56,13 @@ void ModeRefStrokeTrim::startMode()
 
   m_trgtMskId = formMaskIdSelection_showModalDialog();
   if( m_trgtMskId < 0 ){
-    ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+    ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
     return;
   }
 
   if( m_trgtMskId == 0  ){
     CLI_MessageBox_OK_Show("Cant modify mask ID = 0", "message");
-    ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+    ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
     return;
   }
 
@@ -91,7 +91,7 @@ void ModeRefStrokeTrim::cancelSegmentation()
 {
   if( m_volPrev ) delete[] m_volPrev;
   m_volPrev = 0;
-  ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+  ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
   formMain_redrawMainPanel();
 }
 
@@ -131,7 +131,7 @@ void ModeRefStrokeTrim::finishSegmentation()
   if( m_volPrev ) delete[] m_volPrev;
   m_volPrev = 0;
 
-	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
 	formMain_redrawMainPanel();
 }
 

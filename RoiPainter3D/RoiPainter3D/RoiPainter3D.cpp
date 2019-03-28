@@ -29,7 +29,7 @@ int main()
   //非managedなシングルトンはここで初期化
   //だたしこのタイミングでは、Formを生成しshowしてはだめ．
     
-  ModeCore  ::getInst();
+  ModeCore  ::GetInst();
   ImageCore ::GetInst();
   CrssecCore::GetInst();
 

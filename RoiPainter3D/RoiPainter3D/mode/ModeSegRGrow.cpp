@@ -528,7 +528,7 @@ void ModeSegRGrow::finishSegmentationStoreRegion()
 
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	m_bRegionUpdated = false;
-	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
+	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
 }
 
 

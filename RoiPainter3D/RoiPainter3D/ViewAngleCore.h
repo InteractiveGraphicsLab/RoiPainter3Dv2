@@ -3,6 +3,18 @@
 #include "./COMMON/tmath.h"
 #include "./COMMON/OglImage.h"
 
+//------------------------------------
+//class ViewAngleCore
+//
+//2019
+//written by Takashi Ijiri, Daisuke Niino
+//
+//This class manage camera orientation indicator 
+//
+//-------------------------------------
+
+
+
 
 #pragma unmanaged 
 
@@ -14,16 +26,28 @@ class ViewAngleCore
 public:
   ~ViewAngleCore();
 
-  static ViewAngleCore *getInst()
+  static ViewAngleCore *GetInst()
   {
     static ViewAngleCore p;
     return &p;
   }
 
-  void drawIndicator(int curViewW, int curViewH, EVec3f camP, EVec3f camC, EVec3f camY);
+  void DrawIndicator(
+    int screen_width, 
+    int screen_height, 
+    const EVec3f &camera_pos, 
+    const EVec3f &camera_center, 
+    const EVec3f &camera_ydir);
 
   //return ID of plane 0:non, 1:A, 2:R, 3:P, 4:L, 5:T, 6:B  
-  int  pickIndicator(const OglForCLI &ogl, int curViewW, int curViewH, EVec3f camP, EVec3f camC, EVec3f camY, EVec2i p);
+  int  PickIndicator(
+    const OglForCLI &ogl, 
+    int screen_width, 
+    int screen_height, 
+    const EVec3f &camera_pos, 
+    const EVec3f &camera_center, 
+    const EVec3f &camera_ydir,
+    const EVec2i &cursor_pos );
 };
 
 #pragma managed 
