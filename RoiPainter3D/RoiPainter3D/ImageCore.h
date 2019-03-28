@@ -15,7 +15,6 @@
 
 #pragma once
 
-
 #include "./COMMON/OglForCLI.h"
 #include "./COMMON/OglImage.h"
 #include "./COMMON/tmath.h"
@@ -23,7 +22,7 @@
 
 #include <vector>
 #include <string>
-
+#include <iostream>
 
 #pragma unmanaged
 
@@ -32,43 +31,40 @@ class MaskData
 {
 
 public:
-  string name     ;
-  TMesh  surf     ;
-  EVec3i color    ;
-  double alpha    ;
-  bool   bRendSurf;
-  bool   lock     ;
+  string m_name     ;
+  TMesh  m_surface     ;
+  EVec3i m_color    ;
+  double m_alpha    ;
+  bool   m_b_drawsurface;
+  bool   m_b_locked     ;
 
 	MaskData(string _name, EVec3i _color, double _alpha, bool _bRendSurf, bool _lock = false) 
 	{
-		name      = _name;
-		color     = _color;
-		alpha     = _alpha;
-		bRendSurf = _bRendSurf;
-		lock      = _lock;
+		m_name      = _name;
+		m_color     = _color;
+		m_alpha     = _alpha;
+		m_b_drawsurface = _bRendSurf;
+		m_b_locked   = _lock;
 	}
 
 
 	void Set(const MaskData& v)
 	{
-		name     = v.name;
-		surf     = v.surf;
-		color    = v.color;
-		alpha    = v.alpha;
-		bRendSurf= v.bRendSurf;
-		lock     = v.lock;
+		m_name    = v.m_name;
+		m_surface = v.m_surface;
+		m_color   = v.m_color;
+		m_alpha   = v.m_alpha;
+		m_b_drawsurface = v.m_b_drawsurface;
+		m_b_locked      = v.m_b_locked;
 	}
-
 
 	MaskData( const MaskData& v)
 	{
-		fprintf( stderr, "for debug, MaskData copy const\n");
 		Set(v);
 	}
 	
 	MaskData& operator=(const MaskData& v)
 	{
-		fprintf( stderr, "for debug, MaskData operator =\n");
 		Set(v);
 		return *this;
 	}
@@ -77,126 +73,116 @@ public:
 
 
 
-
-
 class ImageCore
 {  
+
 private:
 	//volume info 
-	EVec3i  m_Reso ;
-	EVec3f  m_Pitch;
-  EVec2i  m_volMinMax;
-	string  m_filePath;
+	EVec3i  m_resolution ;
+	EVec3f  m_pitch;
+  EVec2i  m_vol_minmax;
+	string  m_filepath;
 
-  
 public:
-	//volume 
-	short              *m_volOrig  ; // original image          [W,H,D]
-	float              *m_volOrigGM; // original image grad mag [W,H,D]
-	OglImage3D          m_vol      ; // original image with tone mapping (byte) 
-	OglImage3D          m_volFlg   ; // Flg 
-	OglImage3D          m_volMsk   ; // mask 
-	OglImage3D          m_volGmag  ; // gradient magnitude 
-	OglImage1D<CH_RGBA> m_imgMskCol; // func: maskID    --> color
+	//volume images
+	short              *m_vol_orig  ; // original volume (1D array representation)
+	float              *m_vol_origgm; // gradiente magnitude volume  (1D array representation)
+	OglImage3D          m_vol       ; // 8 bit bolume (tone mapping) 
+	OglImage3D          m_vol_flag  ; // 8 bit flag volume 
+	OglImage3D          m_vol_mask  ; // 8 bit mask volume  
+	OglImage3D          m_vol_gm    ; // 8 bit gradient magnitude volume
 
-	  int               m_maskSelectedId; // -1:none, 0...:maskID
-	vector<MaskData>    m_maskData      ;
 
-	
+	OglImage1D<CH_RGBA> m_img_maskcolor ; // func: maskID    --> color
+
+	int                 m_active_mask_id; // -1:none, 0...:maskID
+	vector<MaskData>    m_mask_data     ;
 
 
   //singleton
 private:
   ImageCore();
 public:
-	static ImageCore* getInst(){ static ImageCore p; return &p;}
+	static ImageCore* GetInst(){ static ImageCore p; return &p;}
 
 
-  //functions
-	void updateVisVolume(short minV, short maxV);
+  //update opengl volumes by linear tone mapping 
+	void UpdateOGLVolume( short windowlv_min,  short windowlv_max);
 
 	//I/O Loaders volume 
-	bool loadVolume   (vector<string> fnames, string fext);
-	bool loadVolume   (string fname         , string fext) ;
-	void loadMask     (const char *fname);
-	void saveMask     (const char *fname);
-	void saveMaskAsFav(const char *fname);
-  void saveVolumeAsTraw3dss(const char *fname);
+	bool  LoadVolume   (vector<string> fnames, string fext);
+	bool  LoadVolume   (string fname         , string fext) ;
+	void  LoadMask     (const char *fname);
+	void  SaveMask     (const char *fname);
+	void  SaveMaskAsFav(const char *fname);
+  void  SaveVolumeAsTraw3dss(const char *fname);
 
 	//getter & setter for resolution and pitch
-	EVec3f getCuboidF() { return EVec3f((float)(m_Reso[0] * m_Pitch[0]), (float)(m_Reso[1] * m_Pitch[1]), (float)(m_Reso[2] * m_Pitch[2])); }
-	EVec3i getResolution() { return m_Reso; }
+	EVec3f GetCuboid() { 
+    return EVec3f( (float)(m_resolution[0] * m_pitch[0]), 
+                   (float)(m_resolution[1] * m_pitch[1]), 
+                   (float)(m_resolution[2] * m_pitch[2])); 
+  }
 
-  string getFilePath(){ return m_filePath;}
+	EVec3i GetResolution() { return m_resolution; }
 
+  string GetFilePath(){ return m_filepath;}
 
 	//getter/setter for pitch 
-	EVec3f getPitch()  { return m_Pitch; }
-	float  getPitchW() { return m_Pitch[0]; }
-	float  getPitchH() { return m_Pitch[1]; }
-	float  getPitchD() { return m_Pitch[2]; }
+	EVec3f GetPitch()  { return m_pitch; }
+	float  GetPitchW() { return m_pitch[0]; }
+	float  GetPitchH() { return m_pitch[1]; }
+	float  GetPitchD() { return m_pitch[2]; }
 
-  void  setPitch (const EVec3f pitch){ m_Pitch = pitch;}
-  void  setPitchW(const float &pW) { m_Pitch[0] = pW; }
-	void  setPitchH(const float &pH) { m_Pitch[1] = pH; }
-	void  setPitchD(const float &pD) { m_Pitch[2] = pD; }
+  void   SetPitch (const EVec3f pitch){ m_pitch = pitch;}
+  void   SetPitchW(const float &pW) { m_pitch[0] = pW; }
+	void   SetPitchH(const float &pH) { m_pitch[1] = pH; }
+	void   SetPitchD(const float &pD) { m_pitch[2] = pD; }
 
 	//volume min/mac
-	EVec2i getVolMinMax() { return m_volMinMax; }
+	EVec2i GetVolMinMax() { return m_vol_minmax; }
 
-  int getVoxelIndex(const EVec3f& position)
+  int GetVoxelIndex(const EVec3f& position)
   {
-    const int x = min(m_Reso[0] - 1, (int)(position[0] / m_Pitch[0]));
-    const int y = min(m_Reso[1] - 1, (int)(position[1] / m_Pitch[1]));
-    const int z = min(m_Reso[2] - 1, (int)(position[2] / m_Pitch[2]));
-    return x + y * m_Reso[0] + z * m_Reso[0] * m_Reso[1];
+    const int x = min(m_resolution[0] - 1, (int)(position[0] / m_pitch[0]));
+    const int y = min(m_resolution[1] - 1, (int)(position[1] / m_pitch[1]));
+    const int z = min(m_resolution[2] - 1, (int)(position[2] / m_pitch[2]));
+    return x + y * m_resolution[0] + z * m_resolution[0] * m_resolution[1];
   }
-  EVec4i getVoxelIndex4i(const EVec3f& position)
+
+  EVec4i GetVoxelIndex4i(const EVec3f& position)
   {
     EVec4i v;
-    v[0] = min(m_Reso[0] - 1, (int)(position[0] / m_Pitch[0]));
-    v[1] = min(m_Reso[1] - 1, (int)(position[1] / m_Pitch[1]));
-    v[2] = min(m_Reso[2] - 1, (int)(position[2] / m_Pitch[2]));
-    v[3] = v[0] + v[1] * m_Reso[0] + v[2] * m_Reso[0] * m_Reso[1];
+    v[0] = min(m_resolution[0] - 1, (int)(position[0] / m_pitch[0]));
+    v[1] = min(m_resolution[1] - 1, (int)(position[1] / m_pitch[1]));
+    v[2] = min(m_resolution[2] - 1, (int)(position[2] / m_pitch[2]));
+    v[3] = v[0] + v[1] * m_resolution[0] + v[2] * m_resolution[0] * m_resolution[1];
     return v;
   }
 
 
-  short getVoxelValue(const EVec3f& position)
+  short GetVoxelValue(const EVec3f& position)
   {
-    return m_volOrig[ getVoxelIndex(position)];
+    return m_vol_orig[ GetVoxelIndex(position) ];
   }
 
-
-
-
-	//mask manipuration
-
-  void mask_storeCurrentForeGround();
-  void selectedMsk_setLock    (const bool   tf    );
-  void selectedMsk_setRendSurf(const bool   tf    );
-  void selectedMsk_setAlpha   (const double alpha );
-  void selectedMsk_setColor   (const EVec3i &c    );
-
-  void selectedMsk_delete  ();
-  void selectedMsk_marge   (const int &trgtMaskID);
-  void selectedMsk_erode   ();
-  void selectedMsk_dilate  ();
-  void selectedMsk_fillHole();
-  void selectedMsk_expObj  (const string &fname);
-
-
-	//void ActvMsk_fillPsuedoHoleAsNewRegion();
-	//void ActvMsk_ExportObj(const char *fname);
-	//void ActvMsk_ExportStl(const char *fname);
-	//void ActvMsk_ExportBmp(const char *fname);
-	//string getVolFilePath(){ return m_filePath; }
+  //generate new region by using all voxels with (m_volFlg[i] == 255) 
+  void StoreForegroundAsNewMask();
+  
+  // manipuration for active (user-selected) mask id
+  void ActiveMask_SetLocked  (const bool   tf    );
+  void ActiveMask_SetRendSurf(const bool   tf    );
+  void ActiveMask_SetAlpha   (const double alpha );
+  void ActiveMask_SetColor   (const EVec3i &c    );
+  void ActiveMask_Delete   ( );
+  void ActiveMask_Marge    (const int &trgtMaskID);
+  void ActiveMask_Erode    ( );
+  void ActiveMask_Dilate   ( );
+  void ActiveMask_FillHole ( );
+  void ActiveMask_ExportObj(const string &fname);
 
 private:
-	void updateGradVolume();
-
-
-
+	void UpdateGradMagnituteVolume();
 };
 
 #pragma managed

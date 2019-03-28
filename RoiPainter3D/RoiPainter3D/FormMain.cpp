@@ -41,7 +41,7 @@ FormMain::FormMain(void)
   InitializeComponent();
   
   m_ogl = new OglForCLI(GetDC((HWND)FormMainPanel->Handle.ToPointer()));
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   m_ogl->SetBgColor(0.3f, 0.3f, 0.3f, 0.5f);
 
   printf("FormMain constructor .. DONE\n");
@@ -145,7 +145,7 @@ bool FormMain::pickViewAngleIndicator(const EVec2i p)
 
   if (!tf) return false;
 
-  EVec3f cuboid = ImageCore::getInst()->getCuboidF();
+  EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
   double  D = cuboid.norm() * 1.0;
   camC = 0.5 * cuboid;
   camP = camC + ((float)D) * camP;
@@ -284,7 +284,7 @@ void FormMain::redrawMainPanel()
     ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
   }
 
-  const EVec3f cuboid   = ImageCore::getInst()->getCuboidF();
+  const EVec3f cuboid   = ImageCore::GetInst()->GetCuboid();
   const float  nearDist = (cuboid[0] + cuboid[1] + cuboid[2]) / 3.0f * 0.01f;
   const float  farDist  = (cuboid[0] + cuboid[1] + cuboid[2]) / 3.0f * 8;
   const int    viewW    = FormMainPanel->Width;
@@ -427,9 +427,9 @@ System::Void FormMain::open2DSlicesToolStripMenuItem_Click      (System::Object^
   printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fNames,fext);
+  ImageCore   ::GetInst()->LoadVolume(fNames,fext);
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
 
@@ -442,9 +442,9 @@ System::Void FormMain::open2DSlicesdcmToolStripMenuItem_Click   (System::Object^
   if( fNames.size() == 0 || fNames.front().length() < 3) return;
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fNames,string("dcm"));
+  ImageCore   ::GetInst()->LoadVolume(fNames,string("dcm"));
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
 
@@ -459,9 +459,9 @@ System::Void FormMain::open3DVolumetraw3DToolStripMenuItem_Click(System::Object^
   printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fname,fext);
+  ImageCore   ::GetInst()->LoadVolume(fname,fext);
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
 
@@ -472,9 +472,9 @@ System::Void FormMain::open3DColumedcmToolStripMenuItem_Click   (System::Object^
   if( fname.length() < 3) return;
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fname,string("dcm"));
+  ImageCore   ::GetInst()->LoadVolume(fname,string("dcm"));
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
 
@@ -488,9 +488,9 @@ System::Void FormMain::open3DVolumefavToolStripMenuItem_Click   (System::Object^
   printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fname,fext);
+  ImageCore   ::GetInst()->LoadVolume(fname,fext);
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
 
@@ -498,7 +498,7 @@ System::Void FormMain::open3DVolumefavToolStripMenuItem_Click   (System::Object^
 System::Void FormMain::saveMaskmskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
   string fname;
   if( !t_showSaveFileDlg("RoiPainter Mask data (*.msk)|*.msk", fname) ) return;
-  ImageCore::getInst()->saveMask(fname.c_str());
+  ImageCore::GetInst()->SaveMask(fname.c_str());
   redrawMainPanel();
 }
 
@@ -506,7 +506,7 @@ System::Void FormMain::saveMaskmskToolStripMenuItem_Click(System::Object^  sende
 System::Void FormMain::loadMaskmskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
   string fname;
   if( !t_showOpenFileDlg_single("RoiPainter Mask data (*.msk)|*.msk", fname) ) return;
-	ImageCore::getInst()->loadMask( fname.c_str() );
+	ImageCore::GetInst()->LoadMask( fname.c_str() );
 	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK);
   redrawMainPanel();
 }
@@ -518,7 +518,7 @@ System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Obj
 {
   string fname;
   if( !t_showSaveFileDlg("traw3d signed short file (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
-  ImageCore::getInst()->saveVolumeAsTraw3dss(fname.c_str());
+  ImageCore::GetInst()->SaveVolumeAsTraw3dss(fname.c_str());
 }
 
 

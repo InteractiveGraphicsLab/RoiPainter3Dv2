@@ -69,8 +69,8 @@ void ModeVizNormal::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   if (m_bDrawStr)
   {
-    EVec3f cube = ImageCore::getInst()->getCuboidF();
-    CrssecCore::getInst()->GenerateCurvedCrssec(cube, ogl->GetCamPos(), m_stroke);
+    EVec3f cube = ImageCore::GetInst()->GetCuboid();
+    CrssecCore::GetInst()->GenerateCurvedCrssec(cube, ogl->GetCamPos(), m_stroke);
   }
 
   m_bDrawStr = false;
@@ -124,7 +124,7 @@ void ModeVizNormal::MouseMove(const EVec2i &p, OglForCLI *ogl)
 
   CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
   if(id != CRSSEC_NON){
-    short v = ImageCore::getInst()->getVoxelValue(pos);
+    short v = ImageCore::GetInst()->GetVoxelValue(pos);
     formVisNorm_setVoxelVis(v);
   }
 
@@ -147,11 +147,11 @@ void ModeVizNormal::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
   ogl->GetCursorRay(p, rayP, rayD);
   CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
 
-  EVec3i reso   = ImageCore::getInst()->getResolution();
-  EVec3f pitch  = ImageCore::getInst()->getPitch();
+  EVec3i reso   = ImageCore::GetInst()->GetResolution();
+  EVec3f pitch  = ImageCore::GetInst()->GetPitch();
 
 
-  if (id != CRSSEC_NON) CrssecCore::getInst()->MoveCrssec(reso, pitch, id, zDelta);
+  if (id != CRSSEC_NON) CrssecCore::GetInst()->MoveCrssec(reso, pitch, id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
   formMain_redrawMainPanel();
@@ -179,32 +179,32 @@ void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
   const bool   bGradMag = formVisParam_bGradMag();
   const bool   bPsuedo  = formVisParam_bDoPsued();
   const float  alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::getInst()->getResolution();
+  const EVec3i reso     = ImageCore::GetInst()->GetResolution();
   const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
   const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
   //bind volumes ---------------------------------------
   glActiveTextureARB(GL_TEXTURE0);
-  ImageCore::getInst()->m_vol.BindOgl();
+  ImageCore::GetInst()->m_vol.BindOgl();
   glActiveTextureARB(GL_TEXTURE1);
-  ImageCore::getInst()->m_volGmag.BindOgl();
+  ImageCore::GetInst()->m_vol_gm.BindOgl();
   glActiveTextureARB(GL_TEXTURE2);
-  ImageCore::getInst()->m_volFlg.BindOgl(false);
+  ImageCore::GetInst()->m_vol_flag.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE3);
-  ImageCore::getInst()->m_volMsk.BindOgl(false);
+  ImageCore::GetInst()->m_vol_mask.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE4);
   formVisParam_bindTfImg();
   glActiveTextureARB(GL_TEXTURE5);
   formVisParam_bindPsuImg();
   glActiveTextureARB(GL_TEXTURE6);
-  ImageCore::getInst()->m_imgMskCol.BindOgl(false);
+  ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 
 
   if (m_bDrawStr) t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
 
   glColor3d(1, 1, 1);
   m_crssecShader.bind(0, 1, 2, 3, 6, reso, bGradMag, false);
-  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
+  CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.unbind();
 
   if (bDrawVol)
@@ -212,7 +212,7 @@ void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
     glDisable(GL_DEPTH_TEST);
     glEnable (GL_BLEND);
     m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, false);
-    t_drawSlices(sliceN, camP, camF, cuboid);
+    t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
     m_volumeShader.unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);

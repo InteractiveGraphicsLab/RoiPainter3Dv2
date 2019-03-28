@@ -58,18 +58,18 @@ bool ModeSegRGrow::canEndMode()
 void ModeSegRGrow::startMode()
 {
   //prepare flg volume (consider the Locked mask Ids)
-	vector<MaskData> &mask = ImageCore::getInst()->m_maskData;
-	OglImage3D      &vMask = ImageCore::getInst()->m_volMsk  ;
-	OglImage3D      &vFlg  = ImageCore::getInst()->m_volFlg  ;
-	EVec3i           r     = ImageCore::getInst()->getResolution();
-	EVec2i          vMinMax= ImageCore::getInst()->getVolMinMax();
+	vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
+	OglImage3D      &vMask = ImageCore::GetInst()->m_vol_mask  ;
+	OglImage3D      &vFlg  = ImageCore::GetInst()->m_vol_flag  ;
+	EVec3i           r     = ImageCore::GetInst()->GetResolution();
+	EVec2i          vMinMax= ImageCore::GetInst()->GetVolMinMax();
 
 	const int N = r[0] * r[1] * r[2];
-	for (int i = 0; i < N; ++i) vFlg[i] = ( mask[vMask[i]].lock ) ? 0 : 1;
+	for (int i = 0; i < N; ++i) vFlg[i] = ( mask[vMask[i]].m_b_locked ) ? 0 : 1;
 	vFlg.SetUpdated();
 
 	m_CPs.clear();
-	m_CpSize = ImageCore::getInst()->getPitchW() * 1;
+	m_CpSize = ImageCore::GetInst()->GetPitchW() * 1;
 	m_CpSph.initializeIcosaHedron( m_CpSize );
 
   formSegRGrow_Show();
@@ -84,7 +84,7 @@ void ModeSegRGrow::startMode()
 
 void ModeSegRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
-  EVec3f rayP, rayD, cuboid = ImageCore::getInst()->getCuboidF();
+  EVec3f rayP, rayD, cuboid = ImageCore::GetInst()->GetCuboid();
 	ogl->GetCursorRay(p, rayP, rayD);
   m_bL = true;
 
@@ -107,8 +107,8 @@ void ModeSegRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   if (m_bDrawStr)
   {
-    EVec3f cube = ImageCore::getInst()->getCuboidF();
-    CrssecCore::getInst()->GenerateCurvedCrssec(cube, ogl->GetCamPos(), m_stroke);
+    EVec3f cube = ImageCore::GetInst()->GetCuboid();
+    CrssecCore::GetInst()->GenerateCurvedCrssec(cube, ogl->GetCamPos(), m_stroke);
   }
 
   m_bL = m_bDrawStr = false;
@@ -198,12 +198,12 @@ void ModeSegRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
   EVec3f rayP, rayD, pos;
   ogl->GetCursorRay(p, rayP, rayD);
-  EVec3i reso  = ImageCore::getInst()->getResolution();
-  EVec3f pitch = ImageCore::getInst()->getPitch();
+  EVec3i reso  = ImageCore::GetInst()->GetResolution();
+  EVec3f pitch = ImageCore::GetInst()->GetPitch();
 
 
   CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
-  if( id != CRSSEC_NON ) CrssecCore::getInst()->MoveCrssec(reso, pitch, id, zDelta);
+  if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(reso, pitch, id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
   formMain_redrawMainPanel();
@@ -245,26 +245,26 @@ void ModeSegRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVe
   const bool   bGradMag = formVisParam_bGradMag();
   const bool   bPsuedo  = formVisParam_bDoPsued();
   const float  alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::getInst()->getResolution();
+  const EVec3i reso     = ImageCore::GetInst()->GetResolution();
 
   const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
   const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
   //bind volumes ---------------------------------------
   glActiveTextureARB(GL_TEXTURE0);
-  ImageCore::getInst()->m_vol.BindOgl();
+  ImageCore::GetInst()->m_vol.BindOgl();
   glActiveTextureARB(GL_TEXTURE1);
-  ImageCore::getInst()->m_volGmag.BindOgl();
+  ImageCore::GetInst()->m_vol_gm.BindOgl();
   glActiveTextureARB(GL_TEXTURE2);
-  ImageCore::getInst()->m_volFlg.BindOgl(false);
+  ImageCore::GetInst()->m_vol_flag.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE3);
-  ImageCore::getInst()->m_volMsk.BindOgl(false);
+  ImageCore::GetInst()->m_vol_mask.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE4);
   formVisParam_bindTfImg();
   glActiveTextureARB(GL_TEXTURE5);
   formVisParam_bindPsuImg();
   glActiveTextureARB(GL_TEXTURE6);
-  ImageCore::getInst()->m_imgMskCol.BindOgl(false);
+  ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 
   //draw cut stroke 
   if (m_bDrawStr) t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
@@ -272,7 +272,7 @@ void ModeSegRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVe
   //draw planes
   glColor3d(1, 1, 1);
   m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
-  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
+  CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.unbind();
 
 
@@ -281,7 +281,7 @@ void ModeSegRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVe
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !isSpaceKeyOn());
-    t_drawSlices(sliceN, camP, camF, cuboid);
+    t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
     m_volumeShader.unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -307,9 +307,9 @@ void ModeSegRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVe
 
 void ModeSegRGrow::runThresholding(short minV, short maxV)
 {
-	short       *vol    = ImageCore::getInst()->m_volOrig;
-	OglImage3D  &volFlg = ImageCore::getInst()->m_volFlg ;
-	const EVec3i res    = ImageCore::getInst()->getResolution();
+	short       *vol    = ImageCore::GetInst()->m_vol_orig;
+	OglImage3D  &volFlg = ImageCore::GetInst()->m_vol_flag ;
+	const EVec3i res    = ImageCore::GetInst()->GetResolution();
 
 	const int    N = res[0] * res[1] * res[2];
 
@@ -328,10 +328,10 @@ void ModeSegRGrow::runThresholding(short minV, short maxV)
 void ModeSegRGrow::runRegionGrow6(short minV, short maxV)
 {
 	fprintf( stderr, "runRegionGrow6...");
-	const short  *vO   = ImageCore::getInst()->m_volOrig;
-	OglImage3D   &vF   = ImageCore::getInst()->m_volFlg ; 
-	const EVec3i  reso = ImageCore::getInst()->getResolution();
-  const EVec3f  pitch= ImageCore::getInst()->getPitch();
+	const short  *vO   = ImageCore::GetInst()->m_vol_orig;
+	OglImage3D   &vF   = ImageCore::GetInst()->m_vol_flag ; 
+	const EVec3i  reso = ImageCore::GetInst()->GetResolution();
+  const EVec3f  pitch= ImageCore::GetInst()->GetPitch();
 
 	const int W = reso[0];
 	const int H = reso[1];
@@ -385,10 +385,10 @@ void ModeSegRGrow::runRegionGrow6(short minV, short maxV)
 void ModeSegRGrow::runRegionGrow26(short minV, short maxV)
 {
   fprintf( stderr, "runRegionGrow26...");
-	const short  *vO   = ImageCore::getInst()->m_volOrig;
-	OglImage3D   &vF   = ImageCore::getInst()->m_volFlg ; 
-	const EVec3i  reso = ImageCore::getInst()->getResolution();
-  const EVec3f  pitch= ImageCore::getInst()->getPitch();
+	const short  *vO   = ImageCore::GetInst()->m_vol_orig;
+	OglImage3D   &vF   = ImageCore::GetInst()->m_vol_flag ; 
+	const EVec3i  reso = ImageCore::GetInst()->GetResolution();
+  const EVec3f  pitch= ImageCore::GetInst()->GetPitch();
 
 	const int W = reso[0];
 	const int H = reso[1];
@@ -467,16 +467,16 @@ void ModeSegRGrow::runRegionGrow26(short minV, short maxV)
 
 void ModeSegRGrow::runDilation()
 {
-	t_morpho3D_dilate(ImageCore::getInst()->m_volFlg);
-	ImageCore::getInst()->m_volFlg.SetUpdated();
+	t_morpho3D_dilate(ImageCore::GetInst()->m_vol_flag);
+	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_bRegionUpdated = true;
   formMain_redrawMainPanel();
 }
 
 void ModeSegRGrow::runErosion()
 {
-	t_morpho3D_erode(ImageCore::getInst()->m_volFlg);
-	ImageCore::getInst()->m_volFlg.SetUpdated();
+	t_morpho3D_erode(ImageCore::GetInst()->m_vol_flag);
+	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_bRegionUpdated = true;
   formMain_redrawMainPanel();
 }
@@ -485,13 +485,13 @@ void ModeSegRGrow::runErosion()
 void ModeSegRGrow::runFillHole()
 {
   //compute fill hole
-	OglImage3D flg(ImageCore::getInst()->m_volFlg);
+	OglImage3D flg(ImageCore::GetInst()->m_vol_flag);
 	const int N = flg.GetW() * flg.GetH() * flg.GetD();
 	for (int i = 0; i < N; ++i) flg[i] = (flg[i] == 255) ? 255 : 0;
 	t_morpho3D_FillHole(flg);
 
   // update flg volume (never change voxel with vflg[i]==0)
-	OglImage3D &trgt = ImageCore::getInst()->m_volFlg;
+	OglImage3D &trgt = ImageCore::GetInst()->m_vol_flag;
 
 	for (int i = 0; i < N; ++i) if (trgt[i] == 1)
 	{
@@ -507,13 +507,13 @@ void ModeSegRGrow::runFillHole()
 
 void ModeSegRGrow::finishSegmentationStoreRegion()
 {
-	const EVec3i res = ImageCore::getInst()->getResolution();
+	const EVec3i res = ImageCore::GetInst()->GetResolution();
 	const int    N   = res[0] * res[1] * res[2];
 
 	bool bForeExist = false;
 	for (int i = 0; i < N; ++i)
 	{
-		if ( ImageCore::getInst()->m_volFlg[i] == 255)
+		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
 		{
 			bForeExist = true;
 			break;
@@ -526,7 +526,7 @@ void ModeSegRGrow::finishSegmentationStoreRegion()
 		return;
 	}
 
-	ImageCore::getInst()->mask_storeCurrentForeGround();
+	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	m_bRegionUpdated = false;
 	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
 }

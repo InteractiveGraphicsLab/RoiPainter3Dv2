@@ -7,6 +7,8 @@
 using namespace std;
 
 
+#pragma unmanaged
+
 
 CrssecCore::CrssecCore()
 {
@@ -19,15 +21,13 @@ CrssecCore::~CrssecCore()
 }
 
 
-
-
 //!!NOTE!! shader will be unbinded in this function
 void CrssecCore::DrawCrssec
 (
-  bool bXY, 
-  bool bYZ, 
-  bool bZX, 
-  const EVec3f &C
+  bool b_draw_xy, 
+  bool b_draw_yz, 
+  bool b_draw_zx, 
+  const EVec3f &cuboid
 )
 {
   glDisable(GL_CULL_FACE);
@@ -35,24 +35,24 @@ void CrssecCore::DrawCrssec
   //draw curved cross section
   for (int i = 0; i < m_curve_crssec.m_vSize; ++i)
   {
-    m_curve_crssec.m_vTexCd[i][0] = m_curve_crssec.m_vVerts[i][0] / C[0];
-    m_curve_crssec.m_vTexCd[i][1] = m_curve_crssec.m_vVerts[i][1] / C[1];
-    m_curve_crssec.m_vTexCd[i][2] = m_curve_crssec.m_vVerts[i][2] / C[2];
+    m_curve_crssec.m_vTexCd[i][0] = m_curve_crssec.m_vVerts[i][0] / cuboid[0];
+    m_curve_crssec.m_vTexCd[i][1] = m_curve_crssec.m_vVerts[i][1] / cuboid[1];
+    m_curve_crssec.m_vTexCd[i][2] = m_curve_crssec.m_vVerts[i][2] / cuboid[2];
   }
   m_curve_crssec.draw();
 
   const int idxQ[1][4] = { { 0,1,2,3 } };
   const int idxF[4][2] = { {0,1}, {1,2},{2,3},{3,0} };
 
-  float cx = C[0], x = cx * m_plane_yz;
-  float cy = C[1], y = cy * m_plane_zx;
-  float cz = C[2], z = cz * m_plane_xy;
-  float vtxXY[4][3] = { { 0, 0, z }, {cx, 0, z},{cx,cy, z}, { 0,cy, z} };
-  float vtxYZ[4][3] = { { x, 0, 0 }, { x,cy, 0},{ x,cy,cz}, { x, 0,cz} };
-  float vtxZX[4][3] = { { 0, y, 0 }, { 0, y,cz},{cx, y,cz}, {cx, y, 0} };
-  float texXY[4][3] = { { 0, 0, m_plane_xy },{ 1, 0, m_plane_xy },{ 1, 1, m_plane_xy },{ 0, 1, m_plane_xy } };
-  float texYZ[4][3] = { { m_plane_yz, 0, 0 },{ m_plane_yz, 1, 0 },{ m_plane_yz, 1, 1 },{ m_plane_yz, 0, 1 } };
-  float texZX[4][3] = { { 0, m_plane_zx, 0 },{ 0, m_plane_zx, 1 },{ 1, m_plane_zx, 1 },{ 1, m_plane_zx, 0 } };
+  float cx = cuboid[0], x = cx * m_plane_yz;
+  float cy = cuboid[1], y = cy * m_plane_zx;
+  float cz = cuboid[2], z = cz * m_plane_xy;
+  float vertex_xy[4][3] = { { 0, 0, z }, {cx, 0, z},{cx,cy, z}, { 0,cy, z} };
+  float vertex_yz[4][3] = { { x, 0, 0 }, { x,cy, 0},{ x,cy,cz}, { x, 0,cz} };
+  float vertex_zx[4][3] = { { 0, y, 0 }, { 0, y,cz},{cx, y,cz}, {cx, y, 0} };
+  float texturecd_xy[4][3] = { { 0, 0, m_plane_xy },{ 1, 0, m_plane_xy },{ 1, 1, m_plane_xy },{ 0, 1, m_plane_xy } };
+  float texturecd_yz[4][3] = { { m_plane_yz, 0, 0 },{ m_plane_yz, 1, 0 },{ m_plane_yz, 1, 1 },{ m_plane_yz, 0, 1 } };
+  float texturecd_zx[4][3] = { { 0, m_plane_zx, 0 },{ 0, m_plane_zx, 1 },{ 1, m_plane_zx, 1 },{ 1, m_plane_zx, 0 } };
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -60,20 +60,20 @@ void CrssecCore::DrawCrssec
   glLineWidth(2);
   glColor3d(1, 1, 1);
 
-  if (bXY) {
-    glVertexPointer  (3, GL_FLOAT, 0, vtxXY);
-    glTexCoordPointer(3, GL_FLOAT, 0, texXY);
+  if (b_draw_xy) {
+    glVertexPointer  (3, GL_FLOAT, 0, vertex_xy);
+    glTexCoordPointer(3, GL_FLOAT, 0, texturecd_xy);
     glDrawElements(GL_QUADS, 4 * 1, GL_UNSIGNED_INT, idxQ);
   }
-  if (bYZ) {
-    glVertexPointer  (3, GL_FLOAT, 0, vtxYZ);
-    glTexCoordPointer(3, GL_FLOAT, 0, texYZ);
+  if (b_draw_yz) {
+    glVertexPointer  (3, GL_FLOAT, 0, vertex_yz);
+    glTexCoordPointer(3, GL_FLOAT, 0, texturecd_yz);
     glDrawElements(GL_QUADS, 4 * 1, GL_UNSIGNED_INT, idxQ);
   }
 
-  if (bZX) {
-    glVertexPointer  (3, GL_FLOAT, 0, vtxZX);
-    glTexCoordPointer(3, GL_FLOAT, 0, texZX);
+  if (b_draw_zx) {
+    glVertexPointer  (3, GL_FLOAT, 0, vertex_zx);
+    glTexCoordPointer(3, GL_FLOAT, 0, texturecd_zx);
     glDrawElements(GL_QUADS, 4 * 1, GL_UNSIGNED_INT, idxQ);
   }
 
@@ -82,17 +82,17 @@ void CrssecCore::DrawCrssec
   glLineWidth(3);
   glColor3d(1, 1, 1);
 
-  if (bXY) {
-    glVertexPointer(3, GL_FLOAT, 0, vtxXY);
+  if (b_draw_xy) {
+    glVertexPointer(3, GL_FLOAT, 0, vertex_xy);
     glDrawElements(GL_LINES, 4 * 2, GL_UNSIGNED_INT, idxF);
   }
 
-  if (bYZ) {
-    glVertexPointer(3, GL_FLOAT, 0, vtxYZ);
+  if (b_draw_yz) {
+    glVertexPointer(3, GL_FLOAT, 0, vertex_yz);
     glDrawElements(GL_LINES, 4 * 2, GL_UNSIGNED_INT, idxF);
   }
-  if (bZX) {
-    glVertexPointer(3, GL_FLOAT, 0, vtxZX);
+  if (b_draw_zx) {
+    glVertexPointer(3, GL_FLOAT, 0, vertex_zx);
     glDrawElements(GL_LINES, 4 * 2, GL_UNSIGNED_INT, idxF);
   }
   if (m_curve_crssec.m_vSize != 0) {
@@ -108,41 +108,40 @@ void CrssecCore::DrawCrssec
 
 CRSSEC_ID CrssecCore::PickCrssec
 (
-  bool  bXY, 
-  bool  bYZ, 
-  bool  bZX,
-  bool  bCrvSurf, //curved surfaceもピックするか？
-  const EVec3f &C, 
-  const EVec3f &rayP, 
-  const EVec3f &rayD, 
-  EVec3f &resPos
+  bool  b_pick_xy, 
+  bool  b_pick_yz, 
+  bool  b_pick_zx,
+  bool  b_pick_curvecrssec, //curved surfaceもピックするか？
+  const EVec3f &cuboid, 
+  const EVec3f &ray_pos, 
+  const EVec3f &ray_dir, 
+  EVec3f &picked_position
 )
 {
   double minDist = DBL_MAX;
   CRSSEC_ID id = CRSSEC_NON;
-  const float plnYZ = C[0] * m_plane_yz;
-  const float plnZX = C[1] * m_plane_zx;
-  const float plnXY = C[2] * m_plane_xy;
+  const float plnYZ = cuboid[0] * m_plane_yz;
+  const float plnZX = cuboid[1] * m_plane_zx;
+  const float plnXY = cuboid[2] * m_plane_xy;
 
-
-  bool flg[3] = { bXY, bYZ, bZX };
+  bool flg[3] = { b_pick_xy, b_pick_yz, b_pick_zx };
 
   for (int i = 0; i < 3; ++i) if (flg[i])
   {
     EVec3f p[4];
-    if (i == 0) { p[0] << 0, 0, plnXY;  p[1] << C[0], 0, plnXY;  p[2] << C[0], C[1], plnXY;  p[3] << 0, C[1], plnXY; }
-    if (i == 1) { p[0] << plnYZ, 0, 0;  p[1] << plnYZ, C[1], 0;  p[2] << plnYZ, C[1], C[2];  p[3] << plnYZ, 0, C[2]; }
-    if (i == 2) { p[0] << 0, plnZX, 0;  p[1] << 0, plnZX, C[2];  p[2] << C[0], plnZX, C[2];  p[3] << C[0], plnZX, 0; }
+    if (i == 0) { p[0] << 0, 0, plnXY;  p[1] << cuboid[0], 0, plnXY;  p[2] << cuboid[0], cuboid[1], plnXY;  p[3] << 0, cuboid[1], plnXY; }
+    if (i == 1) { p[0] << plnYZ, 0, 0;  p[1] << plnYZ, cuboid[1], 0;  p[2] << plnYZ, cuboid[1], cuboid[2];  p[3] << plnYZ, 0, cuboid[2]; }
+    if (i == 2) { p[0] << 0, plnZX, 0;  p[1] << 0, plnZX, cuboid[2];  p[2] << cuboid[0], plnZX, cuboid[2];  p[3] << cuboid[0], plnZX, 0; }
 
     EVec3f pos;
-    if (!t_intersectRayToQuad(rayP, rayD, p[0], p[1], p[2], p[3], pos))
+    if (!t_intersectRayToQuad(ray_pos, ray_dir, p[0], p[1], p[2], p[3], pos))
       continue;
 
-    double d = (pos - rayP).norm();
+    double d = (pos - ray_pos).norm();
     if (d < minDist) {
       minDist = d;
       id = (i == 0) ? CRSSEC_XY : (i == 1) ? CRSSEC_YZ : CRSSEC_ZX;
-      resPos = pos;
+      picked_position = pos;
     }
   }
 
@@ -150,9 +149,9 @@ CRSSEC_ID CrssecCore::PickCrssec
 
   EVec3f pos;
 
-  if (bCrvSurf && m_curve_crssec.pickByRay(rayP, rayD, pos) && (pos - rayP).norm() < minDist) {
+  if (b_pick_curvecrssec && m_curve_crssec.pickByRay(ray_pos, ray_dir, pos) && (pos - ray_pos).norm() < minDist) {
     id = CRSSEC_CURVE;
-    resPos = pos;
+    picked_position = pos;
   }
 
   return id;
@@ -161,10 +160,18 @@ CRSSEC_ID CrssecCore::PickCrssec
 
 
 
-CRSSEC_ID CrssecCore::PickCrssec(bool bXY, bool bYZ, bool bZX, bool bCrvSrf, const EVec3f &C, const EVec3f &rayP, const EVec3f &rayD)
+CRSSEC_ID CrssecCore::PickCrssec(
+    bool  b_pick_xy, 
+    bool  b_pick_yz, 
+    bool  b_pick_zx,
+    bool  b_pick_curvecrssec, //curved surfaceもピックするか？
+    const EVec3f &cuboid, 
+    const EVec3f &ray_pos, 
+    const EVec3f &ray_dir
+)
 {
   EVec3f p;
-  return PickCrssec(bXY, bYZ, bZX, bCrvSrf, C, rayP, rayD, p);
+  return PickCrssec(b_pick_xy, b_pick_yz, b_pick_zx, b_pick_curvecrssec, cuboid, ray_pos, ray_dir, p);
 }
 
 
@@ -183,7 +190,7 @@ void CrssecCore::MoveCrssec(EVec3i reso, EVec3f pitch, CRSSEC_ID id, short delta
 
 
 
-void t_drawAxis()
+void t_DrawCoordinateAxis()
 {
   static const float col[4][3] = { {0,0,0},{ 1,0,0},{ 0, 1,0},{0,0, 1} };
   static const float vtx[4][3] = { {0,0,0},{10,0,0},{ 0,10,0},{0,0,10} };
@@ -202,7 +209,7 @@ void t_drawAxis()
 
 
 
-void t_drawFrame(const EVec3f &cuboid)
+void t_DrawCuboidFrame(const EVec3f &cuboid)
 {
   float x = cuboid[0];
   float y = cuboid[1];
@@ -242,7 +249,7 @@ public:
 
 
 
-void t_drawSlices(const int sliceNum, const EVec3f &camP, const EVec3f &camF, const EVec3f &cuboid)
+void t_DrawCuboidSlices(const int sliceNum, const EVec3f &camP, const EVec3f &camF, const EVec3f &cuboid)
 {
   EVec3f camRay = (camF - camP).normalized();
   const float  cx = (float)cuboid[0];
@@ -566,3 +573,9 @@ void CrssecCore::GenerateCurvedCrssec(const EVec3f &cube, const EVec3f &camP, co
   m_curve_crssec_norm.normalize();
 
 }
+
+
+#pragma managed
+
+
+

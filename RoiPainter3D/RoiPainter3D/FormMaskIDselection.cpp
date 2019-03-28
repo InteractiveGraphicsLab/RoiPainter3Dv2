@@ -12,8 +12,8 @@ using namespace RoiPainter3D;
 System::Void FormMaskIDselection::initList() {
   m_bListInit = true;
 
-  const vector<MaskData> &maskData = ImageCore::getInst()->m_maskData;
-  const int              &maskSelectedId = ImageCore::getInst()->m_maskSelectedId;
+  const vector<MaskData> &maskData = ImageCore::GetInst()->m_mask_data;
+  const int              &maskSelectedId = ImageCore::GetInst()->m_active_mask_id;
 
   //‰Šú‰»
   maskIdList->Rows->Clear();
@@ -26,11 +26,11 @@ System::Void FormMaskIDselection::initList() {
   for (int i = 0; i < maskData.size(); ++i)
   {
     string regionName = to_string(i);
-    regionName.append(" : " + maskData[i].name);
+    regionName.append(" : " + maskData[i].m_name);
 
     maskIdList[0, i]->Value = gcnew String(regionName.c_str());
     maskIdList[0, i]->Style->BackColor = Color::FromArgb(255, 255, 255);
-    maskIdList[1, i]->Style->BackColor = Color::FromArgb(maskData[i].color[0], maskData[i].color[1], maskData[i].color[2]);
+    maskIdList[1, i]->Style->BackColor = Color::FromArgb(maskData[i].m_color[0], maskData[i].m_color[1], maskData[i].m_color[2]);
   }
 
 

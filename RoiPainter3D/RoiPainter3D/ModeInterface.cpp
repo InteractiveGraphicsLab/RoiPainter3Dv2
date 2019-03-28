@@ -13,14 +13,14 @@ using namespace RoiPainter3D;
 
 CRSSEC_ID pickCrsSec_onlyTrgt(const CRSSEC_ID trgtID, const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos)
 {
-  const EVec3f cube  = ImageCore::getInst()->getCuboidF();
-  const EVec3i reso  = ImageCore::getInst()->getResolution();
-  const EVec3f pitch = ImageCore::getInst()->getPitch();
+  const EVec3f cube  = ImageCore::GetInst()->GetCuboid();
+  const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+  const EVec3f pitch = ImageCore::GetInst()->GetPitch();
 
-  if( trgtID == CRSSEC_XY   ) return CrssecCore::getInst()->PickCrssec(true, false, false, false, cube, rayP, rayD, *pos);
-  if( trgtID == CRSSEC_YZ   ) return CrssecCore::getInst()->PickCrssec(false, true, false, false, cube, rayP, rayD, *pos);
-  if( trgtID == CRSSEC_ZX   ) return CrssecCore::getInst()->PickCrssec(false, false, true, false, cube, rayP, rayD, *pos);
-  if( trgtID == CRSSEC_CURVE) return CrssecCore::getInst()->PickCrssec(false, false, false, true, cube, rayP, rayD, *pos);
+  if( trgtID == CRSSEC_XY   ) return CrssecCore::GetInst()->PickCrssec(true, false, false, false, cube, rayP, rayD, *pos);
+  if( trgtID == CRSSEC_YZ   ) return CrssecCore::GetInst()->PickCrssec(false, true, false, false, cube, rayP, rayD, *pos);
+  if( trgtID == CRSSEC_ZX   ) return CrssecCore::GetInst()->PickCrssec(false, false, true, false, cube, rayP, rayD, *pos);
+  if( trgtID == CRSSEC_CURVE) return CrssecCore::GetInst()->PickCrssec(false, false, false, true, cube, rayP, rayD, *pos);
   return CRSSEC_NON;
 }
 
@@ -29,21 +29,21 @@ CRSSEC_ID pickCrsSec_onlyTrgt(const CRSSEC_ID trgtID, const EVec3f &rayP, const 
 
 CRSSEC_ID pickCrsSec(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos)
 {
-  const EVec3f cube  = ImageCore::getInst()->getCuboidF();
-  const EVec3i reso  = ImageCore::getInst()->getResolution();
-  const EVec3f pitch = ImageCore::getInst()->getPitch();
+  const EVec3f cube  = ImageCore::GetInst()->GetCuboid();
+  const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+  const EVec3f pitch = ImageCore::GetInst()->GetPitch();
   const bool   bXY = formVisParam_bPlaneXY();
   const bool   bYZ = formVisParam_bPlaneYZ();
   const bool   bZX = formVisParam_bPlaneZX();
-  return CrssecCore::getInst()->PickCrssec(bXY, bYZ, bZX, true, cube, rayP, rayD, *pos);
+  return CrssecCore::GetInst()->PickCrssec(bXY, bYZ, bZX, true, cube, rayP, rayD, *pos);
 }
 
 CRSSEC_ID pickCrsSec(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos, const bool bXY, const bool bYZ, const bool bZX)
 {
-  const EVec3f cube  = ImageCore::getInst()->getCuboidF();
-  const EVec3i reso  = ImageCore::getInst()->getResolution();
-  const EVec3f pitch = ImageCore::getInst()->getPitch();
-  return CrssecCore::getInst()->PickCrssec(bXY, bYZ, bZX, true, cube, rayP, rayD, *pos);
+  const EVec3f cube  = ImageCore::GetInst()->GetCuboid();
+  const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+  const EVec3f pitch = ImageCore::GetInst()->GetPitch();
+  return CrssecCore::GetInst()->PickCrssec(bXY, bYZ, bZX, true, cube, rayP, rayD, *pos);
 }
 
 

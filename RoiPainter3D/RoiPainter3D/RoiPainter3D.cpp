@@ -30,8 +30,8 @@ int main()
   //だたしこのタイミングでは、Formを生成しshowしてはだめ．
     
   ModeCore  ::getInst();
-  ImageCore ::getInst();
-  CrssecCore::getInst();
+  ImageCore ::GetInst();
+  CrssecCore::GetInst();
 
   ModeVizMask::getInst();
   ModeVizNormal::getInst();

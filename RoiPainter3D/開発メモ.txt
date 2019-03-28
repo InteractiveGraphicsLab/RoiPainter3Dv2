@@ -1,0 +1,28 @@
+コーディングスタイルについて
+
++ インデント - スペース2個
+
++ 命名規則
+  - クラス名     : UpperCamelCase 
+  - 型名         : UpperCamelCase
+  - 関数名　　　 : UpperCamelCase 
+  - メンバ関数名 : UpperCamelCase 
+　- 変数名 　　  : snake_case
+　- メンバ変数名 : m_snake_case
+  - 定数名       : SNAKE_CASE
+
+//明らかな場合を覗きなるべく省略をしない
+
+
+
+- 20190328に行なった修正（主にリファクタリング）
+ + CrsSecCore 
+	- インデント
+	- rename
+	- pragma unmanaged追加
+	- 汎用関数をtmeshへ移動
+ + ImageCore
+	- インデント
+	- rename
+	- pragma unmanaged追加
+

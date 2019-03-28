@@ -67,18 +67,18 @@ bool ModeSegGCut::canEndMode()
 void ModeSegGCut::startMode()
 {
   //initialize flg volume --------------
-	const EVec3i r = ImageCore::getInst()->getResolution();
-  vector<MaskData> &mask = ImageCore::getInst()->m_maskData;
-	OglImage3D      &vMask = ImageCore::getInst()->m_volMsk  ;
-	OglImage3D      &vFlg  = ImageCore::getInst()->m_volFlg  ; 
+	const EVec3i r = ImageCore::GetInst()->GetResolution();
+  vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
+	OglImage3D      &vMask = ImageCore::GetInst()->m_vol_mask  ;
+	OglImage3D      &vFlg  = ImageCore::GetInst()->m_vol_flag  ; 
 	const int WHD = r[0] * r[1] * r[2];
-	for (int i = 0; i < WHD; ++i) vFlg[i] = ( mask[vMask[i]].lock ) ? 0 : 1;
+	for (int i = 0; i < WHD; ++i) vFlg[i] = ( mask[vMask[i]].m_b_locked ) ? 0 : 1;
 	vFlg.SetUpdated();
 
   //initialize control points ----------
 	m_fCPs.clear();
 	m_bCPs.clear();
-	m_CpSize = (float) ImageCore::getInst()->getPitchW() * 2;
+	m_CpSize = (float) ImageCore::GetInst()->GetPitchW() * 2;
 	m_CpMesh.initializeIcosaHedron( m_CpSize );
 
   formSegGCut_Show();
@@ -87,10 +87,10 @@ void ModeSegGCut::startMode()
 	if( !m_bWsdInitialized )
   {
     //backup file‚Ì“Ç‚Ýž‚Ý‚ðŽŽ‚·
-	  string backUpFilePath = ImageCore::getInst()->getFilePath() + ".RpWsdPre";
+	  string backUpFilePath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
 	  if( t_loadWsdLabel( backUpFilePath, r, m_map_vox2wsd) )
 	  {
-		  const short *vol = ImageCore::getInst()->m_volOrig;
+		  const short *vol = ImageCore::GetInst()->m_vol_orig;
 		  t_constructWsdNodesFromLabel( r[0], r[1], r[2], m_map_vox2wsd, vol, m_wsdNodes, m_wsdNodeNei);
 		  m_bWsdInitialized = true;
 		  return;
@@ -106,13 +106,13 @@ void ModeSegGCut::startMode()
 
 void ModeSegGCut::finishSegm ()
 {
-  const EVec3i res = ImageCore::getInst()->getResolution();
+  const EVec3i res = ImageCore::GetInst()->GetResolution();
 	const int    N   = res[0] * res[1] * res[2];
 
 	bool bForeExist = false;
 	for (int i = 0; i < N; ++i)
 	{
-		if ( ImageCore::getInst()->m_volFlg[i] == 255)
+		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
 		{
 			bForeExist = true;
 			break;
@@ -129,7 +129,7 @@ void ModeSegGCut::finishSegm ()
 	m_fCPs.clear();
 	m_bCPs.clear();
 
-	ImageCore::getInst()->mask_storeCurrentForeGround();
+	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	ModeCore ::getInst()->ModeSwitch( MODE_VIS_MASK );
 	formMain_redrawMainPanel();	
 }
@@ -168,7 +168,7 @@ void ModeSegGCut::LBtnDown(const EVec2i &p, OglForCLI *ogl) {
 
 void ModeSegGCut::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {  
-  if (m_bDrawCutStr) CrssecCore::getInst()->GenerateCurvedCrssec( ImageCore::getInst()->getCuboidF(), ogl->GetCamPos(), m_stroke );
+  if (m_bDrawCutStr) CrssecCore::GetInst()->GenerateCurvedCrssec( ImageCore::GetInst()->GetCuboid(), ogl->GetCamPos(), m_stroke );
 	m_bPaintCP = m_bDrawCutStr = m_bL = false;
 	ogl->BtnUp();
   formMain_redrawMainPanel();
@@ -238,7 +238,7 @@ void ModeSegGCut::MouseMove(const EVec2i &p, OglForCLI *ogl)
 
 			if( cps.empty() || ( pos - cps.back().m_pos).norm() > m_CpSize * 3 )
 			{
-				EVec4i vi = ImageCore::getInst()->getVoxelIndex4i(pos);
+				EVec4i vi = ImageCore::GetInst()->GetVoxelIndex4i(pos);
 				cps.push_back( GCutCp( pos, vi) );	
 			}
 		}
@@ -258,8 +258,8 @@ void ModeSegGCut::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 
   
   CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
-  if( id != CRSSEC_NON ) CrssecCore::getInst()->MoveCrssec(ImageCore::getInst()->getResolution(), 
-                                                           ImageCore::getInst()->getPitch(), id, zDelta);
+  if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
+                                                           ImageCore::GetInst()->GetPitch(), id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
   formMain_redrawMainPanel();
@@ -285,30 +285,30 @@ void ModeSegGCut::drawScene (const EVec3f &cuboid, const EVec3f &camP, const EVe
   const bool   bGradMag = formVisParam_bGradMag();
   const bool   bPsuedo  = formVisParam_bDoPsued();
   const float  alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::getInst()->getResolution();
+  const EVec3i reso     = ImageCore::GetInst()->GetResolution();
   const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
   const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
 	//bind volumes ---------------------------------------
 	glActiveTextureARB(GL_TEXTURE0);
-	ImageCore::getInst()->m_vol.BindOgl();
+	ImageCore::GetInst()->m_vol.BindOgl();
 	glActiveTextureARB(GL_TEXTURE1);
-	ImageCore::getInst()->m_volGmag.BindOgl();
+	ImageCore::GetInst()->m_vol_gm.BindOgl();
 	glActiveTextureARB(GL_TEXTURE2);
-	ImageCore::getInst()->m_volFlg.BindOgl(false);
+	ImageCore::GetInst()->m_vol_flag.BindOgl(false);
 	glActiveTextureARB(GL_TEXTURE3);
-	ImageCore::getInst()->m_volMsk.BindOgl(false);
+	ImageCore::GetInst()->m_vol_mask.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE4);
   formVisParam_bindTfImg();
   glActiveTextureARB(GL_TEXTURE5);
   formVisParam_bindPsuImg();
   glActiveTextureARB(GL_TEXTURE6);
-  ImageCore::getInst()->m_imgMskCol.BindOgl(false);
+  ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 
 	//render cross sections ----------------------------------
   glColor3d(1, 1, 1);
   m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
-  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
+  CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.unbind();
 
 
@@ -318,7 +318,7 @@ void ModeSegGCut::drawScene (const EVec3f &cuboid, const EVec3f &camP, const EVe
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, !isSpaceKeyOn() );
-		t_drawSlices(sliceN, camP, camF, cuboid);
+		t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
 		m_volumeShader.unbind();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
@@ -483,9 +483,9 @@ void ModeSegGCut::initWsdNodes_thread(void *pParam)
 
 	ModeSegGCut *P  = (ModeSegGCut*)pParam;
 
-	const EVec3i  reso  = ImageCore::getInst()->getResolution();
-	const short  *vol   = ImageCore::getInst()->m_volOrig   ;
-	const float  *volGM = ImageCore::getInst()->m_volOrigGM ;
+	const EVec3i  reso  = ImageCore::GetInst()->GetResolution();
+	const short  *vol   = ImageCore::GetInst()->m_vol_orig   ;
+	const float  *volGM = ImageCore::GetInst()->m_vol_origgm ;
 	
   const int W = reso[0];
 	const int H = reso[1];
@@ -504,7 +504,7 @@ void ModeSegGCut::initWsdNodes_thread(void *pParam)
 	t_constructWsdNodesFromLabel(W,H,D, vLabel, vol, P->m_wsdNodes, P->m_wsdNodeNei );
 
 	//save backup file
-	string backUpFilePath = ImageCore::getInst()->getFilePath() + ".RpWsdPre";
+	string backUpFilePath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
 	t_saveWsdLabel( backUpFilePath, reso, vLabel);
 
 	P->m_bWsdInitialized = true;
@@ -767,14 +767,14 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 	time_t t1 = clock();
 	fprintf( stderr, "graphCut 1....\n");
 
-	const EVec3i  reso  = ImageCore::getInst()->getResolution();
-	const short  *vol   = ImageCore::getInst()->m_volOrig  ;
+	const EVec3i  reso  = ImageCore::GetInst()->GetResolution();
+	const short  *vol   = ImageCore::GetInst()->m_vol_orig  ;
 	const int    W      = reso[0];
 	const int    H      = reso[1];
 	const int    D      = reso[2];
 	const int    WHD    = W*H*D, WH = W*H;
 	
-  OglImage3D  &vFlg    = ImageCore::getInst()->m_volFlg   ;
+  OglImage3D  &vFlg    = ImageCore::GetInst()->m_vol_flag   ;
 
 
 	// ‚Ð‚Æ‚Â‚Ìƒm[ƒh‚É“ñ‚ÂˆÈã‚Ì‘OŒiE”wŒi§Œä“_‚ª”z’u‚³‚ê‚Ä‚¢‚½‚çA•ªŠ„‚·‚é
@@ -894,13 +894,13 @@ void ModeSegGCut::runGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnly
 	}
 
 	const int    SEAM_W = bandWidth;
-	const EVec3i  reso  = ImageCore::getInst()->getResolution();
-	const short  *vol   = ImageCore::getInst()->m_volOrig  ;
+	const EVec3i  reso  = ImageCore::GetInst()->GetResolution();
+	const short  *vol   = ImageCore::GetInst()->m_vol_orig  ;
 	const int    W      = reso[0];
 	const int    H      = reso[1];
 	const int    D      = reso[2];
 	const int    WHD    = W*H*D, WH = W*H;
-	OglImage3D &vFlg    = ImageCore::getInst()->m_volFlg   ;
+	OglImage3D &vFlg    = ImageCore::GetInst()->m_vol_flag   ;
 
 
 

@@ -41,19 +41,19 @@ ModeSegLocalRGrow::ModeSegLocalRGrow() :
 // 255 : fixed foreground (pogitive) region
 void ModeSegLocalRGrow::startMode()
 {
-	const vector<MaskData> &mask = ImageCore::getInst()->m_maskData  ;
-	const OglImage3D      &vMask = ImageCore::getInst()->m_volMsk;
-	OglImage3D            &vFlg  = ImageCore::getInst()->m_volFlg ;
-	const EVec3i          &reso  = ImageCore::getInst()->getResolution();
+	const vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data  ;
+	const OglImage3D      &vMask = ImageCore::GetInst()->m_vol_mask;
+	OglImage3D            &vFlg  = ImageCore::GetInst()->m_vol_flag ;
+	const EVec3i          &reso  = ImageCore::GetInst()->GetResolution();
 	const int N = reso[0] * reso[1] * reso[2];
 
 
 	//CP•`‰æ‚Ì‚½‚ß mesh ‚ð‰Šú‰»
-	m_CpSize = ImageCore::getInst()->getPitchW() * 2.0f;
+	m_CpSize = ImageCore::GetInst()->GetPitchW() * 2.0f;
 	m_CPmesh.initializeIcosaHedron(m_CpSize);
 
   //set vFlg
-	for (int i = 0; i < N; ++i) vFlg[i] = ( mask[ vMask[i] ].lock ) ? 0 : 1;
+	for (int i = 0; i < N; ++i) vFlg[i] = ( mask[ vMask[i] ].m_b_locked ) ? 0 : 1;
 	vFlg.SetUpdated();
 
   //other flgs
@@ -66,8 +66,8 @@ void ModeSegLocalRGrow::startMode()
 	//seed‚ð‰Šú‰»
   m_seeds.clear();
 
-  float maxR = ImageCore::getInst()->getCuboidF()[0] / 2;
-  EVec2i minmax = ImageCore::getInst()->getVolMinMax();
+  float maxR = ImageCore::GetInst()->GetCuboid()[0] / 2;
+  EVec2i minmax = ImageCore::GetInst()->GetVolMinMax();
   formSegLocalRGrow_setSliderRange( maxR, minmax[0], minmax[1]);
   formSegLocalRGrow_updateAllItems();
 }
@@ -87,13 +87,13 @@ bool ModeSegLocalRGrow::canEndMode()
 
 void ModeSegLocalRGrow::finishSegmentation()
 {
-	const EVec3i res = ImageCore::getInst()->getResolution();
+	const EVec3i res = ImageCore::GetInst()->GetResolution();
 	const int    N = res[0] * res[1] * res[2];
 
 	bool bForeExist = false;
 	for (int i = 0; i < N; ++i)
 	{
-		if ( ImageCore::getInst()->m_volFlg[i] == 255)
+		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
 		{
 			bForeExist = true;
 			break;
@@ -107,7 +107,7 @@ void ModeSegLocalRGrow::finishSegmentation()
 	}
 
   m_seeds.clear();
-	ImageCore::getInst()->mask_storeCurrentForeGround();
+	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
 	formMain_redrawMainPanel();
 }
@@ -174,7 +174,7 @@ void ModeSegLocalRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   if (m_bDrawCutStr)
 	{
-		CrssecCore::getInst()->GenerateCurvedCrssec( ImageCore::getInst()->getCuboidF(), ogl->GetCamPos(), m_stroke );
+		CrssecCore::GetInst()->GenerateCurvedCrssec( ImageCore::GetInst()->GetCuboid(), ogl->GetCamPos(), m_stroke );
 	}
 
 	m_bDrawCutStr = m_bL = false;
@@ -340,8 +340,8 @@ void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
 	{
     CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
     if( id != CRSSEC_NON ) {
-      CrssecCore::getInst()->MoveCrssec( ImageCore::getInst()->getResolution(), 
-                                         ImageCore::getInst()->getPitch(), id, 
+      CrssecCore::GetInst()->MoveCrssec( ImageCore::GetInst()->GetResolution(), 
+                                         ImageCore::GetInst()->GetPitch(), id, 
                                          (isAltKeyOn()) ? 3 * zDelta : zDelta);
     }
 	}
@@ -370,30 +370,30 @@ void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
   const bool   bGradMag = formVisParam_bGradMag();
   const bool   bPsuedo  = formVisParam_bDoPsued();
   const float  alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::getInst()->getResolution();
+  const EVec3i reso     = ImageCore::GetInst()->GetResolution();
   const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
   const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
 	//bind volumes ---------------------------------------
 	glActiveTextureARB(GL_TEXTURE0);
-	ImageCore::getInst()->m_vol.BindOgl();
+	ImageCore::GetInst()->m_vol.BindOgl();
 	glActiveTextureARB(GL_TEXTURE1);
-	ImageCore::getInst()->m_volGmag.BindOgl();
+	ImageCore::GetInst()->m_vol_gm.BindOgl();
 	glActiveTextureARB(GL_TEXTURE2);
-	ImageCore::getInst()->m_volFlg.BindOgl(false);
+	ImageCore::GetInst()->m_vol_flag.BindOgl(false);
 	glActiveTextureARB(GL_TEXTURE3);
-	ImageCore::getInst()->m_volMsk.BindOgl(false);
+	ImageCore::GetInst()->m_vol_mask.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE4);
   formVisParam_bindTfImg();
   glActiveTextureARB(GL_TEXTURE5);
   formVisParam_bindPsuImg();
   glActiveTextureARB(GL_TEXTURE6);
-  ImageCore::getInst()->m_imgMskCol.BindOgl(false);
+  ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 
 	//render cross sections ----------------------------------
   glColor3d(1, 1, 1);
   m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
-  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
+  CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.unbind();
 
 
@@ -403,7 +403,7 @@ void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, true );
-		t_drawSlices(sliceN, camP, camF, cuboid);
+		t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
 		m_volumeShader.unbind();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
@@ -436,17 +436,17 @@ void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 // bNegPos = false: background seed
 void ModeSegLocalRGrow::dblclkToAddNewSeed(const EVec3f &rayP, const EVec3f &rayD, bool bNegPos)
 {
-  EVec3f cuboid = ImageCore::getInst()->getCuboidF();
+  EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
   EVec3f pos;
 	CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
 	if (id == CRSSEC_NON) return;
 
-	short imgV = ImageCore::getInst()->getVoxelValue(pos);
+	short imgV = ImageCore::GetInst()->GetVoxelValue(pos);
 	short minV = bNegPos ? imgV - 100 : 0         ;
 	short maxV = bNegPos ? 4095       : imgV + 100;
 	float size = bNegPos ? cuboid[0] * 0.05f : cuboid[0] * 0.02f;
 
-  EVec2i minMax = ImageCore::getInst()->getVolMinMax();
+  EVec2i minMax = ImageCore::GetInst()->GetVolMinMax();
   minV = max( minV, minMax[0]);
   maxV = min( maxV, minMax[1]);
   
@@ -537,14 +537,14 @@ void ModeSegLocalRGrow::dblclkToRemoveCP(EVec2i seedIdCpId)
 // 255 : pogitive region
 void ModeSegLocalRGrow::runLocalRegionGrow()
 {
-	const short *vol   = ImageCore::getInst()->m_volOrig      ;
-	const EVec3f pitch = ImageCore::getInst()->getPitch()     ;
-	const EVec3i res   = ImageCore::getInst()->getResolution();
+	const short *vol   = ImageCore::GetInst()->m_vol_orig      ;
+	const EVec3f pitch = ImageCore::GetInst()->GetPitch()     ;
+	const EVec3i res   = ImageCore::GetInst()->GetResolution();
 	const int W  = res[0];
 	const int H  = res[1];
 	const int D  = res[2], WH = W*H, WHD = W*H*D;
 
-	OglImage3D &vFlg = ImageCore::getInst()->m_volFlg;
+	OglImage3D &vFlg = ImageCore::GetInst()->m_vol_flag;
 	for (int i = 0; i < WHD; ++i ) vFlg[i] = (vFlg[i] == 0) ? 0 : 1;
 
 	byte *flg = new byte[W*H*D];
@@ -583,8 +583,8 @@ static float distTrans_growFronteer
 	 byte  *flg  
 )
 {
-	const EVec3f pitch = ImageCore::getInst()->getPitch();
-	const EVec3i res   = ImageCore::getInst()->getResolution();
+	const EVec3f pitch = ImageCore::GetInst()->GetPitch();
+	const EVec3i res   = ImageCore::GetInst()->GetResolution();
 	const int W  = res[0];
 	const int H  = res[1];
 	const int D  = res[2], WH = W*H, WHD = W*H*D;
@@ -689,8 +689,8 @@ static void calcDistTrans
 )	
 {
 	printf( "start Distance Transform...\n");
-	const EVec3f cuboid = ImageCore::getInst()->getCuboidF();
-	const EVec3i res    = ImageCore::getInst()->getResolution();
+	const EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
+	const EVec3i res    = ImageCore::GetInst()->GetResolution();
 	const int WHD = res[0] * res[1] * res[2];
 	
 	byte *flg = new byte[WHD];
@@ -755,7 +755,7 @@ void ModeSegLocalRGrow::s_LocalRegionGrow
 	deque<EVec4i> Q;
 	if (seed.m_pos.size() == 1)
 	{
-		Q.push_back( ImageCore::getInst()->getVoxelIndex4i( seed.m_pos[0] ) );
+		Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i( seed.m_pos[0] ) );
 	}
 	else
 	{
@@ -768,8 +768,8 @@ void ModeSegLocalRGrow::s_LocalRegionGrow
 			const float  L   = (p2 - p1).norm();
 
 			for (float a = 0; a < L; a += pitch[0] * 0.5f) 
-        Q.push_back( ImageCore::getInst()->getVoxelIndex4i(p1 + a * d) );
-			Q.push_back( ImageCore::getInst()->getVoxelIndex4i( p2 ) );
+        Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i(p1 + a * d) );
+			Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i( p2 ) );
 		}
 	}
 

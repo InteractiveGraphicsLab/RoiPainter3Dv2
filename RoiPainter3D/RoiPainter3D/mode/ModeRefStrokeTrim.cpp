@@ -67,12 +67,12 @@ void ModeRefStrokeTrim::startMode()
   }
 
   formRefStrokeTrim_Show();
-  CrssecCore::getInst()->ClearCurvedCrossec();
+  CrssecCore::GetInst()->ClearCurvedCrossec();
 
-  const vector<MaskData> &mask = ImageCore::getInst()->m_maskData;
-  OglImage3D  &vMask = ImageCore::getInst()->m_volMsk  ;
-	OglImage3D  &vFlg  = ImageCore::getInst()->m_volFlg  ;
-	const EVec3i r  =  ImageCore::getInst()->getResolution();
+  const vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
+  OglImage3D  &vMask = ImageCore::GetInst()->m_vol_mask  ;
+	OglImage3D  &vFlg  = ImageCore::GetInst()->m_vol_flag  ;
+	const EVec3i r  =  ImageCore::GetInst()->GetResolution();
 	const int    N  =  r[0] * r[1] * r[2];
 
 	for (int i = 0; i < N; ++i) vFlg[i] = ( vMask[i] == m_trgtMskId) ? 255 : 0;
@@ -98,10 +98,10 @@ void ModeRefStrokeTrim::cancelSegmentation()
 
 void ModeRefStrokeTrim::finishSegmentation()
 {
-  vector<MaskData> &mask = ImageCore::getInst()->m_maskData;
-	OglImage3D      &vMask = ImageCore::getInst()->m_volMsk;
-	OglImage3D      &vFlg  = ImageCore::getInst()->m_volFlg;
-	const EVec3i     r     = ImageCore::getInst()->getResolution();
+  vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
+	OglImage3D      &vMask = ImageCore::GetInst()->m_vol_mask;
+	OglImage3D      &vFlg  = ImageCore::GetInst()->m_vol_flag;
+	const EVec3i     r     = ImageCore::GetInst()->GetResolution();
 	const int        N     = r[0] * r[1] * r[2];
 
 
@@ -110,8 +110,8 @@ void ModeRefStrokeTrim::finishSegmentation()
 	{
 		if( vMask[i] == m_trgtMskId && vFlg[i] != 255 ) vMask[i] = 0;
 	}
-	mask[m_trgtMskId].surf.clear();
-	mask[m_trgtMskId].bRendSurf = false;
+	mask[m_trgtMskId].m_surface.clear();
+	mask[m_trgtMskId].m_b_drawsurface = false;
 
 	//トリムされた領域を新しい領域として追加
   bool bTrimRegionExist = false;
@@ -121,7 +121,7 @@ void ModeRefStrokeTrim::finishSegmentation()
     vFlg[i] = ( vFlg[i] == 1 ) ? 255 : 0;
   }
   if(bTrimRegionExist)
-	  ImageCore::getInst()->mask_storeCurrentForeGround();
+	  ImageCore::GetInst()->StoreForegroundAsNewMask();
 
 
 	vFlg .SetUpdated();
@@ -250,8 +250,8 @@ void ModeRefStrokeTrim::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
 	ogl->GetCursorRay(p, rayP, rayD);
   
   CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
-  if( id != CRSSEC_NON ) CrssecCore::getInst()->MoveCrssec(ImageCore::getInst()->getResolution(), 
-                                                           ImageCore::getInst()->getPitch(), id, zDelta);
+  if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
+                                                           ImageCore::GetInst()->GetPitch(), id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
   formMain_redrawMainPanel();
 }
@@ -263,8 +263,8 @@ void ModeRefStrokeTrim::keyDown(int nChar)
     // 変更前の状態を一個だけ持っておく実装（今後複数回のundoに対応したい）
     printf( "undo!!");
 
-		OglImage3D &vFlg  = ImageCore::getInst()->m_volFlg ;
-		EVec3i r = ImageCore::getInst()->getResolution();
+		OglImage3D &vFlg  = ImageCore::GetInst()->m_vol_flag ;
+		EVec3i r = ImageCore::GetInst()->GetResolution();
 		memcpy(&vFlg[0], m_volPrev, sizeof( byte ) * r[0] * r[1] * r[2] );
 		vFlg.SetUpdated();
 
@@ -284,7 +284,7 @@ void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
   const bool isOnManip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
   const int  sliceN    = (int)( (isOnManip ? ONMOVE_SLICE_RATE : 1.0 ) * formVisParam_getSliceNum() );
   const float alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::getInst()->getResolution();
+  const EVec3i reso     = ImageCore::GetInst()->GetResolution();
 
   if (m_bDrawStrok && m_stroke3D.size() > 1)
 	{
@@ -295,24 +295,24 @@ void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 	
 	//bind volumes ---------------------------------------
 	glActiveTextureARB(GL_TEXTURE0);
-	ImageCore::getInst()->m_vol.BindOgl();
+	ImageCore::GetInst()->m_vol.BindOgl();
 	glActiveTextureARB(GL_TEXTURE1);
-	ImageCore::getInst()->m_volGmag.BindOgl();
+	ImageCore::GetInst()->m_vol_gm.BindOgl();
 	glActiveTextureARB(GL_TEXTURE2);
-	ImageCore::getInst()->m_volFlg.BindOgl(false);
+	ImageCore::GetInst()->m_vol_flag.BindOgl(false);
 	glActiveTextureARB(GL_TEXTURE3);
-	ImageCore::getInst()->m_volMsk.BindOgl(false);
+	ImageCore::GetInst()->m_vol_mask.BindOgl(false);
 	glActiveTextureARB(GL_TEXTURE4);
 	formVisParam_bindTfImg();
 	glActiveTextureARB(GL_TEXTURE5);
 	formVisParam_bindPsuImg();
 	glActiveTextureARB(GL_TEXTURE6);
-	ImageCore::getInst()->m_imgMskCol.BindOgl(false);
+	ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 		
  //render cross sections ----------------------------------
   glColor3d(1, 1, 1);
   m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
-  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
+  CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.unbind();
 
 	//volume rendering ---------------------------------------
@@ -321,7 +321,7 @@ void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, false, !isSpaceKeyOn());
-		t_drawSlices( sliceN, camP,camF, cuboid);
+		t_DrawCuboidSlices( sliceN, camP,camF, cuboid);
 		m_volumeShader.unbind();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
@@ -378,9 +378,9 @@ void ModeRefStrokeTrim::updateVolFlgByStroke( OglForCLI *ogl)
 	if( m_stroke2D.size() < 3 ) return;
 
 	
-	OglImage3D  &vFlg  = ImageCore::getInst()->m_volFlg ;
-	const EVec3i r     = ImageCore::getInst()->getResolution();
-	const EVec3f pitch = ImageCore::getInst()->getPitch();
+	OglImage3D  &vFlg  = ImageCore::GetInst()->m_vol_flag ;
+	const EVec3i r     = ImageCore::GetInst()->GetResolution();
+	const EVec3f pitch = ImageCore::GetInst()->GetPitch();
 	const int    WH    = r[0] * r[1];
 
 	memcpy( m_volPrev, &vFlg[0], sizeof( byte ) * r[0] * r[1] * r[2] );

@@ -44,9 +44,9 @@ FormVisParam::FormVisParam(void)
 
 void FormVisParam::initAllItemsForNewImg()
 {
-  EVec3i reso      = ImageCore::getInst()->getResolution();
-  EVec3f pitch     = ImageCore::getInst()->getPitch();
-  EVec2i volMinMax = ImageCore::getInst()->getVolMinMax();
+  EVec3i reso      = ImageCore::GetInst()->GetResolution();
+  EVec3f pitch     = ImageCore::GetInst()->GetPitch();
+  EVec2i volMinMax = ImageCore::GetInst()->GetVolMinMax();
 
   sizeX->Text = reso.x().ToString();
   sizeY->Text = reso.y().ToString();
@@ -80,8 +80,8 @@ void FormVisParam::initAllItemsForNewImg()
 
 void FormVisParam::updateHistogramBmp()
 {
-  const OglImage3D &vol   = ImageCore::getInst()->m_vol    ;
-  const OglImage3D &volGM = ImageCore::getInst()->m_volGmag;
+  const OglImage3D &vol   = ImageCore::GetInst()->m_vol    ;
+  const OglImage3D &volGM = ImageCore::GetInst()->m_vol_gm;
   const int N = vol.GetW() * vol.GetH()* vol.GetD();
 
   //1. compute normalized histogram
@@ -174,7 +174,7 @@ void FormVisParam::redrawTransFuncPictBox()
 
 void FormVisParam::pitchTextBoxChanged()
 {
-  EVec3f pitch = ImageCore::getInst()->getPitch();
+  EVec3f pitch = ImageCore::GetInst()->GetPitch();
  
   float px, py, pz;
   if( float::TryParse( pitchX->Text, px ) ) pitch[0] = px;
@@ -186,7 +186,7 @@ void FormVisParam::pitchTextBoxChanged()
   pitchX->Text = pitch[0].ToString("F5");
   pitchY->Text = pitch[1].ToString("F5");
   pitchZ->Text = pitch[2].ToString("F5");
-  ImageCore::getInst()->setPitch( pitch );
+  ImageCore::GetInst()->SetPitch( pitch );
   formMain_redrawMainPanel();
 }
 System::Void FormVisParam::pitchX_TextChanged(System::Object^  sender, System::EventArgs^  e) {
@@ -216,7 +216,7 @@ System::Void FormVisParam::winLevelMinBar_MouseUp(System::Object^  sender, Syste
 {
   winLevelMinTextBox->Text = winLevelMinBar->Value.ToString();
   winLevelMinTextBox->Refresh();
-  ImageCore::getInst()->updateVisVolume(winLevelMinBar->Value, winLevelMaxBar->Value);
+  ImageCore::GetInst()->UpdateOGLVolume(winLevelMinBar->Value, winLevelMaxBar->Value);
 
   updateHistogramBmp();
   redrawTransFuncPictBox();
@@ -228,7 +228,7 @@ System::Void FormVisParam::winLevelMaxBar_MouseUp(System::Object^  sender, Syste
   winLevelMaxTextBox->Text = winLevelMaxBar->Value.ToString();
   winLevelMaxTextBox->Refresh();
 
-  ImageCore::getInst()->updateVisVolume(winLevelMinBar->Value, winLevelMaxBar->Value);
+  ImageCore::GetInst()->UpdateOGLVolume(winLevelMinBar->Value, winLevelMaxBar->Value);
 
   updateHistogramBmp();
   redrawTransFuncPictBox();

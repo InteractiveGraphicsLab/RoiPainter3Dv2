@@ -52,17 +52,17 @@ void ModeSegVoxelPaint::startMode()
   m_bR = m_bL = m_bM = false;
 	m_bDrawLasso = m_bPaintVoxel = m_bRefinmentMode = false;
 
-	const vector<MaskData> &mask = ImageCore::getInst()->m_maskData;
-	const OglImage3D      &vMask = ImageCore::getInst()->m_volMsk;
-	const EVec3i           r     = ImageCore::getInst()->getResolution();
-	OglImage3D            &vFlg  = ImageCore::getInst()->m_volFlg;
+	const vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
+	const OglImage3D      &vMask = ImageCore::GetInst()->m_vol_mask;
+	const EVec3i           r     = ImageCore::GetInst()->GetResolution();
+	OglImage3D            &vFlg  = ImageCore::GetInst()->m_vol_flag;
 	const int N = r[0] * r[1] * r[2];
 
 
   if(ModeCore::getInst()->getCurrentModeId() == MODE_SEG_VOXPAINT)
   {
     //segmentation mode
-    for (int i = 0; i < N; ++i) vFlg[i] = (mask[vMask[i]].lock) ? 0 : 1;
+    for (int i = 0; i < N; ++i) vFlg[i] = (mask[vMask[i]].m_b_locked) ? 0 : 1;
   }
   else if(ModeCore::getInst()->getCurrentModeId() == MODE_REF_VOXPAINT )
   {
@@ -84,7 +84,7 @@ void ModeSegVoxelPaint::startMode()
 
     for (int i = 0; i < N; ++i) 
       vFlg[i] = (vMask[i] == m_refineMaskId) ? 255 : 
-                (mask[vMask[i]].lock       ) ?  0  : 1;
+                (mask[vMask[i]].m_b_locked       ) ?  0  : 1;
   }
   else
   {
@@ -94,7 +94,7 @@ void ModeSegVoxelPaint::startMode()
   }
 
 	vFlg.SetUpdated();
-  CrssecCore::getInst()->ClearCurvedCrossec();
+  CrssecCore::GetInst()->ClearCurvedCrossec();
 }
 
 
@@ -104,11 +104,11 @@ void ModeSegVoxelPaint::startMode()
 
 void ModeSegVoxelPaint::finishSegmentation()
 {
-  const EVec3i res = ImageCore::getInst()->getResolution();
+  const EVec3i res = ImageCore::GetInst()->GetResolution();
   const int    N   = res[0] * res[1] * res[2];
  
-  const OglImage3D &vFlg  = ImageCore::getInst()->m_volFlg;
-  OglImage3D &vMask = ImageCore::getInst()->m_volMsk;
+  const OglImage3D &vFlg  = ImageCore::GetInst()->m_vol_flag;
+  OglImage3D &vMask = ImageCore::GetInst()->m_vol_mask;
 
 
   if ( m_bRefinmentMode )
@@ -137,7 +137,7 @@ void ModeSegVoxelPaint::finishSegmentation()
       CLI_MessageBox_OK_Show("No foreground pixel exist", "caution");
       return;
     }
-    ImageCore::getInst()->mask_storeCurrentForeGround();
+    ImageCore::GetInst()->StoreForegroundAsNewMask();
     ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
   }
 }
@@ -384,7 +384,7 @@ void ModeSegVoxelPaint::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-  OglImage3D  &vFlg = ImageCore::getInst()->m_volFlg;
+  OglImage3D  &vFlg = ImageCore::GetInst()->m_vol_flag;
 
 	if (m_bPaintVoxel) 
 	{
@@ -393,9 +393,9 @@ void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 	}
 	if (m_bDrawLasso)
 	{
-    const EVec3i reso  = ImageCore::getInst()->getResolution();
-    const EVec3f pitch = ImageCore::getInst()->getPitch();
-    const EVec3f cube  = ImageCore::getInst()->getCuboidF();
+    const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+    const EVec3f pitch = ImageCore::GetInst()->GetPitch();
+    const EVec3f cube  = ImageCore::GetInst()->GetCuboid();
 
 		t_addPixsInsideLasso( m_lassoTrgtId, reso, pitch, m_lasso, m_bL, vFlg);
 		vFlg.SetUpdated();
@@ -411,7 +411,7 @@ void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegVoxelPaint::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-  OglImage3D  &vFlg = ImageCore::getInst()->m_volFlg;
+  OglImage3D  &vFlg = ImageCore::GetInst()->m_vol_flag;
 
 	if (m_bPaintVoxel) 
 	{
@@ -420,9 +420,9 @@ void ModeSegVoxelPaint::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 	}
 	if (m_bDrawLasso)
 	{
-    const EVec3i reso  = ImageCore::getInst()->getResolution();
-    const EVec3f pitch = ImageCore::getInst()->getPitch();
-    const EVec3f cube  = ImageCore::getInst()->getCuboidF();
+    const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+    const EVec3f pitch = ImageCore::GetInst()->GetPitch();
+    const EVec3f cube  = ImageCore::GetInst()->GetCuboid();
 
 		t_addPixsInsideLasso(m_lassoTrgtId, reso, pitch, m_lasso, m_bL, vFlg);
 		vFlg.SetUpdated();
@@ -452,12 +452,12 @@ void ModeSegVoxelPaint::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	EVec3f rayP, rayD, pos;
 	ogl->GetCursorRay(p, rayP, rayD);
 
-	const OglImage3D &vFlg = ImageCore::getInst()->m_volFlg    ;
+	const OglImage3D &vFlg = ImageCore::GetInst()->m_vol_flag    ;
 
 	if ( m_bPaintVoxel )
 	{
 		if ( pickCrsSec(rayP, rayD, &pos) == CRSSEC_NON) return;
-    EVec4i vi = ImageCore::getInst()->getVoxelIndex4i(pos);
+    EVec4i vi = ImageCore::GetInst()->GetVoxelIndex4i(pos);
 
 		if( m_bL && vFlg[vi[3]] == 1 ) m_paintVoxels.push_back( vi );
 		if(!m_bL && vFlg[vi[3]] ==255) m_paintVoxels.push_back( vi );
@@ -483,8 +483,8 @@ void ModeSegVoxelPaint::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
 	ogl->GetCursorRay(p, rayP, rayD);
   
   CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
-  if( id != CRSSEC_NON ) CrssecCore::getInst()->MoveCrssec(ImageCore::getInst()->getResolution(), 
-                                                           ImageCore::getInst()->getPitch(), id, zDelta);
+  if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
+                                                           ImageCore::GetInst()->GetPitch(), id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
   formMain_redrawMainPanel();
@@ -562,33 +562,33 @@ void ModeSegVoxelPaint::drawScene
   const bool   bGradMag = formVisParam_bGradMag();
   const bool   bPsuedo  = formVisParam_bDoPsued();
   const float  alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::getInst()->getResolution();
-  const EVec3f pitch    = ImageCore::getInst()->getPitch();
+  const EVec3i reso     = ImageCore::GetInst()->GetResolution();
+  const EVec3f pitch    = ImageCore::GetInst()->GetPitch();
 
   const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
   const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
   //bind volumes ---------------------------------------
   glActiveTextureARB(GL_TEXTURE0);
-  ImageCore::getInst()->m_vol.BindOgl();
+  ImageCore::GetInst()->m_vol.BindOgl();
   glActiveTextureARB(GL_TEXTURE1);
-  ImageCore::getInst()->m_volGmag.BindOgl();
+  ImageCore::GetInst()->m_vol_gm.BindOgl();
   glActiveTextureARB(GL_TEXTURE2);
-  ImageCore::getInst()->m_volFlg.BindOgl(false);
+  ImageCore::GetInst()->m_vol_flag.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE3);
-  ImageCore::getInst()->m_volMsk.BindOgl(false);
+  ImageCore::GetInst()->m_vol_mask.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE4);
   formVisParam_bindTfImg();
   glActiveTextureARB(GL_TEXTURE5);
   formVisParam_bindPsuImg();
   glActiveTextureARB(GL_TEXTURE6);
-  ImageCore::getInst()->m_imgMskCol.BindOgl(false);
+  ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
   
 
   //draw planes
   glColor3d(1, 1, 1);
   m_crssecShader.bind(0, 1, 2, 3, 6, reso, bGradMag, !isSpaceKeyOn());
-  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
+  CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.unbind();
 
   
@@ -597,7 +597,7 @@ void ModeSegVoxelPaint::drawScene
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !isSpaceKeyOn());
-    t_drawSlices(sliceN, camP, camF, cuboid);
+    t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
     m_volumeShader.unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
