@@ -28,14 +28,14 @@ ModeVizMask::~ModeVizMask()
 {
 }
 
-bool ModeVizMask::canEndMode()
+bool ModeVizMask::CanLeaveMode()
 {
   return true;
 }
 
 
 
-void ModeVizMask::startMode()
+void ModeVizMask::StartMode()
 {
   m_bL = m_bR = m_bM = false;
   formVisMask_Show();
@@ -50,7 +50,7 @@ void ModeVizMask::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bL = true;
   
-  if (isCtrKeyOn())
+  if (IsCtrKeyOn())
   {
     m_stroke.clear();
     m_bDrawStr = true;
@@ -127,7 +127,7 @@ void ModeVizMask::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
   EVec3f rayP, rayD, pos;
   ogl->GetCursorRay(p, rayP, rayD);
-  CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
+  CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
 
   EVec3i reso  = ImageCore::GetInst()->GetResolution();
   EVec3f pitch = ImageCore::GetInst()->GetPitch();
@@ -139,15 +139,15 @@ void ModeVizMask::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 }
 
 
-void ModeVizMask::keyDown(int nChar) {}
-void ModeVizMask::keyUp(int nChar) {}
+void ModeVizMask::KeyDown(int nChar) {}
+void ModeVizMask::KeyUp(int nChar) {}
 
 
 
 
 
 
-void ModeVizMask::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
+void ModeVizMask::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
 {
   const bool   bDrawVol  = formVisParam_bRendVol();
   const bool   bGradMag  = formVisParam_bGradMag();

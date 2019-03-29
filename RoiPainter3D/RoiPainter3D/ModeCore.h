@@ -33,12 +33,12 @@ public:
   void RBtnDblClk(const EVec2i &p, OglForCLI *ogl) { m_mode->RBtnDclk(p, ogl); }
   void MBtnDblClk(const EVec2i &p, OglForCLI *ogl) { m_mode->MBtnDclk(p, ogl); }
   void MouseMove (const EVec2i &p, OglForCLI *ogl) { m_mode->MouseMove(p, ogl); }
-  void MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl) { m_mode->MouseWheel(p, zDelta, ogl); }
-  void KeyUp  (int nChar) { m_mode->keyUp  (nChar); }
-  void KeyDown(int nChar) { m_mode->keyDown(nChar); }
+  void MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl) { m_mode->MouseWheel(p, z_delta, ogl); }
+  void KeyUp  (int nChar) { m_mode->KeyUp  (nChar); }
+  void KeyDown(int nChar) { m_mode->KeyDown(nChar); }
 
-  void DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF) {
-    m_mode->drawScene(cuboid, camP, camF);
+  void DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center) {
+    m_mode->DrawScene(cuboid, cam_pos, cam_center);
   }
 
   MODE_ID GetCurrentModeId(){ return m_mode_id; }

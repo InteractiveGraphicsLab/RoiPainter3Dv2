@@ -249,15 +249,15 @@ public:
 
 
 
-void t_DrawCuboidSlices(const int sliceNum, const EVec3f &camP, const EVec3f &camF, const EVec3f &cuboid)
+void t_DrawCuboidSlices(const int num_slice, const EVec3f &cam_pos, const EVec3f &cam_center, const EVec3f &cuboid)
 {
-  EVec3f camRay = (camF - camP).normalized();
+  EVec3f camRay = (cam_center - cam_pos).normalized();
   const float  cx = (float)cuboid[0];
   const float  cy = (float)cuboid[1];
   const float  cz = (float)cuboid[2];
 
 
-  static int oneRing[8][3] = {
+  static int one_ring[8][3] = {
     { 3,4,1 },{ 0,5,2 },{ 1,6,3 },{ 2,7,0 },
     { 5,0,7 },{ 6,1,4 },{ 7,2,5 },{ 4,3,6 }
   };
@@ -267,25 +267,32 @@ void t_DrawCuboidSlices(const int sliceNum, const EVec3f &camP, const EVec3f &ca
     EVec3f(0,0,cz), EVec3f(cx,0,cz), EVec3f(cx,cy,cz), EVec3f(0,cy,cz)
   };
 
-  const float pDepth[8] = {
-    camRay.dot(p[0] - camP), camRay.dot(p[1] - camP), camRay.dot(p[2] - camP), camRay.dot(p[3] - camP),
-    camRay.dot(p[4] - camP), camRay.dot(p[5] - camP), camRay.dot(p[6] - camP), camRay.dot(p[7] - camP)
+  const float p_depth[8] = {
+    camRay.dot(p[0] - cam_pos), camRay.dot(p[1] - cam_pos), camRay.dot(p[2] - cam_pos), camRay.dot(p[3] - cam_pos),
+    camRay.dot(p[4] - cam_pos), camRay.dot(p[5] - cam_pos), camRay.dot(p[6] - cam_pos), camRay.dot(p[7] - cam_pos)
   };
 
   //sort 8 points by distance from camP --> verts
   multimap<float, int> tmp_verts;
-  for (auto i = 0; i < 8; ++i) tmp_verts.insert(make_pair(pDepth[i], i));
+  for (auto i = 0; i < 8; ++i) 
+  {
+    tmp_verts.insert( make_pair(p_depth[i], i) );
+  }
 
   vector<pair<float, int>> verts;
-  for (auto it = tmp_verts.rbegin(); it != tmp_verts.rend(); ++it) verts.push_back(*it);
+  for (auto it = tmp_verts.rbegin(); it != tmp_verts.rend(); ++it)
+  {
+    verts.push_back(*it);
+  }
 
   //gen edges for rendering
   vector < vector< EVec2i > > TargetEdges(7);
   vector < byte > vtxUsed(8, false);
 
-  for (int i = 0; i < 7; ++i) {
+  for (int i = 0; i < 7; ++i) 
+  {
     int  pivIdx = verts[i].second;
-    int  *ringI = oneRing[pivIdx];
+    int  *ringI = one_ring[pivIdx];
 
     vtxUsed[pivIdx] = true;
 
@@ -336,13 +343,13 @@ void t_DrawCuboidSlices(const int sliceNum, const EVec3f &camP, const EVec3f &ca
   vector<EVec3f> vtx;
   vector<EVec3f> tex;
   vector<Poly>   ids;
-  vtx.reserve(sliceNum * 6);
-  tex.reserve(sliceNum * 6);
-  ids.reserve(sliceNum * 4);
+  vtx.reserve(num_slice * 6);
+  tex.reserve(num_slice * 6);
+  ids.reserve(num_slice * 4);
 
   const float  depthStart = verts.front().first;
   const float  depthEnd = max(.0f, verts.back().first);
-  const float  SliceInterval = (depthStart - depthEnd) / sliceNum;
+  const float  SliceInterval = (depthStart - depthEnd) / num_slice;
 
   for (float depth = depthStart; depth > depthEnd; depth -= SliceInterval) {
     int pivIdx = 0;
@@ -364,15 +371,15 @@ void t_DrawCuboidSlices(const int sliceNum, const EVec3f &camP, const EVec3f &ca
     {
       const int idx_0 = TargetEdges[pivIdx][kk][0];
       const int idx_1 = TargetEdges[pivIdx][kk][1];
-      const float d0 = pDepth[idx_0];
-      const float d1 = pDepth[idx_1];
+      const float  d0 = p_depth[idx_0];
+      const float  d1 = p_depth[idx_1];
 
       if (fabs(d0 - d1) < 0.00001) break;
 
       const EVec3f &pos = p[idx_0] + (p[idx_1] - p[idx_0]) * (depth - d0) / (d1 - d0);
-      vtx.push_back(pos);
-      tex.push_back(EVec3f(pos[0] / cx, pos[1] / cy, pos[2] / cz));
-      if (kk > 1) ids.push_back(Poly(I, I + kk - 1, I + kk));
+      vtx.push_back( pos );
+      tex.push_back( EVec3f(pos[0] / cx, pos[1] / cy, pos[2] / cz));
+      if (kk > 1) ids.push_back( Poly(I, I + kk - 1, I + kk) );
     }
   }
 

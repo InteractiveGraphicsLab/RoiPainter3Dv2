@@ -82,7 +82,7 @@ public:
 
 void t_DrawCoordinateAxis();
 void t_DrawCuboidFrame(const EVec3f &cuboid);
-void t_DrawCuboidSlices(const int slineNum, const EVec3f &camP, const EVec3f &camF, const EVec3f &cuboid);
+void t_DrawCuboidSlices(const int num_slice, const EVec3f &cam_pos, const EVec3f &cam_center, const EVec3f &cuboid);
 
 
 

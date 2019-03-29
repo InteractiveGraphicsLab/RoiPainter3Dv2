@@ -1597,7 +1597,7 @@ inline void t_DrawPolyLine(
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(3, GL_FLOAT, 0, points.data());
-  glDrawElements(GL_LINE_STRIP, (int)points.size(), GL_UNSIGNED_INT, idx);
+  glDrawElements(GL_LINE_STRIP, N, GL_UNSIGNED_INT, idx);
   glDisableClientState(GL_VERTEX_ARRAY);
 
   delete[] idx;

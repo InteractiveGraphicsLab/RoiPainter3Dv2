@@ -35,12 +35,12 @@ ModeVizNormal::ModeVizNormal() :
 
 
 
-bool ModeVizNormal::canEndMode()
+bool ModeVizNormal::CanLeaveMode()
 {
   return true;
 }
 
-void ModeVizNormal::startMode()
+void ModeVizNormal::StartMode()
 {
   std::cout << "ModeVizNormal...startMode----------\n";
 
@@ -56,7 +56,7 @@ void ModeVizNormal::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bL = true;
 
-  if (isCtrKeyOn())
+  if (IsCtrKeyOn())
   {
     m_stroke.clear();
     m_bDrawStr = true;
@@ -122,7 +122,7 @@ void ModeVizNormal::MouseMove(const EVec2i &p, OglForCLI *ogl)
   EVec3f rayP, rayD, pos;
   ogl->GetCursorRay(p, rayP, rayD);
 
-  CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
+  CRSSEC_ID id = PickCrssec( rayP, rayD, &pos);
   if(id != CRSSEC_NON){
     short v = ImageCore::GetInst()->GetVoxelValue(pos);
     formVisNorm_setVoxelVis(v);
@@ -145,7 +145,7 @@ void ModeVizNormal::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
   EVec3f rayP, rayD, pos;
   ogl->GetCursorRay(p, rayP, rayD);
-  CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
+  CRSSEC_ID id = PickCrssec( rayP, rayD, &pos);
 
   EVec3i reso   = ImageCore::GetInst()->GetResolution();
   EVec3f pitch  = ImageCore::GetInst()->GetPitch();
@@ -158,10 +158,10 @@ void ModeVizNormal::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 }
 
 
-void ModeVizNormal::keyDown(int nChar) {}
-void ModeVizNormal::keyUp(int nChar) {}
+void ModeVizNormal::KeyDown(int nChar) {}
+void ModeVizNormal::KeyUp(int nChar) {}
 
-void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
+void ModeVizNormal::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
 {
   const bool   bXY      = formVisParam_bPlaneXY();
   const bool   bYZ      = formVisParam_bPlaneYZ();

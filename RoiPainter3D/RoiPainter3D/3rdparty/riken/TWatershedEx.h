@@ -2,9 +2,6 @@
 
 #include <vector>
 #include <list>
-using namespace std;
-
-
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -29,10 +26,10 @@ using namespace std;
 
 class TWsPixelEx
 {
-	unsigned short m_val   ;//pixel intensity 
-    int            m_label ;//pixel label INIT
-    int            m_dist  ;//maskŽž‚Ìbasin/watershed pixel‚©‚ç‚Ì‹——£
-	std::vector<TWsPixelEx*> m_neighbours;//reference to neighboring pixels
+  unsigned short m_val   ;//pixel intensity 
+  int            m_label ;//pixel label INIT
+  int            m_dist  ;//maskŽž‚Ìbasin/watershed pixel‚©‚ç‚Ì‹——£
+  std::vector<TWsPixelEx*> m_neighbours;//reference to neighboring pixels
 
 public:
 	~TWsPixelEx(){}

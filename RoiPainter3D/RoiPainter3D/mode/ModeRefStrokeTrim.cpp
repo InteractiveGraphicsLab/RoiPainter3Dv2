@@ -33,7 +33,7 @@ ModeRefStrokeTrim::ModeRefStrokeTrim() :
 }
 
 
-bool ModeRefStrokeTrim::canEndMode()
+bool ModeRefStrokeTrim::CanLeaveMode()
 {
   if( !m_b_modified ) return true;
 	
@@ -49,7 +49,7 @@ bool ModeRefStrokeTrim::canEndMode()
 // 0  : locked and never changed, 
 // 1  : back  
 //255 : fore 
-void ModeRefStrokeTrim::startMode()
+void ModeRefStrokeTrim::StartMode()
 {
 	m_b_modified = false;
 
@@ -148,7 +148,7 @@ void ModeRefStrokeTrim::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 	m_stroke2d.clear();
 	m_stroke3d.clear();
 
-	if (isShiftKeyOn())
+	if (IsShiftKeyOn())
 	{
 		m_b_drawingstroke = true;
 		EVec3f rayP, rayD;
@@ -239,14 +239,14 @@ void ModeRefStrokeTrim::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
   EVec3f rayP, rayD, pos;
 	ogl->GetCursorRay(p, rayP, rayD);
   
-  CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
+  CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
   if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
                                                            ImageCore::GetInst()->GetPitch(), id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
   FormMain_RedrawMainPanel();
 }
 
-void ModeRefStrokeTrim::keyDown(int nChar) 
+void ModeRefStrokeTrim::KeyDown(int nChar) 
 {
   if (nChar == 'Z')
 	{
@@ -263,10 +263,10 @@ void ModeRefStrokeTrim::keyDown(int nChar)
 }
 
 
-void ModeRefStrokeTrim::keyUp(int nChar) {}
+void ModeRefStrokeTrim::KeyUp(int nChar) {}
 
 
-void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
+void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center)
 {
   //renderingに必用なパラメータを集めておく
   const EVec3i reso  = ImageCore::GetInst()->GetResolution();
@@ -294,7 +294,7 @@ void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 		
  //render cross sections ----------------------------------
   glColor3d(1, 1, 1);
-  m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
+  m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, false, !IsSpaceKeyOn());
   const bool b_xy  = formVisParam_bPlaneXY();
   const bool b_yz  = formVisParam_bPlaneYZ();
   const bool b_zx  = formVisParam_bPlaneZX();
@@ -310,8 +310,8 @@ void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, false, !isSpaceKeyOn());
-		t_DrawCuboidSlices( slice_num, camP,camF, cuboid);
+		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, false, !IsSpaceKeyOn());
+		t_DrawCuboidSlices( slice_num, cam_pos, cam_center, cuboid);
 		m_volume_shader.Unbind();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);

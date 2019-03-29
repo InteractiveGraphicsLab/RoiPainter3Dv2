@@ -63,6 +63,8 @@
    - rename
 + ModeSegVoxelPaint
    - rename
+   - pragma unmanaged 追加
+   - replace printf --> std::cout << 
 
 
 TODO Mode*のリファクタリング

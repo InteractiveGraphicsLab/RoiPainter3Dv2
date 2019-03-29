@@ -38,7 +38,7 @@ void ModeCore::ModeSwitch(MODE_ID m)
 {
   std::cout << "\n\nModeSwitch id = " <<  m << "\n\n";
 
-  if (!m_mode->canEndMode()) return;
+  if (!m_mode->CanLeaveMode()) return;
 
   if      (m == MODE_VIS_MASK      ) { m_mode = ModeVizMask      ::getInst(); m_mode_id = m; }
   else if (m == MODE_SEG_REGGROW   ) { m_mode = ModeSegRGrow     ::getInst(); m_mode_id = m; }
@@ -59,7 +59,7 @@ void ModeCore::ModeSwitch(MODE_ID m)
   formSegLocalRGrow_Hide();
 
   // start new mode
-  m_mode->startMode();
+  m_mode->StartMode();
 }
 
 

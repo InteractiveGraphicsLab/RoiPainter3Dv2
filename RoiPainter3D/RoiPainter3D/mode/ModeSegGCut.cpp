@@ -54,7 +54,7 @@ ModeSegGCut::ModeSegGCut() :
 //     1: trgt & fore
 //   255: trgt & back
 
-bool ModeSegGCut::canEndMode()
+bool ModeSegGCut::CanLeaveMode()
 {
 	if ( (m_fCPs.size() || m_bCPs.size() ) && !CLI_MessageBox_YESNO_Show("Current Result is not stored. \nDo you want to leave?", "caution") )
 	{
@@ -64,7 +64,7 @@ bool ModeSegGCut::canEndMode()
 }
 
 
-void ModeSegGCut::startMode()
+void ModeSegGCut::StartMode()
 {
   //initialize flg volume --------------
 	const EVec3i r = ImageCore::GetInst()->GetResolution();
@@ -161,8 +161,8 @@ void ModeSegGCut::clearAllCPs()
 void ModeSegGCut::LBtnDown(const EVec2i &p, OglForCLI *ogl) {
   m_bL = true;
 	m_stroke.clear();
-	if (     isShiftKeyOn()) m_bPaintCP = true;
-	else if (isCtrKeyOn()  ) m_bDrawCutStr = true;
+	if (     IsShiftKeyOn()) m_bPaintCP = true;
+	else if (IsCtrKeyOn()  ) m_bDrawCutStr = true;
 	else                     ogl->BtnDown_Trans(p);
 }
 
@@ -176,7 +176,7 @@ void ModeSegGCut::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegGCut::RBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
-  if( isShiftKeyOn() ) m_bPaintCP = true;
+  if( IsShiftKeyOn() ) m_bPaintCP = true;
 	else                 ogl->BtnDown_Rot(p);
 	m_bR = true;
 }
@@ -190,7 +190,7 @@ void ModeSegGCut::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegGCut::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
-  if( isShiftKeyOn() ) m_bPaintCP = true;
+  if( IsShiftKeyOn() ) m_bPaintCP = true;
 	else                 ogl->BtnDown_Zoom(p);
 	m_bM = true;
 }
@@ -232,7 +232,7 @@ void ModeSegGCut::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	}
 	else if( m_bPaintCP && (m_bL || m_bR) )
 	{
-		if (pickCrsSec( rayP, rayD, &pos) != CRSSEC_NON )
+		if (PickCrssec( rayP, rayD, &pos) != CRSSEC_NON )
 		{
       vector<GCutCp> &cps =  m_bL ? m_fCPs : m_bCPs;
 
@@ -257,7 +257,7 @@ void ModeSegGCut::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 	ogl->GetCursorRay(p, rayP, rayD);
 
   
-  CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
+  CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
   if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
                                                            ImageCore::GetInst()->GetPitch(), id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
@@ -267,15 +267,15 @@ void ModeSegGCut::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 
 
 
-void ModeSegGCut::keyDown(int nChar) {
+void ModeSegGCut::KeyDown(int nChar) {
   FormMain_RedrawMainPanel();
 }
-void ModeSegGCut::keyUp(int nChar) {
+void ModeSegGCut::KeyUp(int nChar) {
   FormMain_RedrawMainPanel();
 }
 
 
-void ModeSegGCut::drawScene (const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF )
+void ModeSegGCut::DrawScene (const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF )
 {
   
   const bool   bXY      = formVisParam_bPlaneXY();
@@ -307,17 +307,17 @@ void ModeSegGCut::drawScene (const EVec3f &cuboid, const EVec3f &camP, const EVe
 
 	//render cross sections ----------------------------------
   glColor3d(1, 1, 1);
-  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
+  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !IsSpaceKeyOn());
   CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.Unbind();
 
 
 	//volume rendering ---------------------------------------
-	if ( bDrawVol && !isSpaceKeyOn())
+	if ( bDrawVol && !IsSpaceKeyOn())
 	{
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, !isSpaceKeyOn() );
+		m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, !IsSpaceKeyOn() );
 		t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
 		m_volumeShader.Unbind();
 		glDisable(GL_BLEND);

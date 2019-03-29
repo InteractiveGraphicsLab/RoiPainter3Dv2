@@ -40,13 +40,13 @@ ModeSegVoxelPaint::ModeSegVoxelPaint() :
 }
 
 
-bool ModeSegVoxelPaint::canEndMode()
+bool ModeSegVoxelPaint::CanLeaveMode()
 {
   return true;
 }
 
 
-void ModeSegVoxelPaint::startMode()
+void ModeSegVoxelPaint::StartMode()
 {
   formSegVoxelPaint_Show();
 
@@ -313,14 +313,14 @@ void ModeSegVoxelPaint::LBtnDown( const EVec2i &p, OglForCLI *ogl)
   m_paint_voxels.clear();
   m_lasso.clear();
 		
-	if ( isShiftKeyOn() )
+	if ( IsShiftKeyOn() )
 	{
 		if ( formSegVoxelPaint_bLassoMode() ) 
     {
       m_b_lassomode  = true;
       EVec3f rayP, rayD, pos;
       ogl->GetCursorRay(p, rayP, rayD);
-      m_trgt_crssecid = pickCrsSec(rayP, rayD, &pos);
+      m_trgt_crssecid = PickCrssec(rayP, rayD, &pos);
 
       if(m_trgt_crssecid != CRSSEC_NON) m_b_lassomode = true;
     }
@@ -342,14 +342,14 @@ void ModeSegVoxelPaint::RBtnDown(const EVec2i &p, OglForCLI *ogl)
   m_paint_voxels.clear();
   m_lasso.clear();
 		
-	if ( isShiftKeyOn() )
+	if ( IsShiftKeyOn() )
 	{
 		if ( formSegVoxelPaint_bLassoMode() ) 
     {
       m_b_lassomode  = true;
       EVec3f rayP, rayD, pos;
       ogl->GetCursorRay(p, rayP, rayD);
-      m_trgt_crssecid = pickCrsSec(rayP, rayD, &pos);
+      m_trgt_crssecid = PickCrssec(rayP, rayD, &pos);
 
       if(m_trgt_crssecid != CRSSEC_NON) m_b_lassomode = true;
     }
@@ -446,7 +446,7 @@ void ModeSegVoxelPaint::MouseMove(const EVec2i &p, OglForCLI *ogl)
 
 	if ( m_b_paintmode )
 	{
-		if ( pickCrsSec(ray_pos, ray_dir, &pos) == CRSSEC_NON) return;
+		if ( PickCrssec(ray_pos, ray_dir, &pos) == CRSSEC_NON) return;
     EVec4i vi = ImageCore::GetInst()->GetVoxelIndex4i(pos);
 
 		if( m_bL && vFlg[vi[3]] == 1 ) m_paint_voxels.push_back( vi );
@@ -454,7 +454,7 @@ void ModeSegVoxelPaint::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	}
 	else if (m_b_lassomode) 
 	{
-		if ( pickCrsSec_onlyTrgt( m_trgt_crssecid, ray_pos, ray_dir, &pos) != CRSSEC_NON){
+		if ( PickCrsSec( m_trgt_crssecid, ray_pos, ray_dir, &pos) != CRSSEC_NON){
 			m_lasso.push_back(pos);
 		}
 	}
@@ -472,7 +472,7 @@ void ModeSegVoxelPaint::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *og
   EVec3f ray_pos, ray_dir, pos;
 	ogl->GetCursorRay(p, ray_pos, ray_dir);
   
-  CRSSEC_ID id = pickCrsSec(ray_pos, ray_dir, &pos);
+  CRSSEC_ID id = PickCrssec(ray_pos, ray_dir, &pos);
   if( id != CRSSEC_NON ) 
   {
     CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
@@ -494,11 +494,11 @@ void ModeSegVoxelPaint::MBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
 
 
 
-void ModeSegVoxelPaint::keyDown(int nChar) {
+void ModeSegVoxelPaint::KeyDown(int nChar) {
   FormMain_RedrawMainPanel();
 }
 
-void ModeSegVoxelPaint::keyUp(int nChar) {
+void ModeSegVoxelPaint::KeyUp(int nChar) {
   FormMain_RedrawMainPanel();
 }
 
@@ -544,7 +544,7 @@ static void t_drawCubes
 
 
 
-void ModeSegVoxelPaint::drawScene
+void ModeSegVoxelPaint::DrawScene
 (
     const EVec3f &cuboid, 
     const EVec3f &camP  ,
@@ -583,16 +583,16 @@ void ModeSegVoxelPaint::drawScene
 
   //draw planes
   glColor3d(1, 1, 1);
-  m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, bGradMag, !isSpaceKeyOn());
+  m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, bGradMag, !IsSpaceKeyOn());
   CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssec_shader.Unbind();
 
   
-  if (bDrawVol && !isSpaceKeyOn())
+  if (bDrawVol && !IsSpaceKeyOn())
   {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !isSpaceKeyOn());
+    m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !IsSpaceKeyOn());
     t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
     m_volume_shader.Unbind();
     glDisable(GL_BLEND);

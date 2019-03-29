@@ -39,7 +39,7 @@ ModeSegLocalRGrow::ModeSegLocalRGrow() :
 // 2   : fixed background (negative) region
 // 3   : now visiting flg
 // 255 : fixed foreground (pogitive) region
-void ModeSegLocalRGrow::startMode()
+void ModeSegLocalRGrow::StartMode()
 {
 	const vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data  ;
 	const OglImage3D      &vMask = ImageCore::GetInst()->m_vol_mask;
@@ -73,7 +73,7 @@ void ModeSegLocalRGrow::startMode()
 }
 
 
-bool ModeSegLocalRGrow::canEndMode()
+bool ModeSegLocalRGrow::CanLeaveMode()
 {
 	if ( m_seeds.size() != 0 && !CLI_MessageBox_YESNO_Show("Current Result is not stored. Do you want to leave?", "message") )
 	{
@@ -142,12 +142,12 @@ void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bL = true;
 
-  if (isShiftKeyOn() )
+  if (IsShiftKeyOn() )
   {
     return;
   }
 
-  if (isCtrKeyOn() )
+  if (IsCtrKeyOn() )
   {
     m_bDrawCutStr = true;
     m_stroke.clear();
@@ -231,7 +231,7 @@ void ModeSegLocalRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 	ogl->GetCursorRay(p, rayP, rayD);
 
   // highlight済み + Shift Ldouble click --> add cp to a seed
-	if( isShiftKeyOn() && m_ActiveSeedIdx  != -1) 
+	if( IsShiftKeyOn() && m_ActiveSeedIdx  != -1) 
 	{
 		dblclkToAddNewCp(rayP, rayD, m_ActiveSeedIdx);
 	}
@@ -252,7 +252,7 @@ void ModeSegLocalRGrow::RBtnDclk(const EVec2i &p, OglForCLI *ogl)
   ogl->GetCursorRay(p, rayP, rayD);
 	
   // highlight済み + Shift Ldouble click --> add cp to a seed
-	if( isShiftKeyOn() && m_ActiveSeedIdx  != -1) 
+	if( IsShiftKeyOn() && m_ActiveSeedIdx  != -1) 
 	{
 		dblclkToAddNewCp(rayP, rayD, m_ActiveSeedIdx);
 	}
@@ -311,7 +311,7 @@ void ModeSegLocalRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	}
 	else if( m_moveSeedCpId[0] != -1 )
 	{
-    if ( pickCrsSec( rayP, rayD, &pos) != CRSSEC_NON )
+    if ( PickCrssec( rayP, rayD, &pos) != CRSSEC_NON )
       m_seeds[ m_moveSeedCpId[0] ].m_pos[m_moveSeedCpId[1] ] = pos;
 	}
   else 
@@ -332,17 +332,17 @@ void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
 	if ( 0 <= m_ActiveSeedIdx && m_ActiveSeedIdx < m_seeds.size() )
 	{
     //active seed があれば、その半径を変更する (algキーが押されているときは高速) 
-    double d = isAltKeyOn() ? (float)(zDelta * 0.1) : (float)(zDelta * 0.001);
+    double d = IsAltKeyOn() ? (float)(zDelta * 0.1) : (float)(zDelta * 0.001);
     m_seeds[m_ActiveSeedIdx].modifyRadius( (float)d );
     formSegLocalRGrow_updateSliders();
 	}
 	else
 	{
-    CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
+    CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
     if( id != CRSSEC_NON ) {
       CrssecCore::GetInst()->MoveCrssec( ImageCore::GetInst()->GetResolution(), 
                                          ImageCore::GetInst()->GetPitch(), id, 
-                                         (isAltKeyOn()) ? 3 * zDelta : zDelta);
+                                         (IsAltKeyOn()) ? 3 * zDelta : zDelta);
     }
 	}
   FormMain_RedrawMainPanel();
@@ -350,8 +350,8 @@ void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
 
 
 
-void ModeSegLocalRGrow::keyDown(int nChar) {FormMain_RedrawMainPanel();}
-void ModeSegLocalRGrow::keyUp(int nChar) {FormMain_RedrawMainPanel();}
+void ModeSegLocalRGrow::KeyDown(int nChar) {FormMain_RedrawMainPanel();}
+void ModeSegLocalRGrow::KeyUp(int nChar) {FormMain_RedrawMainPanel();}
 
 
 
@@ -361,7 +361,7 @@ void ModeSegLocalRGrow::keyUp(int nChar) {FormMain_RedrawMainPanel();}
 
 
 
-void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
+void ModeSegLocalRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
 {
   const bool   bXY      = formVisParam_bPlaneXY();
   const bool   bYZ      = formVisParam_bPlaneYZ();
@@ -392,13 +392,13 @@ void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 
 	//render cross sections ----------------------------------
   glColor3d(1, 1, 1);
-  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
+  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !IsSpaceKeyOn());
   CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.Unbind();
 
 
 	//volume rendering ---------------------------------------
-	if ( bDrawVol && !isSpaceKeyOn() )
+	if ( bDrawVol && !IsSpaceKeyOn() )
 	{
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
@@ -410,7 +410,7 @@ void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 	}
 
   //draw seeds
-  if(!isShiftKeyOn()) 
+  if(!IsShiftKeyOn()) 
   {
     for( const auto& s : m_seeds) s.draw( m_CPmesh );
   }
@@ -438,7 +438,7 @@ void ModeSegLocalRGrow::dblclkToAddNewSeed(const EVec3f &rayP, const EVec3f &ray
 {
   EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
   EVec3f pos;
-	CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
+	CRSSEC_ID id = PickCrssec( rayP, rayD, &pos);
 	if (id == CRSSEC_NON) return;
 
 	short imgV = ImageCore::GetInst()->GetVoxelValue(pos);
@@ -478,7 +478,7 @@ void ModeSegLocalRGrow::dblclkToAddNewCp(const EVec3f &rayP, const EVec3f &rayD,
 {
 	EVec3f pos;
 
-	if ( pickCrsSec(rayP, rayD, &pos) != CRSSEC_NON)
+	if ( PickCrssec(rayP, rayD, &pos) != CRSSEC_NON)
 	{
     m_seeds[seedId].m_pos.push_back(pos);
 	}

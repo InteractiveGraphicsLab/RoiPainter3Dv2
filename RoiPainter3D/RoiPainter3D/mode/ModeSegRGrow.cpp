@@ -42,7 +42,7 @@ ModeSegRGrow::~ModeSegRGrow()
 
 
 
-bool ModeSegRGrow::canEndMode()
+bool ModeSegRGrow::CanLeaveMode()
 {
 	if( !m_bRegionUpdated) return true;
 
@@ -55,7 +55,7 @@ bool ModeSegRGrow::canEndMode()
 
 
 
-void ModeSegRGrow::startMode()
+void ModeSegRGrow::StartMode()
 {
   //prepare flg volume (consider the Locked mask Ids)
 	vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
@@ -88,7 +88,7 @@ void ModeSegRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 	ogl->GetCursorRay(p, rayP, rayD);
   m_bL = true;
 
-  if (isCtrKeyOn())
+  if (IsCtrKeyOn())
   {
     m_stroke.clear();
     m_bDrawStr = true;
@@ -156,7 +156,7 @@ void ModeSegRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 	}
   else
   {
-	  CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
+	  CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
 	  if (id != CRSSEC_NON) m_CPs.push_back( pos );
   }
   FormMain_RedrawMainPanel();
@@ -182,7 +182,7 @@ void ModeSegRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
   }
   else if (m_dragCpId != -1)
 	{
-		CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
+		CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
 		if (id != CRSSEC_NON) m_CPs[m_dragCpId] = pos;
 	}
 	else 
@@ -202,7 +202,7 @@ void ModeSegRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
   EVec3f pitch = ImageCore::GetInst()->GetPitch();
 
 
-  CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
+  CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
   if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(reso, pitch, id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
@@ -226,17 +226,17 @@ int ModeSegRGrow::pickCPs(const EVec3f &rayP, const EVec3f &rayD)
 
 
 
-void ModeSegRGrow::keyDown(int nChar) 
+void ModeSegRGrow::KeyDown(int nChar) 
 {
   FormMain_RedrawMainPanel();
 }
-void ModeSegRGrow::keyUp(int nChar) 
+void ModeSegRGrow::KeyUp(int nChar) 
 {
   FormMain_RedrawMainPanel();
 }
 
 
-void ModeSegRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
+void ModeSegRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
 {
   const bool bXY = formVisParam_bPlaneXY();
   const bool bYZ = formVisParam_bPlaneYZ();
@@ -271,16 +271,16 @@ void ModeSegRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVe
 
   //draw planes
   glColor3d(1, 1, 1);
-  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
+  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !IsSpaceKeyOn());
   CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
   m_crssecShader.Unbind();
 
 
-  if (bDrawVol && !isSpaceKeyOn())
+  if (bDrawVol && !IsSpaceKeyOn())
   {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !isSpaceKeyOn());
+    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !IsSpaceKeyOn());
     t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
     m_volumeShader.Unbind();
     glDisable(GL_BLEND);
