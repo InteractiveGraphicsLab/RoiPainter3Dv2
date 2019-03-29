@@ -114,7 +114,7 @@ void ModeSegRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
   m_bL = m_bDrawStr = false;
 	m_dragCpId = -1;
 	ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeSegRGrow::RBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -127,7 +127,7 @@ void ModeSegRGrow::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bR = false;
 	ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeSegRGrow::MBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -140,7 +140,7 @@ void ModeSegRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = false;
 	ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -159,7 +159,7 @@ void ModeSegRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 	  CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
 	  if (id != CRSSEC_NON) m_CPs.push_back( pos );
   }
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -178,7 +178,7 @@ void ModeSegRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
   if (m_bDrawStr)
   {
     m_stroke.push_back(rayP + 0.1f * rayD);
-    formMain_redrawMainPanel();
+    FormMain_RedrawMainPanel();
   }
   else if (m_dragCpId != -1)
 	{
@@ -190,7 +190,7 @@ void ModeSegRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
 		ogl->MouseMove(p);
 	}
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -206,7 +206,7 @@ void ModeSegRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
   if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(reso, pitch, id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -228,11 +228,11 @@ int ModeSegRGrow::pickCPs(const EVec3f &rayP, const EVec3f &rayD)
 
 void ModeSegRGrow::keyDown(int nChar) 
 {
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 void ModeSegRGrow::keyUp(int nChar) 
 {
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -267,22 +267,22 @@ void ModeSegRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVe
   ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 
   //draw cut stroke 
-  if (m_bDrawStr) t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
+  if (m_bDrawStr) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
 
   //draw planes
   glColor3d(1, 1, 1);
-  m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
+  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
   CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
-  m_crssecShader.unbind();
+  m_crssecShader.Unbind();
 
 
   if (bDrawVol && !isSpaceKeyOn())
   {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !isSpaceKeyOn());
+    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !isSpaceKeyOn());
     t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
-    m_volumeShader.unbind();
+    m_volumeShader.Unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
   }
@@ -320,7 +320,7 @@ void ModeSegRGrow::runThresholding(short minV, short maxV)
 
 	volFlg.SetUpdated();
 	m_bRegionUpdated = true;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -375,7 +375,7 @@ void ModeSegRGrow::runRegionGrow6(short minV, short maxV)
 	
   vF.SetUpdated();
 	m_bRegionUpdated = true;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 
 	fprintf(stderr, "runRegionGrow6...DONE\n\n");
 
@@ -455,7 +455,7 @@ void ModeSegRGrow::runRegionGrow26(short minV, short maxV)
 	
   vF.SetUpdated();
 	m_bRegionUpdated = true;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 
 	fprintf(stderr, "runRegionGrow26...DONE\n\n");
 }
@@ -470,7 +470,7 @@ void ModeSegRGrow::runDilation()
 	t_Dilate3D(ImageCore::GetInst()->m_vol_flag);
 	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_bRegionUpdated = true;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeSegRGrow::runErosion()
@@ -478,7 +478,7 @@ void ModeSegRGrow::runErosion()
 	t_Erode3D(ImageCore::GetInst()->m_vol_flag);
 	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_bRegionUpdated = true;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -500,7 +500,7 @@ void ModeSegRGrow::runFillHole()
 
 	trgt.SetUpdated();
 	m_bRegionUpdated = true;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 

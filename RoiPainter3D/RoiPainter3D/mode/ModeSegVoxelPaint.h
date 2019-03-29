@@ -16,25 +16,25 @@
 
 class ModeSegVoxelPaint : public ModeInterface
 {
-  GlslShaderVolume m_volumeShader;
-  GlslShaderCrsSec m_crssecShader;
+  GlslShaderVolume m_volume_shader;
+  GlslShaderCrsSec m_crssec_shader;
 
   // field for MODE_REF_VOXEL_PAINT
-  bool m_bRefinmentMode;
-  int  m_refineMaskId  ; 
+  bool m_b_refinementmode;
+  int  m_refine_maskid   ; 
 
   //mouse manipuration
-	bool       m_bPaintVoxel;
-	bool       m_bDrawLasso ;
-  CRSSEC_ID  m_lassoTrgtId;
-	vector<EVec3f>  m_lasso;
-	vector<EVec4i>  m_paintVoxels;
+	bool       m_b_paintmode;
+	bool       m_b_lassomode ;
+  CRSSEC_ID  m_trgt_crssecid;
+	std::vector<EVec3f>  m_lasso;
+	std::vector<EVec4i>  m_paint_voxels;
 
   ModeSegVoxelPaint();
 public:
   ~ModeSegVoxelPaint();
 
-  static ModeSegVoxelPaint* getInst() { 
+  static ModeSegVoxelPaint* GetInst() { 
     static ModeSegVoxelPaint p; 
     return &p; 
   }
@@ -60,8 +60,8 @@ public:
   void startMode ();
   void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF);
 
-  void finishSegmentation();
-  void cancelSegmentation();
+  void FinishSegmentation();
+  void CancelSegmentation();
 };
 
 #pragma managed

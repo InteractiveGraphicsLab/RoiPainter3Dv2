@@ -76,7 +76,7 @@ void ModeVizNormal::LBtnUp(const EVec2i &p, OglForCLI *ogl)
   m_bDrawStr = false;
   m_bL = false;
   ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeVizNormal::RBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -89,7 +89,7 @@ void ModeVizNormal::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bR = false;
   ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeVizNormal::MBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -102,7 +102,7 @@ void ModeVizNormal::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = false;
   ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -131,12 +131,12 @@ void ModeVizNormal::MouseMove(const EVec2i &p, OglForCLI *ogl)
   if (m_bDrawStr)
   {
     m_stroke.push_back(rayP + 0.1f * rayD);
-    formMain_redrawMainPanel();
+    FormMain_RedrawMainPanel();
   }
   else if (m_bL || m_bR || m_bM)
   {
     ogl->MouseMove(p);
-    formMain_redrawMainPanel();
+    FormMain_RedrawMainPanel();
   }
 }
 
@@ -154,7 +154,7 @@ void ModeVizNormal::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
   if (id != CRSSEC_NON) CrssecCore::GetInst()->MoveCrssec(reso, pitch, id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -191,20 +191,20 @@ void ModeVizNormal::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
   ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 
 
-  if (m_bDrawStr) t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
+  if (m_bDrawStr) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
 
   glColor3d(1, 1, 1);
-  m_crssecShader.bind(0, 1, 2, 3, 6, reso, bGradMag, false);
+  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, bGradMag, false);
   CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
-  m_crssecShader.unbind();
+  m_crssecShader.Unbind();
 
   if (bDrawVol)
   {
     glDisable(GL_DEPTH_TEST);
     glEnable (GL_BLEND);
-    m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, false);
+    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, false);
     t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
-    m_volumeShader.unbind();
+    m_volumeShader.Unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
   }

@@ -93,7 +93,7 @@ System::Void FormVisMask::btnColorPallet_Click  (System::Object^  sender, System
 
 
   updateList();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -107,7 +107,7 @@ System::Void FormVisMask::checkbox_lock_CheckedChanged(System::Object^  sender, 
   maskData[tgtMaskId].m_b_locked = checkbox_lock->CheckState == CheckState::Checked ? true : false;
   std::cout << "lock value = " << maskData[tgtMaskId].m_b_locked << "\n";
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -118,7 +118,7 @@ System::Void FormVisMask::trackbar_alpha_Scroll (System::Object^  sender, System
   if (tgtMaskId < 0 || maskList->RowCount <= tgtMaskId) return;
 
   maskData[tgtMaskId].m_alpha = trackbar_alpha->Value / 100.0;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -135,7 +135,7 @@ System::Void FormVisMask::btnDelete_Click       (System::Object^  sender, System
   updateList();
 
   updateImageCoreVisVolumes();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 System::Void FormVisMask::btnMargeTo_Click( System::Object^  sender, System::EventArgs^  e) 
@@ -147,14 +147,14 @@ System::Void FormVisMask::btnMargeTo_Click( System::Object^  sender, System::Eve
   updateList();
 
   updateImageCoreVisVolumes();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 System::Void FormVisMask::btnErode_Click(System::Object^  sender, System::EventArgs^  e)
 {
   ImageCore::GetInst()->ActiveMask_Erode();
   updateImageCoreVisVolumes();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -162,14 +162,14 @@ System::Void FormVisMask::btnDilate_Click(System::Object^  sender, System::Event
 {
   ImageCore::GetInst()->ActiveMask_Dilate();
   updateImageCoreVisVolumes();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 System::Void FormVisMask::btnFillHole_Click(System::Object^  sender, System::EventArgs^  e)
 {
   ImageCore::GetInst()->ActiveMask_FillHole();
   updateImageCoreVisVolumes();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 System::Void FormVisMask::btnExpObj_Click(System::Object^  sender, System::EventArgs^  e) 

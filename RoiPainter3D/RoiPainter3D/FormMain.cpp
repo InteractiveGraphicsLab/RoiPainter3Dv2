@@ -145,7 +145,7 @@ bool FormMain::pickViewAngleIndicator(const EVec2i p)
   camC = 0.5 * cuboid;
   camP = camC + ((float)D) * camP;
   m_ogl->SetCam(camP, camC, camY);
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
   return true;
 }
 

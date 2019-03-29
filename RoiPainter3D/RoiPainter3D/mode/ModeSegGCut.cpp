@@ -131,7 +131,7 @@ void ModeSegGCut::finishSegm ()
 
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	ModeCore ::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	formMain_redrawMainPanel();	
+	FormMain_RedrawMainPanel();	
 }
 
 
@@ -141,14 +141,14 @@ void ModeSegGCut::cancelSegm ()
 	m_fCPs.clear();
 	m_bCPs.clear();
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	formMain_redrawMainPanel();	
+	FormMain_RedrawMainPanel();	
 }
 
 void ModeSegGCut::clearAllCPs()
 {
   m_fCPs.clear();
 	m_bCPs.clear();
-	formMain_redrawMainPanel();	
+	FormMain_RedrawMainPanel();	
 }
 
 
@@ -171,7 +171,7 @@ void ModeSegGCut::LBtnUp(const EVec2i &p, OglForCLI *ogl)
   if (m_bDrawCutStr) CrssecCore::GetInst()->GenerateCurvedCrssec( ImageCore::GetInst()->GetCuboid(), ogl->GetCamPos(), m_stroke );
 	m_bPaintCP = m_bDrawCutStr = m_bL = false;
 	ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeSegGCut::RBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -185,7 +185,7 @@ void ModeSegGCut::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bR = m_bPaintCP = false;
   ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeSegGCut::MBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -199,7 +199,7 @@ void ModeSegGCut::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = m_bPaintCP = false;
 	ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -247,7 +247,7 @@ void ModeSegGCut::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	{
 		ogl->MouseMove(p);
 	}
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -262,16 +262,16 @@ void ModeSegGCut::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
                                                            ImageCore::GetInst()->GetPitch(), id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
 
 void ModeSegGCut::keyDown(int nChar) {
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 void ModeSegGCut::keyUp(int nChar) {
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -307,9 +307,9 @@ void ModeSegGCut::drawScene (const EVec3f &cuboid, const EVec3f &camP, const EVe
 
 	//render cross sections ----------------------------------
   glColor3d(1, 1, 1);
-  m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
+  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
   CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
-  m_crssecShader.unbind();
+  m_crssecShader.Unbind();
 
 
 	//volume rendering ---------------------------------------
@@ -317,9 +317,9 @@ void ModeSegGCut::drawScene (const EVec3f &cuboid, const EVec3f &camP, const EVe
 	{
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, !isSpaceKeyOn() );
+		m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, !isSpaceKeyOn() );
 		t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
-		m_volumeShader.unbind();
+		m_volumeShader.Unbind();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 	}
@@ -346,8 +346,8 @@ void ModeSegGCut::drawScene (const EVec3f &cuboid, const EVec3f &camP, const EVe
 	glDisable(GL_LIGHTING);
 
 
-    //draw cut stroke 
-  if (m_bDrawCutStr) t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
+  //draw cut stroke 
+  if (m_bDrawCutStr) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
 
 }
 
@@ -870,7 +870,7 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 
 	delete[] minCut ;
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -994,7 +994,7 @@ void ModeSegGCut::runGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnly
 	delete[] minCut;
 	delete[] v_mapNodeId;
 	vFlg.SetUpdated();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 

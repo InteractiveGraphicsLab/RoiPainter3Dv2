@@ -143,7 +143,7 @@ int  ViewAngleCore::PickIndicator
     const EVec2i &cursor_pos    // 
 )
 {
-  if (!ogl.isDrawing()) ogl.oglMakeCurrent();
+  if (!ogl.IsDrawing()) ogl.oglMakeCurrent();
 
   EVec2i point(cursor_pos[0], screen_height - cursor_pos[1]);
 
@@ -180,7 +180,7 @@ int  ViewAngleCore::PickIndicator
 
   glViewport(0, 0, screen_width, screen_height);
 
-  if (!ogl.isDrawing()) wglMakeCurrent(NULL, NULL);
+  if (!ogl.IsDrawing()) wglMakeCurrent(NULL, NULL);
 
   //picking
   EVec3f rayP((float)x1, (float)y1, (float)z1);

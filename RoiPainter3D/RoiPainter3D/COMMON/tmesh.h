@@ -982,7 +982,7 @@ static void genBinaryVolumeInTriangleMeshX
   const EVec3f cuboid((float)(W*px), (float)(H*py), (float)(D*pz));
 
   EVec3f BBmin, BBmax;
-  t_calcBoundBox3D(vSize, verts, BBmin, BBmax);
+  t_CalcBoundingBox(vSize, verts, BBmin, BBmax);
 
   memset(binVol, 0, sizeof(byte) * WHD);
 
@@ -1098,7 +1098,7 @@ inline void genBinaryVolumeInTriangleMeshY
   const EVec3f cuboid((float)(W*px), (float)(H*py), (float)(D*pz));
 
   EVec3f BBmin, BBmax;
-  t_calcBoundBox3D(vSize, verts, BBmin, BBmax);
+  t_CalcBoundingBox(vSize, verts, BBmin, BBmax);
 
   memset(binVol, 0, sizeof(byte) * WHD);
 
@@ -1186,7 +1186,7 @@ inline void genBinaryVolumeInTriangleMeshY
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-static void t_calcBoundBox3D(const int n, const TTriangle* tris, EVec3f &BBmin, EVec3f &BBmax)
+static void t_CalcBoundingBox(const int n, const TTriangle* tris, EVec3f &BBmin, EVec3f &BBmax)
 {
   BBmin <<  FLT_MAX,  FLT_MAX,  FLT_MAX;
   BBmax << -FLT_MAX, -FLT_MAX, -FLT_MAX;
@@ -1234,7 +1234,7 @@ inline void genBinaryVolumeInTriangleMeshY
   const EVec3f cuboid((float)(W*px), (float)(H*py), (float)(D*pz));
 
   EVec3f BBmin, BBmax;
-  t_calcBoundBox3D(num_tris, tris, BBmin, BBmax);
+  t_CalcBoundingBox(num_tris, tris, BBmin, BBmax);
 
   memset(binVol, 0, sizeof(byte) * WHD);
 
@@ -1578,15 +1578,19 @@ inline void t_drawCylinder
 
 
 
-inline void t_drawLineStrip(
+inline void t_DrawPolyLine(
   const EVec3f color,
   const float  width,
-  const std::vector<EVec3f> &points
+  const std::vector<EVec3f> &points, 
+  const bool b_closed = false
 )
 {
-  const int N = (int)points.size();
+  int N = (int)points.size();
+  if( b_closed ) N += 1;
+
   int *idx = new int[N];
   for (int i = 0; i < N; ++i) idx[i] = i;
+  if( b_closed ) idx[N-1] = 0;
 
   glColor3d(color[0],color[1],color[2]);
   glLineWidth(width);

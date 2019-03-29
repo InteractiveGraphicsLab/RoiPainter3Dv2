@@ -160,7 +160,7 @@ public:
   }
 
 
-  inline bool   isDrawing() const { return m_is_rendering; }
+  inline bool   IsDrawing() const { return m_is_rendering; }
   inline EVec3f GetCamPos() const { return m_cam_position; }
   inline EVec3f GetCamCnt() const { return m_cam_center  ; }
   inline EVec3f GetCamUp()  const { return m_cam_updir   ; }

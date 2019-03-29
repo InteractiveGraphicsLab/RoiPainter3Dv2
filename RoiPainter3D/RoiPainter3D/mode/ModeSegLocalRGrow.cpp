@@ -109,7 +109,7 @@ void ModeSegLocalRGrow::finishSegmentation()
   m_seeds.clear();
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	formMain_redrawMainPanel();
+	FormMain_RedrawMainPanel();
 }
 
 
@@ -120,7 +120,7 @@ void ModeSegLocalRGrow::cancelSegmentation()
   m_seeds.clear();
   formSegLocalRGrow_updateAllItems();
   ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -166,7 +166,7 @@ void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 		ogl->BtnDown_Trans(p);
 	}
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -180,7 +180,7 @@ void ModeSegLocalRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 	m_bDrawCutStr = m_bL = false;
 	m_moveSeedCpId << -1, -1;
 	ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -194,7 +194,7 @@ void ModeSegLocalRGrow::RBtnDown(const EVec2i &p, OglForCLI *ogl)
 
 	if(m_moveSeedCpId [0] == -1) ogl->BtnDown_Rot(p);
 	
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -203,7 +203,7 @@ void ModeSegLocalRGrow::RBtnUp(const EVec2i &p, OglForCLI *ogl)
   ogl->BtnUp();
   m_bR = false;
   m_moveSeedCpId << -1, -1;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -212,7 +212,7 @@ void ModeSegLocalRGrow::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = true;
   ogl->BtnDown_Zoom(p);
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
@@ -220,7 +220,7 @@ void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
   ogl->BtnUp();
 	m_bM = false;
 	m_moveSeedCpId << -1, -1;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -240,7 +240,7 @@ void ModeSegLocalRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 		dblclkToAddNewSeed(rayP, rayD, true);
 	}
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -261,7 +261,7 @@ void ModeSegLocalRGrow::RBtnDclk(const EVec2i &p, OglForCLI *ogl)
 		 dblclkToAddNewSeed(rayP, rayD, false); 
 	}
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -273,7 +273,7 @@ void ModeSegLocalRGrow::MBtnDclk(const EVec2i &p, OglForCLI *ogl)
 	EVec2i seedId = pickSeeds(rayP, rayD);
 	if(seedId[0] != -1 && seedId[1] != -1) dblclkToRemoveCP( seedId );
 		
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -319,7 +319,7 @@ void ModeSegLocalRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
 		ogl->MouseMove( p );
 	}
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -345,13 +345,13 @@ void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
                                          (isAltKeyOn()) ? 3 * zDelta : zDelta);
     }
 	}
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
 
-void ModeSegLocalRGrow::keyDown(int nChar) {formMain_redrawMainPanel();}
-void ModeSegLocalRGrow::keyUp(int nChar) {formMain_redrawMainPanel();}
+void ModeSegLocalRGrow::keyDown(int nChar) {FormMain_RedrawMainPanel();}
+void ModeSegLocalRGrow::keyUp(int nChar) {FormMain_RedrawMainPanel();}
 
 
 
@@ -392,9 +392,9 @@ void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 
 	//render cross sections ----------------------------------
   glColor3d(1, 1, 1);
-  m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
+  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
   CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
-  m_crssecShader.unbind();
+  m_crssecShader.Unbind();
 
 
 	//volume rendering ---------------------------------------
@@ -402,9 +402,9 @@ void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 	{
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, true );
+		m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, true );
 		t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
-		m_volumeShader.unbind();
+		m_volumeShader.Unbind();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 	}
@@ -421,7 +421,7 @@ void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 
 	
 	if (m_bDrawCutStr)
-    t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
+    t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
 }
 
 #pragma managed
@@ -468,7 +468,7 @@ void ModeSegLocalRGrow::dblclkToAddNewSeed(const EVec3f &rayP, const EVec3f &ray
   }
 
   formSegLocalRGrow_updateAllItems();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -484,7 +484,7 @@ void ModeSegLocalRGrow::dblclkToAddNewCp(const EVec3f &rayP, const EVec3f &rayD,
 	}
 
   formSegLocalRGrow_updateAllItems();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -509,7 +509,7 @@ void ModeSegLocalRGrow::dblclkToRemoveCP(EVec2i seedIdCpId)
 		m_seeds[seedId].m_pos.erase( m_seeds[seedId].m_pos.begin() + cpId );
 	}
   formSegLocalRGrow_updateAllItems();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 

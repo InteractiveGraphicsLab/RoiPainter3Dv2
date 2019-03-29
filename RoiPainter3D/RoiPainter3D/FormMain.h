@@ -412,10 +412,10 @@ namespace RoiPainter3D {
 
 
 
-  inline void formMain_redrawMainPanel(){
+  inline void FormMain_RedrawMainPanel(){
     FormMain::getInst()->redrawMainPanel();
   }
-  inline void formMain_setBkColor(float r, float g, float b){
+  inline void FormMain_SetBkColor(float r, float g, float b){
     FormMain::getInst()->setBkColor(r,g,b);
   }
 

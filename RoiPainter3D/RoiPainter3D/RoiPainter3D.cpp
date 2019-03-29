@@ -39,8 +39,8 @@ int main()
   ModeSegGCut::getInst();
   ModeSegLocalRGrow::getInst();
   ModeSegThreshfieldPaint::getInst();
-  ModeSegVoxelPaint::getInst();
-  ModeRefStrokeTrim::getInst();
+  ModeSegVoxelPaint::GetInst();
+  ModeRefStrokeTrim::GetInst();
 
   std::cout << "FormMain::getInst()->ShowDialog() \n";
   FormMain::getInst()->ShowDialog();

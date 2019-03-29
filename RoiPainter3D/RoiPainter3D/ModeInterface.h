@@ -63,7 +63,6 @@ public:
 
 	//this function is called just after switch the mode
 	virtual void startMode() = 0;
-
 	virtual void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF) = 0;
 };
 

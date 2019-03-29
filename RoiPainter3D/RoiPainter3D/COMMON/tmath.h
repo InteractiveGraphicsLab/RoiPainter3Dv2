@@ -224,7 +224,7 @@ void t_getMaxMinOfArray(const int N, const T* src, T& minV, T& maxV)
 template<class T>
 inline T t_crop(const T &minV, const T &maxV, const T &v)
 {
-  return min(maxV, max(minV, v));
+  return std::min(maxV, std::max(minV, v));
 }
 
 
@@ -399,28 +399,6 @@ inline void t_verts_Smoothing(const int times, std::vector<EVec3f> &verts)
 
 
 
-inline void t_verts_GetBoundBox
-(
-  const std::vector<EVec3f> &verts,
-  EVec3f &BBmin,
-  EVec3f &BBmax
-)
-{
-  BBmin << FLT_MAX, FLT_MAX, FLT_MAX;
-  BBmax <<-FLT_MAX,-FLT_MAX,-FLT_MAX;
-  
-  for( const auto &v : verts ){
-    BBmin[0] = std::min(BBmin[0], v[0]);
-    BBmin[1] = std::min(BBmin[1], v[1]);
-    BBmin[2] = std::min(BBmin[2], v[2]);
-    BBmax[0] = std::max(BBmax[0], v[0]);
-    BBmax[1] = std::max(BBmax[1], v[1]);
-    BBmax[2] = std::max(BBmax[2], v[2]);
-  }
-}
-
-
-
 
 
 
@@ -445,7 +423,7 @@ inline bool t_solve2by2LinearEquation(const double a, const double b,
 
 
 
-static void t_calcBoundBox2D(const std::vector<EVec2i> &verts, EVec2i &BBmin, EVec2i &BBmax)
+static void t_CalcBoundingBox(const std::vector<EVec2i> &verts, EVec2i &BBmin, EVec2i &BBmax)
 {
   BBmin << INT_MAX, INT_MAX;
   BBmax << INT_MIN, INT_MIN;
@@ -461,9 +439,9 @@ static void t_calcBoundBox2D(const std::vector<EVec2i> &verts, EVec2i &BBmin, EV
 
 
 
-static void t_calcBoundBox3D(const int N, const EVec3f* verts, EVec3f &BBmin, EVec3f &BBmax)
+static void t_CalcBoundingBox(const int N, const EVec3f* verts, EVec3f &BBmin, EVec3f &BBmax)
 {
-  BBmin << FLT_MAX, FLT_MAX, FLT_MAX;
+  BBmin <<  FLT_MAX,  FLT_MAX,  FLT_MAX;
   BBmax << -FLT_MAX, -FLT_MAX, -FLT_MAX;
 
   for (int i = 0; i < N; ++i)
@@ -477,23 +455,44 @@ static void t_calcBoundBox3D(const int N, const EVec3f* verts, EVec3f &BBmin, EV
   }
 }
 
+inline void t_CalcBoundingBox
+(
+  const std::vector<EVec3f> &verts,
+  EVec3f &BBmin,
+  EVec3f &BBmax
+)
+{
+  BBmin << FLT_MAX, FLT_MAX, FLT_MAX;
+  BBmax <<-FLT_MAX,-FLT_MAX,-FLT_MAX;
+  
+  for( const auto &v : verts ){
+    BBmin[0] = std::min(BBmin[0], v[0]);
+    BBmin[1] = std::min(BBmin[1], v[1]);
+    BBmin[2] = std::min(BBmin[2], v[2]);
+    BBmax[0] = std::max(BBmax[0], v[0]);
+    BBmax[1] = std::max(BBmax[1], v[1]);
+    BBmax[2] = std::max(BBmax[2], v[2]);
+  }
+}
 
 
 
 
 
 
-inline double t_calcAngleTwoVec(
-  EVec3f v1,
-  EVec3f v2,
-  EVec3f axis
+//calculate the angle of two 3D vectors
+//axisに対して右ねじ方向が正
+inline double t_CalcAngle(
+  const EVec3f &v1,
+  const EVec3f &v2,
+  const EVec3f &axis
 )
 {
   double v1_len = v1.norm();
   double v2_len = v2.norm();
   if (v1_len == 0 || v2_len == 0) return 0;
   double cosT = v1.dot(v2) / v1_len / v2_len;
-  if (cosT >= 1.0) cosT = 1;
+  if (cosT >=  1.0) cosT = 1;
   if (cosT <= -1.0) cosT = -1;
 
   if (axis.dot(v1.cross(v2)) >= 0) return acos(cosT);
@@ -501,6 +500,20 @@ inline double t_calcAngleTwoVec(
 }
 
 
+
+//2D座標系において左回りが正（右ねじ座標系でz(0,0,1)を軸にして右回りが正）
+inline double t_CalcAngle(const EVec2d &d1, const EVec2d &d2)
+{
+	double l = d1.norm() * d2.norm();
+	if( l == 0 ) return 0;
+
+	double cosT = t_crop<double>(-1., 1., ( d1.dot(d2) ) / l);
+
+	if( d1[0] * d2[1] - d1[1] * d2[0] >= 0)
+    return  acos(cosT);
+	else
+    return -acos(cosT);
+}
 
 
 static double t_calcTriangleArea(

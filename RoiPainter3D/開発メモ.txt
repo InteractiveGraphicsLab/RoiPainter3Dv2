@@ -15,7 +15,7 @@
 
 
 
-- 20190328に行なった修正（主にリファクタリング）
+- 20190328-20190329に行なった修正（主にリファクタリング）
  + CrsSecCore 
 	- インデント
 	- rename
@@ -55,6 +55,16 @@
    - remove using namespace std;
    - replace printf --> std::cout << 
    - TODO YET 関数名
+
++ ModeRefStrokeTrim
+   - remove using namespace std;
+   - replace printf --> std::cout << 
+   - pragma unmanaged 追加
+   - rename
++ ModeSegVoxelPaint
+   - rename
+
+
 TODO Mode*のリファクタリング
  + 
 
