@@ -37,7 +37,7 @@ int main()
   ModeVizNormal::getInst();
   ModeSegRGrow::GetInst();
   ModeSegGCut::getInst();
-  ModeSegLocalRGrow::getInst();
+  ModeSegLocalRGrow::GetInst();
   ModeSegThreshfieldPaint::getInst();
   ModeSegVoxelPaint::GetInst();
   ModeRefStrokeTrim::GetInst();

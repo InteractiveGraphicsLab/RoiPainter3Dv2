@@ -21,6 +21,7 @@
 
 
 using namespace RoiPainter3D;
+using namespace std;
 
 #pragma unmanaged
 
@@ -606,8 +607,8 @@ bool t_wsd_CheckAndSolveConflictCP(
 {
 
 	set<int> fIdx,bIdx; 
-	for(const auto& cp : fCPs ) fIdx.insert( cp.m_vIdx[3] );
-	for(const auto& cp : bCPs ) bIdx.insert( cp.m_vIdx[3] );
+	for(const auto& cp : fCPs ) fIdx.insert( cp.m_vidx[3] );
+	for(const auto& cp : bCPs ) bIdx.insert( cp.m_vidx[3] );
 
 	int maxL = 0;
 	for( const auto& i: vLabel) maxL = max( maxL, i);
@@ -678,9 +679,9 @@ inline static void t_calcE1(
 {
 	float df = FLT_MAX;
 	float db = FLT_MAX;
-	float pivV = nodes[pivNodeID].m_aveI;
-	for( const auto& it: fNodeIDs)  df = min(df, t_distSq(  nodes[it].m_aveI, pivV) );
-	for( const auto& it: bNodeIDs)  db = min(db, t_distSq(  nodes[it].m_aveI, pivV) );
+	float pivV = nodes[pivNodeID].m_mean_val;
+	for( const auto& it: fNodeIDs)  df = min(df, t_distSq( nodes[it].m_mean_val, pivV) );
+	for( const auto& it: bNodeIDs)  db = min(db, t_distSq( nodes[it].m_mean_val, pivV) );
 
 	df = sqrt( df );
 	db = sqrt( db );
@@ -724,8 +725,8 @@ void t_postGCut_extractJointForeRegion(
 	TQueue<EVec4i> Q;
 	for (const auto &cp : fCPs)
 	{
-		Q.push_back( cp.m_vIdx );
-		vFlg[cp.m_vIdx[3]] = 254;
+		Q.push_back( cp.m_vidx );
+		vFlg[cp.m_vidx[3]] = 254;
 	}
 
 	while( !Q.empty() )
@@ -786,10 +787,10 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 	// disable wsd nodes that exist in locked mask region
 	for( auto& n : m_wsdNodes)
 	{
-		n.m_bEnable = false;
-		for (const auto& pI : n.m_pixelIDs) if (vFlg[pI] != 0)
+		n.m_b_enable = false;
+		for (const auto& pI : n.m_voxel_ids) if (vFlg[pI] != 0)
 		{
-			n.m_bEnable = true; 
+			n.m_b_enable = true; 
 			break; 
 		}
 	}
@@ -797,8 +798,8 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 
 	// cps --> node ids
 	vector< int > fWsdId, bWsdId;
-	for (const auto& c : m_fCPs) fWsdId.push_back( m_map_vox2wsd[ c.m_vIdx[3] ] );
-	for (const auto& c : m_bCPs) bWsdId.push_back( m_map_vox2wsd[ c.m_vIdx[3] ] );
+	for (const auto& c : m_fCPs) fWsdId.push_back( m_map_vox2wsd[ c.m_vidx[3] ] );
+	for (const auto& c : m_bCPs) bWsdId.push_back( m_map_vox2wsd[ c.m_vidx[3] ] );
 	t_vectorUnique( fWsdId );
 	t_vectorUnique( bWsdId );
 
@@ -825,23 +826,23 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 	for( int i = 0; i < nodeNum; ++i)
 	{
 		tLinkE[i] << 0, FOREBACK_MAX; 
-		if( m_wsdNodes[i].m_bEnable ) t_calcE1( m_wsdNodes, fWsdId, bWsdId, i, tLinkE[i] ); 
+		if( m_wsdNodes[i].m_b_enable ) t_calcE1( m_wsdNodes, fWsdId, bWsdId, i, tLinkE[i] ); 
 	}
 
-	for( const auto &id : fWsdId ) if( m_wsdNodes[ id ].m_bEnable ) tLinkE[id] << FOREBACK_MAX, 0 ;  
-	for( const auto &id : bWsdId ) if( m_wsdNodes[ id ].m_bEnable ) tLinkE[id] << 0, FOREBACK_MAX ;  
+	for( const auto &id : fWsdId ) if( m_wsdNodes[ id ].m_b_enable ) tLinkE[id] << FOREBACK_MAX, 0 ;  
+	for( const auto &id : bWsdId ) if( m_wsdNodes[ id ].m_b_enable ) tLinkE[id] << 0, FOREBACK_MAX ;  
 
 	for( int i = 0; i < nodeNum; ++i ) network.add_tLink( SourceID, SinkID, i, tLinkE[i][0], tLinkE[i][1]);
 
 
 	//n-link 
-	for (int i = 0; i < nodeNum; ++i) if( m_wsdNodes[i].m_bEnable ) 
+	for (int i = 0; i < nodeNum; ++i) if( m_wsdNodes[i].m_b_enable ) 
 	{
 		for( const auto &neiI : m_wsdNodeNei[i] )
 		{
-			if( i < neiI && m_wsdNodes[ neiI ].m_bEnable )
+			if( i < neiI && m_wsdNodes[ neiI ].m_b_enable )
 			{
-				network.add_nLink( i, neiI, t_calcE2( m_wsdNodes[i].m_aveI, m_wsdNodes[neiI].m_aveI, lambda) );
+				network.add_nLink( i, neiI, t_calcE2( m_wsdNodes[i].m_mean_val, m_wsdNodes[neiI].m_mean_val, lambda) );
 			}
 		}
 	}
@@ -957,7 +958,7 @@ void ModeSegGCut::runGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnly
 
 	for( int ni = 0; ni < nodeN; ++ni)
 	{	
-		EVec4i vI = t_voxIdx(W, WH, voxNodes[ni].m_voxID);
+		EVec4i vI = t_voxIdx(W, WH, voxNodes[ni].m_idx);
 		const int I = vI[3];
 
 		int state = 0; // -2 : ”wŒi—×Ú   -1 :‘OŒi—×Ú   >=0:‚»‚Ì‘¼
@@ -974,9 +975,9 @@ void ModeSegGCut::runGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnly
 		network.add_tLink( SourceID, SinkID,  ni, e1_f, e1_b );
 
 		//nlink
-		if( vI[0] != W-1 && v_mapNodeId[I+1 ] >= 0 ) { network.add_nLink( ni, v_mapNodeId[I+1 ], t_calcE2( voxNodes[ni].m_I, voxNodes[v_mapNodeId[I+1 ]].m_I, lambda) ); }
-		if( vI[1] != H-1 && v_mapNodeId[I+W ] >= 0 ) { network.add_nLink( ni, v_mapNodeId[I+W ], t_calcE2( voxNodes[ni].m_I, voxNodes[v_mapNodeId[I+W ]].m_I, lambda) ); }
-		if( vI[2] != D-1 && v_mapNodeId[I+WH] >= 0 ) { network.add_nLink( ni, v_mapNodeId[I+WH], t_calcE2( voxNodes[ni].m_I, voxNodes[v_mapNodeId[I+WH]].m_I, lambda) ); }
+		if( vI[0] != W-1 && v_mapNodeId[I+1 ] >= 0 ) { network.add_nLink( ni, v_mapNodeId[I+1 ], t_calcE2( voxNodes[ni].m_val, voxNodes[v_mapNodeId[I+1 ]].m_val, lambda) ); }
+		if( vI[1] != H-1 && v_mapNodeId[I+W ] >= 0 ) { network.add_nLink( ni, v_mapNodeId[I+W ], t_calcE2( voxNodes[ni].m_val, voxNodes[v_mapNodeId[I+W ]].m_val, lambda) ); }
+		if( vI[2] != D-1 && v_mapNodeId[I+WH] >= 0 ) { network.add_nLink( ni, v_mapNodeId[I+WH], t_calcE2( voxNodes[ni].m_val, voxNodes[v_mapNodeId[I+WH]].m_val, lambda) ); }
 	}
 
 	byte *minCut = new byte[ nodeN + 2 ];

@@ -12,8 +12,6 @@
 
 #pragma unmanaged
 
-
-
 class ModeSegRGrow : public ModeInterface
 {
   GlslShaderVolume m_volume_shader;

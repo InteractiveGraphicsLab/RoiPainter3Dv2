@@ -16,8 +16,7 @@ using namespace std;
 
 #pragma unmanaged
 
-
-// usage of "volFlg" 
+// usage of "vol_flg" 
 //  0 : non target voxels (never change )
 //  1 : target & back ground voxels 
 // 255: target & fore ground voxels

@@ -6,30 +6,23 @@
 // 
 //--------------------------------------------------------------
 
-
-
-
 #include "ModeInterface.h"
 #include "GlslShader.h"
 #include <vector>
 
-using namespace::std;
-
-
 #pragma unmanaged
-
 
 
 class GCutCp
 {
 public:
 	EVec3f m_pos ;
-	EVec4i m_vIdx;
+	EVec4i m_vidx;
 
 	GCutCp(EVec3f p, EVec4i vidx)
 	{
-		m_pos = p   ;
-		m_vIdx= vidx;
+		m_pos  = p   ;
+		m_vidx = vidx;
 	}	
 };
 
@@ -42,29 +35,46 @@ class WsdNode
 public:
 	
   //pixel indices
-  vector<int> m_pixelIDs ;	
+  std::vector<int> m_voxel_ids ;	
 	
   //total/average intensity
-  float  m_sumI, m_aveI;
+  float m_total_val;
+  float m_mean_val ;
 	
   //target for segmentation?
-  bool   m_bEnable ;
+  bool   m_b_enable ;
 	
   ~WsdNode(){}
-    WsdNode (){
-    m_sumI  = m_aveI = 0;
-    m_bEnable =  false;
+  
+  WsdNode ()
+  {
+    m_total_val  = m_mean_val = 0;
+    m_b_enable =  false;
   }
-  WsdNode(const WsdNode &n){
-    m_sumI     = n.m_sumI;   
-    m_aveI     = n.m_aveI;  
-    m_bEnable  = n.m_bEnable;
-    m_pixelIDs = n.m_pixelIDs;
+
+  WsdNode(const WsdNode &src)
+  {
+    Set(src);
   }
-  inline void addVoxel(int voxelIdx, float intensity){
-    m_pixelIDs.push_back( voxelIdx );
-    m_sumI += intensity;
-    m_aveI  = m_sumI / (float) m_pixelIDs.size();
+  
+  WsdNode &operator=(const WsdNode &src)
+  {
+    Set(src);
+    return *this;
+  }
+  void Set(const WsdNode &src)
+  {
+    m_total_val = src.m_total_val;   
+    m_mean_val  = src.m_mean_val;  
+    m_b_enable  = src.m_b_enable;
+    m_voxel_ids = src.m_voxel_ids;
+  }
+
+  inline void addVoxel(int voxelIdx, float intensity)
+  {
+    m_voxel_ids.push_back( voxelIdx );
+    m_total_val += intensity;
+    m_mean_val  = m_total_val / (float) m_voxel_ids.size();
   }
 };
 
@@ -74,17 +84,34 @@ public:
 class GCVoxNode
 {
 public:
-  int   m_voxID;
-  float m_I    ;
+  int   m_idx;
+  float m_val;
 
-  void set( const int &voxIdx, const float &intensity){
-    m_voxID = voxIdx;
-    m_I = intensity;
+
+  GCVoxNode(const GCVoxNode &src){
+    Set( src );
   }
-  GCVoxNode(){m_voxID = 0; m_I = 0;}
-  GCVoxNode(const int &voxIdx, const float &intensity){
-    set( voxIdx,intensity );
+  
+  GCVoxNode( const int vox_idx = 0, const float intensity = 0){
+    Set( vox_idx,intensity );
   }
+
+  GCVoxNode &operator=(const GCVoxNode &src)
+  {
+    Set(src);
+    return *this;
+  }
+
+  void Set( const int &vox_idx, const float &intensity){
+    m_idx   = vox_idx;
+    m_val = intensity;
+  }
+
+  void Set( const GCVoxNode &src ){
+    m_idx   = src.m_idx  ;
+    m_val = src.m_val;
+  }
+
 };
 
 
@@ -102,19 +129,19 @@ class ModeSegGCut : public ModeInterface
 	//mouse manipuration
 	bool m_bPaintCP;
 	bool m_bDrawCutStr;
-	vector<EVec3f> m_stroke;
+	std::vector<EVec3f> m_stroke;
 
 	//control points
-	vector<GCutCp> m_fCPs, m_bCPs;
+	std::vector<GCutCp> m_fCPs, m_bCPs;
 	TMesh          m_CpMesh;
 	float          m_CpSize;
 
 	//watershad super pixel 
 	bool             m_bWsdInitialized;
 	bool             m_bWsdComputing  ;
-	vector<int     > m_map_vox2wsd; // map voxel idx --> wsdNode idx --> 
-	vector<WsdNode > m_wsdNodes   ; // wsdNodes 
-	vector<set<int>> m_wsdNodeNei ; // neighbors of wsdNode[i] (small idx --> local idx)
+	std::vector<int     > m_map_vox2wsd; // map voxel idx --> wsdNode idx --> 
+	std::vector<WsdNode > m_wsdNodes   ; // wsdNodes 
+	std::vector<std::set<int>> m_wsdNodeNei ; // neighbors of wsdNode[i] (small idx --> local idx)
 
 
   ModeSegGCut();

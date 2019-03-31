@@ -4,77 +4,103 @@
 #include "GlslShader.h"
 #include <vector>
 
-using namespace::std;
+
+#pragma unmanaged
 
 
 
-
-
-class LRGseed
+class LRGSeed
 {
-  
+private:
+  static TMesh m_cp_mesh;
+  static float m_cp_radius;
+public:
+  static void  SetCpRadius( float radius );
+  static float GetCpRadius( );
 
 public:
-	LRGseed(EVec3f pos = EVec3f(0,0,0), short minV = 0, short maxV = 0, int flg = 0, float rad = 0)
+
+  //m_pos.size() == 1: sphere, > 1: cylinder 
+	std::vector < EVec3f > m_cps;
+	short  m_min_v, m_max_v;
+  float  m_radius;
+	int    m_flg_fore;
+
+	LRGSeed(
+    EVec3f position  = EVec3f(0,0,0), 
+    short  min_val = 0, 
+    short  max_val = 0, 
+    int    b_fore = 0, 
+    float radius = 0)
 	{
-		m_pos.push_back(pos);
-		m_minV = minV;
-		m_maxV = maxV;
-		m_flg  = flg;
-		m_rad  = rad;
+    m_cps.clear();
+		m_cps.push_back(position);
+		m_min_v = min_val;
+		m_max_v = max_val;
+		m_flg_fore  = b_fore;
+		m_radius  = radius;
 	}
 
-	//m_pos.size() == 1: sphere, > 1: cylinder 
-	vector < EVec3f > m_pos;
-
-	short  m_minV, m_maxV;
-  float  m_rad;
-	int    m_flg;
-
-  void modifyRadius(float delta){
-    m_rad += delta;
-    if( m_rad < 0.1 ) m_rad  = 0.1f; 
+  //copy constructure and =operator
+  LRGSeed(const LRGSeed &src)
+  {
+    Set(src);
   }
 
-	void draw        (const TMesh &cp) const;
-	void drawAsActive(const TMesh &cp) const;
+  LRGSeed &operator=(const LRGSeed &src)
+  {
+    Set(src);
+    return *this;
+  }
+
+  void Set(const LRGSeed &src)
+  {
+    m_cps = src.m_cps;
+		m_min_v    = src.m_min_v;
+		m_max_v    = src.m_max_v;
+		m_flg_fore = src.m_flg_fore;
+		m_radius   = src.m_radius;
+  }
+
+  void ModifyRadius(float delta){
+    m_radius += delta;
+    if( m_radius < 0.1 ) m_radius  = 0.1f; 
+  }
+
+	void Draw        () const;
+	void DrawAsActive() const;
 };
 
 
 
 
 
-#pragma unmanaged
 
 class ModeSegLocalRGrow : public ModeInterface
 {
+private:
   // shader 
-  GlslShaderVolume m_volumeShader;
-  GlslShaderCrsSec m_crssecShader;
-
-	// CPサイズとCP描画用のメッシュ
-	float  m_CpSize;
-	TMesh  m_CPmesh;
+  GlslShaderVolume m_volume_shader;
+  GlslShaderCrsSec m_crssec_shader;
 
   //seed id for moving (seed_id, cp_id)
-	EVec2i m_moveSeedCpId;
+	EVec2i m_drag_seedcp_id;
 
 	//cut stroke
-	bool m_bDrawCutStr;
-	vector<EVec3f> m_stroke;
+	bool m_b_drawstroke;
+	std::vector<EVec3f> m_stroke;
 
 public:
   // seeds and index of activated Seed (when -1 all seeds are non-activated)
-  int m_ActiveSeedIdx; 
-	vector<LRGseed> m_seeds;
-
+  int m_activeseed_idx; 
+	std::vector<LRGSeed> m_seeds;
 
 private:
   ModeSegLocalRGrow();
 public:
   ~ModeSegLocalRGrow();
 
-  static ModeSegLocalRGrow* getInst() { 
+  static ModeSegLocalRGrow* GetInst() { 
     static ModeSegLocalRGrow p; 
     return &p; 
   }
@@ -100,18 +126,14 @@ public:
   void StartMode ();
   void DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF);
 
-  void finishSegmentation();
-  void cancelSegmentation();
-  void runLocalRegionGrow();
+  void FinishSegmentation();
+  void CancelSegmentation();
+  void RunLocalRegionGrow();
+  void AddNewSeed(bool bForeBack);
 
 private:
+  EVec2i PickSeeds(const EVec3f &rayP, const EVec3f &rayD);
 
-  void dblclkToAddNewSeed( const EVec3f &rayP, const EVec3f &rayD, bool flgPosNeg   );
-	void dblclkToAddNewCp  ( const EVec3f &rayP, const EVec3f &rayD, const int seedId );
-	void dblclkToRemoveCP  ( EVec2i seedIdCpId );
-	void s_LocalRegionGrow(const LRGseed &seed,const int W,const int H,const int D,const short *img,const EVec3f &pitch,byte* flg,int a);
-
-  EVec2i pickSeeds(const EVec3f &rayP, const EVec3f &rayD);
 };
 
 #pragma managed

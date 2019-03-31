@@ -3,7 +3,9 @@
 
 #include "./mode/ModeSegLocalRGrow.h"
 
+
 using namespace RoiPainter3D;
+using namespace std;
 
 static float SPIN_VALUE_RATE = 10.0f;
 
@@ -12,8 +14,8 @@ static float SPIN_VALUE_RATE = 10.0f;
 
 void FormSegLocalRGrow::updateSliders()
 {
-  const int &activeSeedId      = ModeSegLocalRGrow::getInst()->m_ActiveSeedIdx;
-  const vector<LRGseed> &seeds = ModeSegLocalRGrow::getInst()->m_seeds;
+  const int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+  const vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
 
 
   //items 
@@ -28,7 +30,7 @@ void FormSegLocalRGrow::updateSliders()
   }
   else
   {
-    const LRGseed& s = seeds[activeSeedId];
+    const LRGSeed& s = seeds[activeSeedId];
 
     trackBar_minV  ->Show();
     trackBar_maxV  ->Show();
@@ -37,12 +39,12 @@ void FormSegLocalRGrow::updateSliders()
     textBox_maxV   ->Show();
     textBox_radius ->Show();
 
-    trackBar_minV->Value =  s.m_minV;
-    textBox_minV ->Text  = (s.m_minV).ToString();
-    trackBar_maxV->Value =  s.m_maxV;
-    textBox_maxV ->Text  = (s.m_maxV).ToString();
-    trackBar_radius->Value = (int) (s.m_rad * SPIN_VALUE_RATE);
-    textBox_radius->Text = (s.m_rad).ToString();
+    trackBar_minV->Value =  s.m_min_v;
+    textBox_minV ->Text  = (s.m_min_v).ToString();
+    trackBar_maxV->Value =  s.m_max_v;
+    textBox_maxV ->Text  = (s.m_max_v).ToString();
+    trackBar_radius->Value = (int) (s.m_radius * SPIN_VALUE_RATE);
+    textBox_radius->Text = (s.m_radius).ToString();
   }
 }
 
@@ -53,8 +55,8 @@ void FormSegLocalRGrow::updateList()
 {
   m_bListUpdating = true;
 
-  const int &activeSeedId      = ModeSegLocalRGrow::getInst()->m_ActiveSeedIdx;
-  const vector<LRGseed> &seeds = ModeSegLocalRGrow::getInst()->m_seeds;
+  const int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+  const vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
 
   //初期化
   maskList->Rows->Clear();
@@ -70,7 +72,7 @@ void FormSegLocalRGrow::updateList()
     maskList[0, i]->Value = gcnew String(seedName.c_str());
     maskList[0, i]->Style->BackColor = Color::FromArgb(255, 255, 255);
 
-    if( seeds[i].m_flg ){
+    if( seeds[i].m_flg_fore ){
       maskList[1, i]->Value = gcnew String("Fore");
       maskList[1, i]->Style->BackColor = Color::FromArgb( 255,0,0 );
     }
@@ -114,8 +116,10 @@ System::Void FormSegLocalRGrow::maskList_SelectionChanged(System::Object^  sende
   //maskList->Rows->Clear(); のタイミングで呼ばれてしまうので、その際は何もしない
   if (m_bListUpdating) return;
 
-  printf("selection changed %d %d\n", maskList->CurrentCell->RowIndex, maskList->CurrentCell->ColumnIndex);
-  ModeSegLocalRGrow::getInst()->m_ActiveSeedIdx = maskList->CurrentCell->RowIndex;
+  std::cout << "selection changed " 
+            << maskList->CurrentCell->RowIndex << " " 
+            << maskList->CurrentCell->ColumnIndex << "\n";
+  ModeSegLocalRGrow::GetInst()->m_activeseed_idx = maskList->CurrentCell->RowIndex;
 
   updateSliders();
 }
@@ -147,11 +151,11 @@ System::Void FormSegLocalRGrow::trackBar_minV_Scroll(System::Object^  sender, Sy
   int val = trackBar_minV->Value;
   textBox_minV->Text = val.ToString();
 
-  int &activeSeedId      = ModeSegLocalRGrow::getInst()->m_ActiveSeedIdx;
-  vector<LRGseed> &seeds = ModeSegLocalRGrow::getInst()->m_seeds;
+  int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+  vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
   
   if( 0 <= activeSeedId && activeSeedId < seeds.size())
-    seeds[activeSeedId].m_minV = val;
+    seeds[activeSeedId].m_min_v = val;
 
 }
 
@@ -162,11 +166,11 @@ System::Void FormSegLocalRGrow::trackBar_maxV_Scroll(System::Object^  sender, Sy
   int val = trackBar_maxV->Value;
   textBox_maxV->Text = val.ToString();
 
-  int &activeSeedId      = ModeSegLocalRGrow::getInst()->m_ActiveSeedIdx;
-  vector<LRGseed> &seeds = ModeSegLocalRGrow::getInst()->m_seeds;
+  int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+  vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
   
   if( 0 <= activeSeedId && activeSeedId < seeds.size())
-    seeds[activeSeedId].m_maxV = val;
+    seeds[activeSeedId].m_max_v = val;
 }
 
 
@@ -176,11 +180,11 @@ System::Void FormSegLocalRGrow::trackBar_radius_Scroll(System::Object^  sender, 
   float val = trackBar_radius->Value / SPIN_VALUE_RATE;
   textBox_maxV->Text = val.ToString();
 
-  int &activeSeedId      = ModeSegLocalRGrow::getInst()->m_ActiveSeedIdx;
-  vector<LRGseed> &seeds = ModeSegLocalRGrow::getInst()->m_seeds;
+  int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+  vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
   
   if( 0 <= activeSeedId && activeSeedId < seeds.size())
-    seeds[activeSeedId].m_rad = val;
+    seeds[activeSeedId].m_radius = val;
 
   FormMain_RedrawMainPanel();
 }
@@ -189,7 +193,7 @@ System::Void FormSegLocalRGrow::trackBar_radius_Scroll(System::Object^  sender, 
 
 System::Void FormSegLocalRGrow::btn_runLocalRGrow_Click(System::Object^  sender, System::EventArgs^  e) 
 {
-  ModeSegLocalRGrow::getInst()->runLocalRegionGrow();
+  ModeSegLocalRGrow::GetInst()->RunLocalRegionGrow();
   FormMain_RedrawMainPanel();
 }
 
@@ -197,13 +201,25 @@ System::Void FormSegLocalRGrow::btn_runLocalRGrow_Click(System::Object^  sender,
 
 System::Void FormSegLocalRGrow::btn_cancel_Click(System::Object^  sender, System::EventArgs^  e) 
 {
-  ModeSegLocalRGrow::getInst()->cancelSegmentation();
+  ModeSegLocalRGrow::GetInst()->CancelSegmentation();
   FormMain_RedrawMainPanel();
 }
 
 
 System::Void FormSegLocalRGrow::btn_finish_Click(System::Object^  sender, System::EventArgs^  e) 
 {
-  ModeSegLocalRGrow::getInst()->finishSegmentation();
+  ModeSegLocalRGrow::GetInst()->FinishSegmentation();
+  FormMain_RedrawMainPanel();
+}
+
+System::Void FormSegLocalRGrow::button_addforeseed_Click(System::Object^  sender, System::EventArgs^  e)
+{
+  ModeSegLocalRGrow::GetInst()->AddNewSeed(true);
+  FormMain_RedrawMainPanel();
+}
+
+System::Void FormSegLocalRGrow::button_addbackseed_Click(System::Object^  sender, System::EventArgs^  e)
+{
+  ModeSegLocalRGrow::GetInst()->AddNewSeed(false);
   FormMain_RedrawMainPanel();
 }

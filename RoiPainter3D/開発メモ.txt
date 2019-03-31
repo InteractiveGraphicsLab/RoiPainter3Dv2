@@ -65,8 +65,20 @@
    - rename
    - pragma unmanaged 追加
    - replace printf --> std::cout << 
++ ModeSegRGrow 
+   - rename 
+   - replace printf --> std::cout << 
++ ModeSegLocalRGrow
+   - rename 
+   - check the algorithm
+   - UIの整理（詳細はdialog + ソースコードへ）
++ ModeSegLocalRGrow
+   - rename 
 
-
++ watershed
+   - replace printf --> std::cout << 
++ GlslShader
+   - replace printf --> std::cout << 
 TODO Mode*のリファクタリング
  + 
 

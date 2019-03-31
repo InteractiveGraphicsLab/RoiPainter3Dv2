@@ -1,4 +1,5 @@
 #include "GlslShader.h"
+#include <iostream>
 
 #pragma warning(disable : 4996)
 
@@ -24,8 +25,9 @@ int t_readShaderSource(GLuint shader, const char *file)
 
   //ファイルサイズのメモリを確保 
   const GLchar *source = (GLchar *)malloc(length);
-  if (source == NULL) {
-    fprintf(stderr, "Could not allocate read buffer.\n");
+  if (source == NULL) 
+  {
+    std::cout << "Could not allocate read buffer.\n";
     return -1;
   }
 
@@ -35,7 +37,7 @@ int t_readShaderSource(GLuint shader, const char *file)
   fclose(fp);
 
   // シェーダのソースプログラムのシェーダオブジェクトへの読み込み
-  if (ret) fprintf(stderr, "Could not read file: %s.\n", file);
+  if (ret) std::cout << "Could not read file:" <<  file << "\n";
   else glShaderSource(shader, 1, &source, &length);
 
   free((void *)source);
@@ -59,11 +61,14 @@ void printShaderInfoLog(GLuint shader)
 
       /* シェーダのコンパイル時のログの内容を取得する */
       glGetShaderInfoLog(shader, bufSize, &length, infoLog);
-      fprintf(stderr, "InfoLog:\n%s\n\n", infoLog);
+      std::cout << "InfoLog:\n";
+      std::cout <<  infoLog << "\n\n";
       free(infoLog);
     }
     else
-      fprintf(stderr, "Could not allocate InfoLog buffer.\n");
+    {
+      std::cout << "Could not allocate InfoLog buffer.\n";
+    }
   }
 }
 
@@ -75,7 +80,7 @@ bool t_initializeShader
   GLuint &_gl2Program
 )
 {
-  fprintf(stderr, "initializeShader");
+  std::cout << "initializeShader\n";
   GLuint  vertShaderId;
   GLuint  fragShaderId;
 
@@ -91,14 +96,14 @@ bool t_initializeShader
   glCompileShader(vertShaderId);
   glGetShaderiv(vertShaderId, GL_COMPILE_STATUS, &isCompiled);
   if (isCompiled == GL_FALSE) {
-    fprintf(stderr, "Compile error in vertex shader.\n");
+    std::cout << "Compile error in vertex shader.\n";
     printShaderInfoLog(vertShaderId);
     return false;
   }
   glCompileShader(fragShaderId);
   glGetShaderiv(fragShaderId, GL_COMPILE_STATUS, &isCompiled);
   if (isCompiled == GL_FALSE) {
-    fprintf(stderr, "Compile error in fragment shader.\n");
+    std::cout << "Compile error in fragment shader.\n";
     printShaderInfoLog(fragShaderId);
     return false;
   }
@@ -114,12 +119,13 @@ bool t_initializeShader
   GLint isLined;
   glLinkProgram(_gl2Program);
   glGetProgramiv(_gl2Program, GL_LINK_STATUS, &isLined);
-  if (isLined == GL_FALSE) {
-    fprintf(stderr, "Link error.\n");
+  if (isLined == GL_FALSE) 
+  {
+    std::cout << "Link error.\n";
     exit(1);
   }
 
-  fprintf(stderr, "success initialize shader!!\n");
+  std::cout << "success initialize shader!!\n";
 
   return true;
 }

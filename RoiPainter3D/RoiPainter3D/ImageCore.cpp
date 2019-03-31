@@ -50,7 +50,7 @@ static bool t_LoadDefoultVolume(
 	)
 {
 	const int N = 64, R = N/5;
-	reso  << N, N, N;
+	reso  << N + 30, N+11, N -3;
 	pitch << 1, 1, 1;
 	vol = new short[reso[0] * reso[1] * reso[2]];
 
