@@ -35,7 +35,7 @@ int main()
 
   ModeVizMask::getInst();
   ModeVizNormal::getInst();
-  ModeSegRGrow::getInst();
+  ModeSegRGrow::GetInst();
   ModeSegGCut::getInst();
   ModeSegLocalRGrow::getInst();
   ModeSegThreshfieldPaint::getInst();

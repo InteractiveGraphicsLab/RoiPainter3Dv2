@@ -41,7 +41,7 @@ void ModeCore::ModeSwitch(MODE_ID m)
   if (!m_mode->CanLeaveMode()) return;
 
   if      (m == MODE_VIS_MASK      ) { m_mode = ModeVizMask      ::getInst(); m_mode_id = m; }
-  else if (m == MODE_SEG_REGGROW   ) { m_mode = ModeSegRGrow     ::getInst(); m_mode_id = m; }
+  else if (m == MODE_SEG_REGGROW   ) { m_mode = ModeSegRGrow     ::GetInst(); m_mode_id = m; }
   else if (m == MODE_SEG_GCUT      ) { m_mode = ModeSegGCut      ::getInst(); m_mode_id = m; }
   else if (m == MODE_SEG_VOXPAINT  ) { m_mode = ModeSegVoxelPaint::GetInst(); m_mode_id = m; }
   else if (m == MODE_REF_VOXPAINT  ) { m_mode = ModeSegVoxelPaint::GetInst(); m_mode_id = m; }
