@@ -33,33 +33,33 @@ System::Void FormSegRGrow::trackBar_max_Scroll(System::Object^  sender, System::
 
 System::Void FormSegRGrow::btn_thresholding_Click(System::Object^  sender, System::EventArgs^  e) 
 { 
-  ModeSegRGrow::getInst()->runThresholding( (short)trackbar_min->Value, (short)trackbar_max->Value);
-  formMain_redrawMainPanel();
+  ModeSegRGrow::GetInst()->RunThresholding( (short)trackbar_min->Value, (short)trackbar_max->Value);
+  FormMain_RedrawMainPanel();
 }
 
 System::Void FormSegRGrow::btn_rgrow6_Click(System::Object^  sender, System::EventArgs^    e) 
 {
-  ModeSegRGrow::getInst()->runRegionGrow6((short)trackbar_min->Value, (short)trackbar_max->Value);
-  formMain_redrawMainPanel();
+  ModeSegRGrow::GetInst()->RunRegionGrow6((short)trackbar_min->Value, (short)trackbar_max->Value);
+  FormMain_RedrawMainPanel();
 }
 System::Void FormSegRGrow::btn_rgrow26_Click(System::Object^  sender, System::EventArgs^   e)
 {
-  ModeSegRGrow::getInst()->runRegionGrow26((short)trackbar_min->Value, (short)trackbar_max->Value);
-  formMain_redrawMainPanel();
+  ModeSegRGrow::GetInst()->RunRegionGrow26((short)trackbar_min->Value, (short)trackbar_max->Value);
+  FormMain_RedrawMainPanel();
 }
 System::Void FormSegRGrow::btn_erode_Click(System::Object^  sender, System::EventArgs^     e) {
-  ModeSegRGrow::getInst()->runErosion();
-  formMain_redrawMainPanel();
+  ModeSegRGrow::GetInst()->RunErosion();
+  FormMain_RedrawMainPanel();
 }
 System::Void FormSegRGrow::btn_dilate_Click(System::Object^  sender, System::EventArgs^    e) {
-  ModeSegRGrow::getInst()->runDilation();
-  formMain_redrawMainPanel();
+  ModeSegRGrow::GetInst()->RunDilation();
+  FormMain_RedrawMainPanel();
 }
 System::Void FormSegRGrow::btn_fillhole_Click(System::Object^  sender, System::EventArgs^  e) {
-  ModeSegRGrow::getInst()->runFillHole();
-  formMain_redrawMainPanel();
+  ModeSegRGrow::GetInst()->RunFillHole();
+  FormMain_RedrawMainPanel();
 } 
 System::Void FormSegRGrow::btn_finish_Click(System::Object^  sender, System::EventArgs^    e) {
-  ModeSegRGrow::getInst()->finishSegmentationStoreRegion();
-  formMain_redrawMainPanel();
+  ModeSegRGrow::GetInst()->FinishSegmentation();
+  FormMain_RedrawMainPanel();
 }

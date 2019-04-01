@@ -1,33 +1,47 @@
 #include "ImageCore.h"
-#include "FormStackOrder.h"
 
+#include "FormStackOrder.h"
 #include "climessagebox.h"
+
 #include "./COMMON/tmath.h"
 #include "./COMMON/tmarchingcubes.h"
 #include "./3rdParty/dcmtk/tdcmtk.h"
 #include "./3rdparty/vvv/ddsbase.h"
 
 #include "./Mode/ModeSegGCut.h"
+#include <iostream>
+
+
+
+#pragma unmanaged
+
+
+
+using namespace RoiPainter3D;
+
+
 
 
 ImageCore::ImageCore()
 {
-  fprintf(stderr, "CONSTRUCTOR ImageCore ...\n");
+  std::cout << "CONSTRUCTOR ImageCore ...\n";
+  
 
-	m_volOrig = 0;
-	loadVolume("init","init");
-	m_imgMskCol.Allocate(256);
-  m_maskSelectedId = -1;
-  fprintf(stderr, "CONSTRUCTOR ImageCore ...DONE !\n");
+	m_vol_orig = 0;
+	LoadVolume("init","init");
+	m_img_maskcolor.Allocate(256);
+  m_active_mask_id = -1;
+ 
+  std::cout << "CONSTRUCTOR ImageCore ...DONE\n";
 }
 
 
 
 
 
-/////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
-//VOLUME LOADER//////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//VOLUME LOADER///////////////////////////////////////////////////////////////////////////////////////////
 
 static bool t_LoadDefoultVolume(
 	EVec3i &reso,
@@ -36,7 +50,7 @@ static bool t_LoadDefoultVolume(
 	)
 {
 	const int N = 64, R = N/5;
-	reso  << N, N, N;
+	reso  << N + 30, N+11, N -3;
 	pitch << 1, 1, 1;
 	vol = new short[reso[0] * reso[1] * reso[2]];
 
@@ -87,7 +101,7 @@ static bool t_LoadTRawSS(
 
 	if (WHD> 1024 * 1024 * 1024 )
 	{
-		System::Windows::Forms::MessageBox::Show("volume size is too big (2Gbyte voxels)");
+		CLI_MessageBox_OK_Show( "volume size is too big (2Gbyte voxels)", "caution");
 		return false;
 	}
 
@@ -149,7 +163,7 @@ static bool t_LoadFAV(
 	short* &vol)
 {
 
-	printf("t_LoadFAV");
+	std::cout << "t_LoadFAV";
 	
 	FavLibrary::Fav fav;
 	fav.read( fname.c_str() );
@@ -161,10 +175,10 @@ static bool t_LoadFAV(
 	FavLibrary::Structure  &structure = obj.structure;		;
 	FavLibrary::Grid       &grid      = obj.grid     ;
 	FavLibrary::BitPerVoxel bitPerVox = structure.getBitPerVoxel();
-	printf("%d!!  %d , %d\n", (int)fav.getObjects().size(), id, bitPerVox ) ;
+	std::cout << fav.getObjects().size() << " " << id << " " << bitPerVox << "\n";
 
 	FavLibrary::ColorMode cMode = structure.getColorMode();
-	printf("mode %d\n", structure.getColorMode());
+	std::cout << "mode " << structure.getColorMode() << "\n";
 
 	const int W = (int)structure.getDimensionX();
 	const int H = (int)structure.getDimensionY();
@@ -175,13 +189,12 @@ static bool t_LoadFAV(
 	pitch << 1, 1, 1;
 	vol = new short[W*H*D];
 
-	fprintf(stderr, "dimension %d %d %d\n", W, H, D);
-
-	fprintf( stderr, "%d\n", (int) structure.get_voxel_map()      ->size());
-	fprintf( stderr, "%d\n", (int) structure.get_voxel_map_16bit()->size());
-	fprintf( stderr, "%d\n", (int) structure.get_alpha_map()      ->size());
-	fprintf( stderr, "%d\n", (int) structure.get_color_map()      ->size());
-	fprintf( stderr, "%d\n", (int) structure.get_color_map_16bit()->size());
+	std::cout << "dimension << W << " " << H << " " << D << "\n";
+	std::cout << structure.get_voxel_map()      ->size() << "\n";
+	std::cout << structure.get_voxel_map_16bit()->size() << "\n";
+	std::cout << structure.get_alpha_map()      ->size() << "\n";
+	std::cout << structure.get_color_map()      ->size() << "\n";
+	std::cout << structure.get_color_map_16bit()->size() << "\n";
 
   
 	for( int z = 0; z < D; ++z)
@@ -193,7 +206,7 @@ static bool t_LoadFAV(
 		    //int r = structure.getColorRed  (x, y, z);
 		    //int g = structure.getColorGreen(x, y, z);
 		    //int b = structure.getColorBlue (x, y, z);
-		    //fprintf(stderr, "%d %d %d -- ", r,g,b);
+		    //std::cout << r << " " << g << " " << b << "--" ;
 		    //vol[x + y * W + z * W*H] = r+g+b;
 	    }
     }
@@ -228,7 +241,7 @@ static bool t_LoadBMP_TIFs
 	for(int z=0; z < (int)fnames.size(); ++z)
 	{
 		OglImage2D<CH_RGBA> slice;
-		slice.Allocate( fnames[z].c_str());
+		slice.Allocate( fnames[z].c_str() );
 
 		if( slice.GetW() != W || slice.GetH() != H )
 		{
@@ -246,7 +259,7 @@ static bool t_LoadBMP_TIFs
 				vol[ x + y * W + z * WH ] = (short) ( (slice[ I ] + slice[ I+1 ] + slice[ I+2 ]) / 3) ;
 			}
 		}
-		if( z%50 ==0 ) printf( "%d/%d done\n", z, (int)fnames.size());
+		if( z % 50 ==0 ) std::cout << z << " / " << fnames.size() << "done\n";
 	}
 
 	pitch << 1,1,1;	
@@ -283,14 +296,14 @@ static bool t_LoadDCMs
 	for (int z = 0; z < D; ++z)
 	{
 		Tdcmtk tdcm( fnames[z].c_str() );
-		fprintf( stderr, "%f\n", tdcm.getZPos());
+		std::cout << tdcm.getZPos() << "\n";
 
 		int tW, tH, tfNum;
 		tdcm.getSize(tW, tH, tfNum);
 
 		if (tfNum > 1 || W != tW || H != tH )
 		{
-			System::Windows::Forms::MessageBox::Show("error strange input");
+			CLI_MessageBox_OK_Show("error strange input", "error");
       delete[] vol;
       vol = 0;
       return false;
@@ -300,15 +313,14 @@ static bool t_LoadDCMs
 
 		tdcm.getPixelsAs<short>( &vol[z*W*H] );
 
-		printf( "(%d/%d)", z, D);
+		std::cout << "(" << z << "/" << D << ")\n";
 	}
-
 
 	if( pitch[2] < 0)
 	{
-		printf( "flip in z\n");
+		std::cout << "flip in z\n";
 		pitch[2] *= -1.0;
-		t_flipVolumeInZ(W,H,D, vol);
+		t_FlipVolumeInZ(W,H,D, vol);
 	}
 
 	return true;
@@ -329,12 +341,12 @@ static bool t_LoadDCM3D(
 	tdcm.getSize(reso[0], reso[1], reso[2]);
 	if( reso[2] <= 1 ) return false;
 	
-	pitch[0] = 1;//(float) tdcm.getPitchX();
-	pitch[1] = 1;//(float) tdcm.getPitchY();
-	pitch[2] = 1;//pitch[0];
-	System::Windows::Forms::MessageBox::Show("pitch情報は読み込んでいません。正しい値をダイアログより指定してしてください");
+	pitch[0] = 1;
+	pitch[1] = 1;
+	pitch[2] = 1;
+  CLI_MessageBox_OK_Show( "pitch情報は読み込んでいません。正しい値をダイアログより指定してしてください", "message");
 
-	printf( "resolution %d %d %d\n", reso[0], reso[1], reso[2]);
+	std::cout << "resolution " << reso[0] << " " << reso[1]  << " " << reso[2] << "\n";
 
 	vol = new short[ reso[0] * reso[1] * reso[2] ];
 	tdcm.getPixels3DAs<short>( vol );
@@ -355,17 +367,20 @@ static bool t_LoadPVM3D(
 	float  px,py,pz;
 
 	byte *buf = readPVMvolume(fname.c_str(), &W, &H, &D,&components, &px,&py,&pz );
+  std::cout << "load pvm " << W << " " << H << " " << D << " " << components << "\n";
 
-	printf( "load pvm %d %d %d %d\n", W,H,D,components);
-
-	reso  << W, H, D;
+	reso  << W , H , D ;
 	pitch << px, py, pz;
 	vol = new short[W*H*D];
 
-	for( int i=0,s = W*H*D; i < s; ++i)
+	for ( int i=0, s = W*H*D; i < s; ++i)
 	{
-		if( components == 1) vol[i] = buf[i];
-		else if( components == 2) {
+		if ( components == 1)
+    {
+      vol[i] = buf[i];
+    }
+    else if ( components == 2) 
+    {
 			vol[i] = (short) ( buf[2*i] * 256 + buf[2*i+1] );
 		}
 	}
@@ -374,20 +389,15 @@ static bool t_LoadPVM3D(
 
 
 
-
-
-
-bool ImageCore::loadVolume(string fname, string fext)
+bool ImageCore::LoadVolume(string fname, string fext)
 {
 	vector<string> fnames;
 	fnames.push_back( fname );
-	return loadVolume( fnames, fext );
+	return LoadVolume( fnames, fext );
 }
 
 
-
-
-bool ImageCore::loadVolume(vector<string> fnames, string fext)
+bool ImageCore::LoadVolume(vector<string> fnames, string fext)
 {
 	if (fnames.size() == 0) return false;
 	
@@ -400,106 +410,111 @@ bool ImageCore::loadVolume(vector<string> fnames, string fext)
 		(fnames.size() == 1 && ( fext == "dcm" || fext == "DCM" || L == 0) ) ? 3 :
 		(fnames.size() == 1 && ( fext == "pvm" || fext == "PVM"          ) ) ? 4 :
 		(fnames.size() == 1 && ( fext == "fav" || fext == "FAV"          ) ) ? 5 :
+		(fnames.size() == 1 && ( fext == "sph" || fext == "SPH"          ) ) ? 6 :
 		(fnames.size() >  1 && ( fext == "dcm" || fext == "DCM" || L == 0) ) ? 10 :	
 		(fnames.size() >  1 && ( fext == "bmp" || fext == "BMP"	         ) ) ? 11 :
 		(fnames.size() >  1 && ( fext == "tif" || fext == "TIF"	         ) ) ? 11 : -1;
 	
-	if ( m_volOrig  ) delete[] m_volOrig  ;
-	if ( m_volOrigGM) delete[] m_volOrigGM;
-	m_volOrig   = 0;
-	m_volOrigGM = 0;
+	if ( m_vol_orig  ) delete[] m_vol_orig  ;
+	if ( m_vol_origgm) delete[] m_vol_origgm;
+	m_vol_orig   = 0;
+	m_vol_origgm = 0;
 
 	bool success = false;
 	//3D
-  if ( trgtId == 0 && t_LoadTRawSS   (fnames[0].c_str(), m_Reso, m_Pitch, m_volOrig) ) success = true;
-	if ( trgtId == 2 && t_LoadTxt      (fnames[0].c_str(), m_Reso, m_Pitch, m_volOrig) ) success = true;
-	if ( trgtId == 3 && t_LoadDCM3D    (fnames[0].c_str(), m_Reso, m_Pitch, m_volOrig) ) success = true;
-	if ( trgtId == 4 && t_LoadPVM3D    (fnames[0].c_str(), m_Reso, m_Pitch, m_volOrig) ) success = true;
-	//if ( trgtId == 5 && t_LoadFAV      (fnames[0].c_str(), m_Reso, m_Pitch, m_volOrig) ) success = true;
+  if ( trgtId == 0 && t_LoadTRawSS   (fnames[0].c_str(), m_resolution, m_pitch, m_vol_orig) ) success = true;
+	if ( trgtId == 2 && t_LoadTxt      (fnames[0].c_str(), m_resolution, m_pitch, m_vol_orig) ) success = true;
+	if ( trgtId == 3 && t_LoadDCM3D    (fnames[0].c_str(), m_resolution, m_pitch, m_vol_orig) ) success = true;
+	if ( trgtId == 4 && t_LoadPVM3D    (fnames[0].c_str(), m_resolution, m_pitch, m_vol_orig) ) success = true;
+	
+  //if ( trgtId == 5 && t_LoadFAV      (fnames[0].c_str(), m_Reso, m_Pitch, m_volOrig) ) success = true;
+  if ( trgtId == 5 ) CLI_MessageBox_OK_Show("fav loader is under construction.", "message");
+  if ( trgtId == 6 ) CLI_MessageBox_OK_Show("sph loader is under construction.", "message");
+
   //2D slices
-	if ( trgtId ==10 && t_LoadDCMs     (fnames           , m_Reso, m_Pitch, m_volOrig) ) success = true;
-	if ( trgtId ==11 && t_LoadBMP_TIFs (fnames           , m_Reso, m_Pitch, m_volOrig) ) success = true;
+	if ( trgtId ==10 && t_LoadDCMs     (fnames           , m_resolution, m_pitch, m_vol_orig) ) success = true;
+	if ( trgtId ==11 && t_LoadBMP_TIFs (fnames           , m_resolution, m_pitch, m_vol_orig) ) success = true;
 
 
-	bool strangePitch = m_Pitch[0] <= 0 || m_Pitch[1] <= 0 || m_Pitch[2] <= 0;
+	bool strangePitch = m_pitch[0] <= 0 || m_pitch[1] <= 0 || m_pitch[2] <= 0;
 
-	if( success && strangePitch ){
-		m_Pitch[0] = m_Pitch[1] = m_Pitch[2] = 1;
-		System::Windows::Forms::MessageBox::Show("Pitch情報を読み込めませんでした。\n正しい値をダイアログより指定してください.");
+	if( success && strangePitch )
+  {
+		m_pitch[0] = m_pitch[1] = m_pitch[2] = 1;
+		CLI_MessageBox_OK_Show("Pitch情報を読み込めませんでした。\n正しい値をダイアログより指定してください.", "message");
 	}
 
 	if (success)
 	{
-		m_filePath = fnames[0];
+		m_filepath = fnames[0];
 
 		if( trgtId == 10 && !strangePitch)
 		{
-			System::Windows::Forms::MessageBox::Show("Dicom Sliceを読み込みました。\n dcm属性値より画像のスタック方向を自動決定しました。\n（念のため左右反転の有無を確認してください。）");
+			CLI_MessageBox_OK_Show("Dicom Sliceを読み込みました。\n dcm属性値より画像のスタック方向を自動決定しました。\n（念のため左右反転の有無を確認してください。）", "message");
 		}
 		else
 		{
       int flg = RoiPainter3D::formStackOrder_showModalDialog();
-			if (flg == 1) t_flipVolumeInZ<short>( m_Reso[0], m_Reso[1], m_Reso[2], m_volOrig);
+			if (flg == 1) t_FlipVolumeInZ<short>( m_resolution[0], m_resolution[1], m_resolution[2], m_vol_orig);
 		}
 	}
 	else 
 	{
-		m_filePath = "";
-		t_LoadDefoultVolume(m_Reso, m_Pitch, m_volOrig);
+		m_filepath = "";
+		t_LoadDefoultVolume(m_resolution, m_pitch, m_vol_orig);
 	}
-
 
 	// post loading 
 	short minV, maxV;
-	t_getMaxMinOfArray<short>( m_Reso[0]* m_Reso[1] * m_Reso[2], m_volOrig, minV, maxV);
+	t_getMaxMinOfArray<short>( m_resolution[0]* m_resolution[1] * m_resolution[2], m_vol_orig, minV, maxV);
 
-	m_volOrigGM = new float[m_Reso[0]* m_Reso[1] * m_Reso[2]];
-	m_vol    .Allocate( m_Reso );
-	m_volFlg .Allocate( m_Reso );
-	m_volMsk .Allocate( m_Reso );
-	m_volGmag.Allocate( m_Reso );
-	
-	m_vol   .SetValue(m_volOrig, minV, maxV);
-	m_volFlg.SetAllZero();
-	m_volMsk.SetAllZero();
+	m_vol_origgm = new float[m_resolution[0]* m_resolution[1] * m_resolution[2]];
+	m_vol      .Allocate( m_resolution );
+	m_vol_flag .Allocate( m_resolution );
+	m_vol_mask .Allocate( m_resolution );
+	m_vol_gm   .Allocate( m_resolution );
 
-	m_maskData.clear();
-	m_maskData.push_back( MaskData("bckGrnd", EVec3i(0,0,0), 0, 0 ) );
+	m_vol     .SetValue(m_vol_orig, minV, maxV);
+	m_vol_flag.SetAllZero();
+	m_vol_mask.SetAllZero();
 
-  m_volMinMax  << minV, maxV;
+	m_mask_data.clear();
+	m_mask_data.push_back( MaskData("bckGrnd", EVec3i(0,0,0), 0, 0 ) );
 
-	updateGradVolume();
+  m_vol_minmax  << minV, maxV;
 
-	ModeSegGCut::getInst()->newVolLoaded();
+	UpdateGradMagnituteVolume();
+
+	ModeSegGCut::getInst()->NewVolLoaded();
 
   return true;
 }
 
 
-void ImageCore::updateGradVolume()
+void ImageCore::UpdateGradMagnituteVolume()
 {
-	const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+	const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
-	memset( m_volOrigGM, 0, sizeof(float) * N);
-	t_sobel3D<short>( m_Reso[0], m_Reso[1], m_Reso[2], m_volOrig, m_volOrigGM);
+	memset( m_vol_origgm, 0, sizeof(float) * N);
+	t_Sobel3D<short>( m_resolution[0], m_resolution[1], m_resolution[2], m_vol_orig, m_vol_origgm);
 
 	float minV, maxV;
-	t_getMaxMinOfArray<float>( N, m_volOrigGM, minV, maxV);
+	t_getMaxMinOfArray<float>( N, m_vol_origgm, minV, maxV);
 
 	const float c = 255.0f;
 	for (int i = 0; i < N; ++i)
 	{
-		m_volOrigGM[i] = (m_volOrigGM[i] - minV) / (maxV - minV);
-		m_volGmag[i] = (byte)( 255 * m_volOrigGM[i] ) ;
+		m_vol_origgm[i] = (m_vol_origgm[i] - minV) / (maxV - minV);
+		m_vol_gm[i] = (byte)( 255 * m_vol_origgm[i] ) ;
 	}
 
-	m_volGmag.SetUpdated();
+	m_vol_gm.SetUpdated();
 }
 
 
-void ImageCore::updateVisVolume(short winLvMin,  short winLvMax)
+void ImageCore::UpdateOGLVolume(short windowlv_min,  short windowlv_max)
 {
-  m_vol.SetValue( m_volOrig, (short)winLvMin, (short)winLvMax);
+  m_vol.SetValue( m_vol_orig, (short)windowlv_min, (short)windowlv_max);
 }
 
 
@@ -512,7 +527,7 @@ void ImageCore::updateVisVolume(short winLvMin,  short winLvMax)
 //MASK IO////////////////////////////////////////////////////
 
 
-void ImageCore::loadMask(const char *fname)
+void ImageCore::LoadMask(const char *fname)
 {
 	FILE* fp = fopen(fname, "rb");
 	
@@ -523,7 +538,7 @@ void ImageCore::loadMask(const char *fname)
 	fread(&H      , sizeof(int), 1, fp);
 	fread(&D      , sizeof(int), 1, fp);
 
-	if(W != m_Reso[0] || H != m_Reso[1] || D != m_Reso[2] )
+	if(W != m_resolution[0] || H != m_resolution[1] || D != m_resolution[2] )
 	{
 		RoiPainter3D::CLI_MessageBox_OK_Show( "strange volume size\n", "caution");
 		fclose( fp );
@@ -531,19 +546,19 @@ void ImageCore::loadMask(const char *fname)
 	}
 
   //read mask voxels
-	fread( &m_volMsk[0], sizeof(byte), W * H * D, fp);
+	fread( &m_vol_mask[0], sizeof(byte), W * H * D, fp);
 
 
   int flg = RoiPainter3D::formStackOrder_showModalDialog();
-  if (flg == 1) m_volMsk.FlipInZ();
+  if (flg == 1) m_vol_mask.FlipInZ();
 
-	m_volMsk.SetUpdated();
+	m_vol_mask.SetUpdated();
 
   //read mask status
 	int maskN;
 	fread(&maskN, sizeof(int), 1, fp);
 
-	m_maskData.clear();
+	m_mask_data.clear();
 
 	for (int i=0; i < maskN; ++i)
 	{
@@ -558,9 +573,9 @@ void ImageCore::loadMask(const char *fname)
 		char *name = new char[nLen + 1];
 		fread(name, sizeof(char), nLen + 1, fp);
 
-		printf("%d %s\n", nLen, name);
+		std::cout << nLen << " " << name << "\n";
 
-		m_maskData.push_back( MaskData(string(name), EVec3i(col[0],col[1],col[2]), alpha, 0, lock?true:false) );
+		m_mask_data.push_back( MaskData(string(name), EVec3i(col[0],col[1],col[2]), alpha, 0, lock?true:false) );
 
 		delete[] name; 
 	}
@@ -568,33 +583,33 @@ void ImageCore::loadMask(const char *fname)
 }
 
 
-void ImageCore::saveMask( const char* fname)
+void ImageCore::SaveMask( const char* fname)
 {
   FILE* fp = fopen(fname, "wb");
 
   //save mask image
   int version = 0;
   fwrite(&version  , sizeof(int), 1, fp);
-  fwrite(&m_Reso[0], sizeof(int), 1, fp);
-  fwrite(&m_Reso[1], sizeof(int), 1, fp);
-  fwrite(&m_Reso[2], sizeof(int), 1, fp);
-  fwrite(&m_volMsk[0], sizeof(byte), m_Reso[0] * m_Reso[1] * m_Reso[2], fp);
+  fwrite(&m_resolution[0], sizeof(int), 1, fp);
+  fwrite(&m_resolution[1], sizeof(int), 1, fp);
+  fwrite(&m_resolution[2], sizeof(int), 1, fp);
+  fwrite(&m_vol_mask[0], sizeof(byte), m_resolution[0] * m_resolution[1] * m_resolution[2], fp);
 
-	int maskN = (int)m_maskData.size();
+	int maskN = (int)m_mask_data.size();
 	fwrite(&maskN, sizeof(int), 1, fp);
 
-	for( const auto &it : m_maskData )
+	for( const auto &it : m_mask_data )
 	{
-		int iLock = it.lock;
-		fwrite(&it.alpha      , sizeof(double), 1, fp);
-		fwrite(it.color.data(), sizeof(int)   , 3, fp);
+		int iLock = it.m_b_locked;
+		fwrite(&it.m_alpha      , sizeof(double), 1, fp);
+		fwrite(it.m_color.data(), sizeof(int)   , 3, fp);
 		fwrite(&iLock, sizeof(int), 1, fp);
 
-		int nLen = (int)it.name.length();
+		int nLen = (int)it.m_name.length();
 		fwrite(&nLen          , sizeof(int ),  1    , fp);
-		fwrite(it.name.c_str(), sizeof(char), nLen+1, fp);
+		fwrite(it.m_name.c_str(), sizeof(char), nLen+1, fp);
 
-		printf("%d %s\n", nLen, it.name.c_str());
+		std::cout << nLen << " " << it.m_name.c_str() << "\n";
 	}
 	fclose(fp);
 }
@@ -606,14 +621,13 @@ void ImageCore::saveMask( const char* fname)
 //////////////////////////////////////////////////////////
 //Mask Manipulation///////////////////////////////////////
 
-using namespace RoiPainter3D;
 
 
-void ImageCore::selectedMsk_delete  ()
+void ImageCore::ActiveMask_Delete  ()
 {
-  if (m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId) return;
+  if (m_active_mask_id < 0 || m_mask_data.size() <= m_active_mask_id) return;
 
-  if (m_maskSelectedId == 0)
+  if (m_active_mask_id == 0)
   {
     CLI_MessageBox_OK_Show("0th region (background) cannot be removed", "caution");
     return;
@@ -622,141 +636,140 @@ void ImageCore::selectedMsk_delete  ()
   if (CLI_MessageBox_YESNO_Show("Do you want to DELETE the selected mask?", "caution") == false) return;
 
 
-  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+  const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
   for (int i = 0; i < N; ++i)
   {
-    if (     m_volMsk[i] >  m_maskSelectedId) m_volMsk[i]--;
-    else if (m_volMsk[i] == m_maskSelectedId) m_volMsk[i] = 0;
+    if (     m_vol_mask[i] >  m_active_mask_id) m_vol_mask[i]--;
+    else if (m_vol_mask[i] == m_active_mask_id) m_vol_mask[i] = 0;
   }
 
-  m_maskData.erase( m_maskData.begin() + m_maskSelectedId );
-  m_maskSelectedId = 0;
-  m_volMsk.SetUpdated();
+  m_mask_data.erase( m_mask_data.begin() + m_active_mask_id );
+  m_active_mask_id = 0;
+  m_vol_mask.SetUpdated();
 
 }
 
 
-void ImageCore::selectedMsk_marge   (const int &trgtMaskID)
+void ImageCore::ActiveMask_Marge   (const int &trgtMaskID)
 {
-  if (m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId) return;
+  if (m_active_mask_id < 0 || m_mask_data.size() <= m_active_mask_id) return;
 
-  if (m_maskSelectedId == 0 || trgtMaskID == 0)
+  if (m_active_mask_id == 0 || trgtMaskID == 0)
   {
     CLI_MessageBox_OK_Show("0th region (background) cannot be marged", "caution");
     return;
   }
 
-  if (trgtMaskID == m_maskSelectedId)
+  if (trgtMaskID == m_active_mask_id)
   {
     CLI_MessageBox_OK_Show("Cannot marge to it self", "caution");
     return;
   }
 
+  std::cout << "active " << m_active_mask_id << ", trgt " << trgtMaskID << "\n";
+  const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
-  fprintf(stderr, "active %d, trgt, %d\n", m_maskSelectedId, trgtMaskID);
-  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+  for (int i = 0; i < N; ++i) if ( m_vol_mask[i] == trgtMaskID) m_vol_mask[i] = m_active_mask_id;
+  for (int i = 0; i < N; ++i) if ( m_vol_mask[i] >  trgtMaskID) --m_vol_mask[i];
 
-  for (int i = 0; i < N; ++i) if ( m_volMsk[i] == trgtMaskID) m_volMsk[i] = m_maskSelectedId;
-  for (int i = 0; i < N; ++i) if ( m_volMsk[i] >  trgtMaskID) --m_volMsk[i];
+  if (m_active_mask_id > trgtMaskID) --m_active_mask_id;
 
-  if (m_maskSelectedId > trgtMaskID) --m_maskSelectedId;
+  m_vol_mask.SetUpdated();
 
-  m_volMsk.SetUpdated();
-
-  m_maskData.erase(m_maskData.begin() + trgtMaskID);
-  m_maskData[ m_maskSelectedId ].surf.clear();
-  m_maskData[ m_maskSelectedId ].bRendSurf = false;
+  m_mask_data.erase(m_mask_data.begin() + trgtMaskID);
+  m_mask_data[ m_active_mask_id ].m_surface.clear();
+  m_mask_data[ m_active_mask_id ].m_b_drawsurface = false;
 }
 
 
-void ImageCore::selectedMsk_erode()
+void ImageCore::ActiveMask_Erode()
 {
-  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+  if ( m_active_mask_id <= 0 || m_mask_data.size() <= m_active_mask_id) return;
 
-  printf( "mask erode...\n");
+  std::cout << "mask erode...\n";
   
-  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+  const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
   byte* flgs = new byte[N];
 
-  for (int i = 0; i < N; ++i) flgs[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 : 1;
-  t_erode3D( m_Reso[0], m_Reso[1], m_Reso[2], flgs);
-  for (int i = 0; i < N; ++i) if (m_volMsk[i] == m_maskSelectedId && flgs[i] == 1) m_volMsk[i] = 0;
+  for (int i = 0; i < N; ++i) flgs[i] = (m_vol_mask[i] == m_active_mask_id) ? 255 : 1;
+  t_Erode3D( m_resolution[0], m_resolution[1], m_resolution[2], flgs);
+  for (int i = 0; i < N; ++i) if (m_vol_mask[i] == m_active_mask_id && flgs[i] == 1) m_vol_mask[i] = 0;
 
-  m_volMsk.SetUpdated();
+  m_vol_mask.SetUpdated();
   delete[] flgs;
 
-  printf( "mask erode...DONE\n");
+  std::cout << "mask erode...DONE\n";
 }
 
 
 
-void ImageCore::selectedMsk_dilate  ()
+void ImageCore::ActiveMask_Dilate  ()
 {
-  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+  if ( m_active_mask_id <= 0 || m_mask_data.size() <= m_active_mask_id) return;
 
-  printf( "mask dilate...\n");
-  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+  std::cout << "mask dilate...\n";
+  const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
   byte* flgs = new byte[N];
   for (int i = 0; i < N; ++i) {
-    flgs[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 :
-              (m_maskData[m_volMsk[i]].lock   ) ? 0 : 1;
+    flgs[i] = (m_vol_mask[i] == m_active_mask_id) ? 255 :
+              (m_mask_data[m_vol_mask[i]].m_b_locked   ) ? 0 : 1;
   }
 
-  t_dilate3D( m_Reso[0], m_Reso[1], m_Reso[2], flgs);
+  t_Dilate3D( m_resolution[0], m_resolution[1], m_resolution[2], flgs);
 
   for (int i = 0; i < N; ++i) {
-    if (flgs[i] == 255) m_volMsk[i] = m_maskSelectedId;
+    if (flgs[i] == 255) m_vol_mask[i] = m_active_mask_id;
   }
-  m_volMsk.SetUpdated();
+  m_vol_mask.SetUpdated();
 
   delete[] flgs;
-  printf( "mask dilate...DONE\n");
+  std::cout << "mask dilate...DONE\n";
 }
 
 
 
-void ImageCore::selectedMsk_fillHole()
+void ImageCore::ActiveMask_FillHole()
 {
-  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+  if ( m_active_mask_id <= 0 || m_mask_data.size() <= m_active_mask_id) return;
 
-  printf( "mask fillhole...\n");
-  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+  std::cout << "mask fillhole...\n";
+  const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
   
   byte* flgs = new byte[ N ]; //0:back, 255:trgt_mask_id
 
   for (int i = 0; i < N; ++i){
-    flgs[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 : 0;
+    flgs[i] = (m_vol_mask[i] == m_active_mask_id) ? 255 : 0;
   } 
 
-  t_fillHole3D(m_Reso[0], m_Reso[1], m_Reso[2], flgs);
+  t_FillHole3D(m_resolution[0], m_resolution[1], m_resolution[2], flgs);
 
   for (int i = 0; i < N; ++i)
   {
-    if (flgs[i] == 255 && m_volMsk[i] == 0 ) m_volMsk[i] = m_maskSelectedId;
+    if (flgs[i] == 255 && m_vol_mask[i] == 0 ) m_vol_mask[i] = m_active_mask_id;
   }
-  m_volMsk.SetUpdated();
+  m_vol_mask.SetUpdated();
 
   delete[] flgs;
 
-  fprintf(stderr, "fillhole...DONE\n");
+  std::cout << "fillhole...DONE\n";
 }
 
 
 
-void ImageCore::selectedMsk_expObj  (const string &fname)
+void ImageCore::ActiveMask_ExportObj  (const string &fname)
 {
-  if ( m_maskSelectedId <= 0 || m_maskData.size() <= m_maskSelectedId) return;
+  if ( m_active_mask_id <= 0 || m_mask_data.size() <= m_active_mask_id) return;
 
-  const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+  const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
   short *v = new short[N];
-  for (int i = 0; i < N; ++i) v[i] = (m_volMsk[i] == m_maskSelectedId) ? 255 : 0;
+  for (int i = 0; i < N; ++i) v[i] = (m_vol_mask[i] == m_active_mask_id) ? 255 : 0;
 
   TMesh mesh;
-  marchingcubes::t_MarchingCubes(m_Reso, m_Pitch, v, 128, 0, 0, mesh);
+  marchingcubes::t_MarchingCubes(m_resolution, m_pitch, v, 128, 0, 0, mesh);
   mesh.smoothing(2);
   mesh.exportObjNoTexCd(fname.c_str());
 
@@ -777,60 +790,58 @@ static const EVec3i ColPallet[ColPalletN] = {
 
 
 
-//mask_storeCurrentForeGround
-//generate new region by using all voxels with (m_volFlg[i] == 255) 
-void ImageCore::mask_storeCurrentForeGround()
+void ImageCore::StoreForegroundAsNewMask()
 {
-	const int id = (int) m_maskData.size();
-	const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+	const int id = (int) m_mask_data.size();
+	const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
-	for (int i = 0; i < N; ++i) if( m_volFlg[i] == 255 )  m_volMsk[i] = id;
-	m_volMsk.SetUpdated();
+	for (int i = 0; i < N; ++i) if( m_vol_flag[i] == 255 )  m_vol_mask[i] = id;
+	m_vol_mask.SetUpdated();
 
 	//initial color
 	static int c = 1;
 	c++;
 	//store new region
-	m_maskData.push_back( MaskData("region", ColPallet[c%ColPalletN], 0.1, false, true) );
+	m_mask_data.push_back( MaskData("region", ColPallet[c%ColPalletN], 0.1, false, true) );
 }
 
 
-void ImageCore::selectedMsk_setLock(const bool tf)
+void ImageCore::ActiveMask_SetLocked(const bool tf)
 {
-	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
-	m_maskData[m_maskSelectedId].lock = tf;
+	if( m_active_mask_id < 0 || m_mask_data.size() <= m_active_mask_id ) return;
+	m_mask_data[m_active_mask_id].m_b_locked = tf;
 }
 
-void ImageCore::selectedMsk_setAlpha(const double alpha)
+void ImageCore::ActiveMask_SetAlpha(const double alpha)
 {
-	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
-	m_maskData[m_maskSelectedId].alpha = alpha;
+	if( m_active_mask_id < 0 || m_mask_data.size() <= m_active_mask_id ) return;
+	m_mask_data[m_active_mask_id].m_alpha = alpha;
 }
 
-void ImageCore::selectedMsk_setColor(const EVec3i &c)
+void ImageCore::ActiveMask_SetColor(const EVec3i &c)
 {
-	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
-	m_maskData[m_maskSelectedId].color = c;
+	if( m_active_mask_id < 0 || m_mask_data.size() <= m_active_mask_id ) return;
+	m_mask_data[m_active_mask_id].m_color = c;
 }
 
 
-void ImageCore::selectedMsk_setRendSurf(const bool tf)
+void ImageCore::ActiveMask_SetRendSurf(const bool tf)
 {
-	if( m_maskSelectedId < 0 || m_maskData.size() <= m_maskSelectedId ) return;
-	MaskData &trgtMsk = m_maskData[m_maskSelectedId];
+	if( m_active_mask_id < 0 || m_mask_data.size() <= m_active_mask_id ) return;
+	MaskData &trgtMsk = m_mask_data[m_active_mask_id];
 
-	trgtMsk.bRendSurf = tf;
+	trgtMsk.m_b_drawsurface = tf;
 	
-	if( tf == true && trgtMsk.surf.m_vSize == 0)
+	if( tf == true && trgtMsk.m_surface.m_vSize == 0)
 	{
-		const int N = m_Reso[0] * m_Reso[1] * m_Reso[2];
+		const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
 		short *v = new short[N];
 
-		for( int i=0; i < N; ++i ) v[i] = ( m_volMsk[i] == m_maskSelectedId ) ? 255 : 0;
+		for( int i=0; i < N; ++i ) v[i] = ( m_vol_mask[i] == m_active_mask_id ) ? 255 : 0;
 
-    marchingcubes::t_MarchingCubes(m_Reso, m_Pitch, v, 128, 0, 0, trgtMsk.surf);
-		trgtMsk.surf.smoothing(2);
+    marchingcubes::t_MarchingCubes(m_resolution, m_pitch, v, 128, 0, 0, trgtMsk.m_surface);
+		trgtMsk.m_surface.smoothing(2);
 
 		delete[] v;
 	}
@@ -841,16 +852,16 @@ void ImageCore::selectedMsk_setRendSurf(const bool tf)
 
 
 
-void ImageCore::saveVolumeAsTraw3dss(const char *fname)
+void ImageCore::SaveVolumeAsTraw3dss(const char *fname)
 {
   string f = string(fname);
   if(f.length() < 9 || f.substr(f.length()-9, 9) != "traw3D_ss" ){
     f += ".traw3D_ss";
   }
     
-  EVec3i res = m_Reso;
-  EVec3f pit = m_Pitch;
-  short *vol = m_volOrig;
+  EVec3i res = m_resolution;
+  EVec3f pit = m_pitch;
+  short *vol = m_vol_orig;
 
 	const int     W = res[0];
 	const int     H = res[1];
@@ -901,3 +912,8 @@ void ImageCore::saveVolumeAsTraw3dss(const char *fname)
   img.SaveAs("zy.bmp", 0);
   */
 }
+
+
+
+
+#pragma managed

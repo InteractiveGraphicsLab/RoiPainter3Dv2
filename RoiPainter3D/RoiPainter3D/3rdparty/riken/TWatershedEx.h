@@ -1,10 +1,8 @@
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <list>
-using namespace std;
-
-
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -29,10 +27,10 @@ using namespace std;
 
 class TWsPixelEx
 {
-	unsigned short m_val   ;//pixel intensity 
-    int            m_label ;//pixel label INIT
-    int            m_dist  ;//mask時のbasin/watershed pixelからの距離
-	std::vector<TWsPixelEx*> m_neighbours;//reference to neighboring pixels
+  unsigned short m_val   ;//pixel intensity 
+  int            m_label ;//pixel label INIT
+  int            m_dist  ;//mask時のbasin/watershed pixelからの距離
+  std::vector<TWsPixelEx*> m_neighbours;//reference to neighboring pixels
 
 public:
 	~TWsPixelEx(){}
@@ -51,7 +49,7 @@ public:
 
 	//setter//
 	inline void Set(unsigned short val){
-		m_val   = min( WSD_HMAX, max( val, WSD_HMIN) );
+		m_val   = std::min( (unsigned short)WSD_HMAX, std::max( val, (unsigned short)WSD_HMIN) );
 		m_dist  = 0       ;
 		m_label = TWS_INIT;
 		m_neighbours.reserve( 26 );
@@ -166,7 +164,7 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 			if( p.getIntValue() != h){ heightIndex1 = pIdx; break; }
 
 			p.setLabelToMASK();
-			vector<TWsPixelEx*> &neighbours = p.getNeighbours();
+			std::vector<TWsPixelEx*> &neighbours = p.getNeighbours();
 			for(int i=0 ; i< (int) neighbours.size() ; i++) if( neighbours[i]->getLabel() >= 0 ) //basin or watershed
 			{		    
 				p.setDistance(1);
@@ -196,7 +194,7 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 
 			//neighborsの状況によりpをラべリング * 以下に説明あり
 			bool hasNeighboringWsPix = false;
-			vector<TWsPixelEx*> &neighbours = p->getNeighbours();	
+			std::vector<TWsPixelEx*> &neighbours = p->getNeighbours();	
 			for(int i = 0; i < (int)neighbours.size(); ++i) 
 			{
 				TWsPixelEx &q = *neighbours[i];
@@ -233,7 +231,7 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 				while(!queue.fifo_empty()) 
 				{
 					TWsPixelEx &q = *queue.fifo_remove();
-					vector<TWsPixelEx*> &neighbours = q.getNeighbours();
+					std::vector<TWsPixelEx*> &neighbours = q.getNeighbours();
 
 					for(int i=0 ; i < (int)neighbours.size() ; ++i) if( neighbours[i]->isLabelMASK() ) 
 					{
@@ -351,25 +349,26 @@ void t_wsd_CalcLabelFromGMag
 	const int D, 
 	const float* gMagVol, 
 	const float  volCoef, 
-	      vector<int> &labels
+	      std::vector<int> &labels
 )
 {
 	if( W * H > 1024*1024*4 ) 
 	{ 
-		printf( "データサイズが大きすぎます\n"); 
+		std::cout << "データサイズが大きすぎます\n" ; 
 		return;
 	}
 
 	const int stepZ = 2 * 1024 * 1024 / ( W * H) ;
 	const int iterN = ( D % stepZ == 0 ) ? D / stepZ  :  D / stepZ + 1;
-	printf( "watershed (%d %d %d), stepZ:%d iterN:%d \n", W,H,D, stepZ, iterN);
+	std::cout <<"watershed (" 
+            << W << " " << H << " " << D << " " 
+            << "), stepZ:" << stepZ << " iterN: " << iterN << "\n";
 
-
-	vector< vector<int> > tmpLabels( iterN, vector<int>() );
+	std::vector< std::vector<int> > tmpLabels( iterN, std::vector<int>() );
 	
 	for( int i = 0; i < iterN; ++i)
 	{
-    printf( "was %d/%d \n", i, iterN );
+    std::cout << "was " << i << "/" << iterN << "\n";
 		int z0 = i * stepZ;
 		int tmpD = ( z0 + stepZ <= D ) ? stepZ : D - z0;
 		TWatershed3DEx( W, H, tmpD, &gMagVol[ W * H * z0 ], volCoef, tmpLabels[i], 0 );
@@ -386,7 +385,7 @@ void t_wsd_CalcLabelFromGMag
 		for( int i = 0, s = (int) tmpLbl.size(); i < s; ++i) 
 		{
 			labels[ i + idxOffset ] = ( tmpLbl[i] == 0 ) ? 0 : tmpLbl[i] + labelOffset;
-			maxLabelVal = max( maxLabelVal, tmpLbl[i] );
+			maxLabelVal = std::max( maxLabelVal, tmpLbl[i] );
 		}
 		labelOffset += maxLabelVal;
 		idxOffset   += (int) tmpLbl.size();
@@ -405,7 +404,7 @@ void t_wsd_CollapseWsdPixels3D(
 	const int H, 
 	const int D, 
 	const short* vol, 
-	vector<int> &labels)
+	std::vector<int> &labels)
 {
 	const int WH = W*H, WHD = W*H*D;
 
@@ -455,7 +454,7 @@ void t_wsd_CollapseWsdPixels3D(
 		}
 		if( !boundExist ) break;
 
-		//fprintf( stderr, "t_wsd_CollapseWsdPixels3D loop end \n");
+		//std::cout << "t_wsd_CollapseWsdPixels3D loop end \n";
 	}
 
 	delete[] visFlg;
@@ -466,14 +465,14 @@ void t_wsd_CollapseWsdPixels3D(
 
 //　1 voxel regionをwatershed境界領域にする（高効率化のため）
 // labelの振りなおしの必要が生じる
-void t_wsd_RemoveOneVoxWsdLabel( vector<int> &v_labels)
+void t_wsd_RemoveOneVoxWsdLabel( std::vector<int> &v_labels)
 {
 
 	//max label 
 	int maxLabel = 0;
-	for( const auto& vL: v_labels) maxLabel = max( maxLabel, vL);
+	for( const auto& vL: v_labels) maxLabel = std::max( maxLabel, vL);
 	
-	vector<int> label_voxN( maxLabel + 1, 0);
+	std::vector<int> label_voxN( maxLabel + 1, 0);
 	for( const auto& vL: v_labels) ++label_voxN[ vL ];
 	
 	//1 voxel 領域を境界要素へ
@@ -485,7 +484,7 @@ void t_wsd_RemoveOneVoxWsdLabel( vector<int> &v_labels)
 
 	//labelを連続に振り直す
 	int offset = 0;
-	vector<int> newLabel( label_voxN.size() );
+	std::vector<int> newLabel( label_voxN.size() );
 	for( int i = 0, s = (int) label_voxN.size(); i < s; ++i)
 	{
 		if( label_voxN[i] == -1 ) offset++;

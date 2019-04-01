@@ -11,25 +11,25 @@
 #include "climessagebox.h"
 
 #include <deque>
+#include <vector>
 
+using namespace std;
 using namespace RoiPainter3D;
 
 #pragma unmanaged
+
 
 ModeSegLocalRGrow::~ModeSegLocalRGrow()
 {
 }
 
 ModeSegLocalRGrow::ModeSegLocalRGrow() :
-	m_volumeShader("shader/volVtx.glsl"   , "shader/volFlg_LRG.glsl"   ),
-	m_crssecShader("shader/crssecVtx.glsl", "shader/crssecFlg_LRG.glsl")
+	m_volume_shader("shader/volVtx.glsl"   , "shader/volFlg_LRG.glsl"   ),
+	m_crssec_shader("shader/crssecVtx.glsl", "shader/crssecFlg_LRG.glsl")
 {
   m_bL = m_bR = m_bM = false;
-  m_moveSeedCpId << -1, -1;
-
+  m_drag_seedcp_id << -1, -1;
 }
-
-
 
 
 
@@ -37,45 +37,41 @@ ModeSegLocalRGrow::ModeSegLocalRGrow() :
 // 0   : locked 
 // 1   : not yet segmented (background) 
 // 2   : fixed background (negative) region
-// 3   : now visiting flg
+// 3   : now visiting
 // 255 : fixed foreground (pogitive) region
-void ModeSegLocalRGrow::startMode()
+
+void ModeSegLocalRGrow::StartMode()
 {
-	const vector<MaskData> &mask = ImageCore::getInst()->m_maskData  ;
-	const OglImage3D      &vMask = ImageCore::getInst()->m_volMsk;
-	OglImage3D            &vFlg  = ImageCore::getInst()->m_volFlg ;
-	const EVec3i          &reso  = ImageCore::getInst()->getResolution();
+	const vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data  ;
+	const OglImage3D  &vol_mask  = ImageCore::GetInst()->m_vol_mask;
+	OglImage3D        &vol_flg   = ImageCore::GetInst()->m_vol_flag ;
+	const EVec3i      &reso      = ImageCore::GetInst()->GetResolution();
 	const int N = reso[0] * reso[1] * reso[2];
 
+  //init vol_flg
+	for (int i = 0; i < N; ++i) vol_flg[i] = ( mask[ vol_mask[i] ].m_b_locked ) ? 0 : 1;
+	vol_flg.SetUpdated();
 
-	//CP描画のため mesh を初期化
-	m_CpSize = ImageCore::getInst()->getPitchW() * 2.0f;
-	m_CPmesh.initializeIcosaHedron(m_CpSize);
-
-  //set vFlg
-	for (int i = 0; i < N; ++i) vFlg[i] = ( mask[ vMask[i] ].lock ) ? 0 : 1;
-	vFlg.SetUpdated();
-
-  //other flgs
-	m_bDrawCutStr = false;
+  //init field & control point
+	m_b_drawstroke = false;
 	m_stroke.clear();
+  m_seeds.clear();
+  LRGSeed::SetCpRadius( ImageCore::GetInst()->GetPitchW() * 2.0f );
 
   //show dialog
   formSegLocalRGrow_Show();
 
-	//seedを初期化
-  m_seeds.clear();
-
-  float maxR = ImageCore::getInst()->getCuboidF()[0] / 2;
-  EVec2i minmax = ImageCore::getInst()->getVolMinMax();
-  formSegLocalRGrow_setSliderRange( maxR, minmax[0], minmax[1]);
+  float  max_radius = ImageCore::GetInst()->GetCuboid()[0] / 2;
+  EVec2i minmax     = ImageCore::GetInst()->GetVolMinMax();
+  formSegLocalRGrow_setSliderRange( max_radius, minmax[0], minmax[1]);
   formSegLocalRGrow_updateAllItems();
 }
 
 
-bool ModeSegLocalRGrow::canEndMode()
+bool ModeSegLocalRGrow::CanLeaveMode()
 {
-	if ( m_seeds.size() != 0 && !CLI_MessageBox_YESNO_Show("Current Result is not stored. Do you want to leave?", "message") )
+	if ( m_seeds.size() == 0 ) return true;
+  if ( !CLI_MessageBox_YESNO_Show("Current Result is not stored. Do you want to leave?", "message") )
 	{
 		return false;
 	}
@@ -84,16 +80,15 @@ bool ModeSegLocalRGrow::canEndMode()
 
 
 
-
-void ModeSegLocalRGrow::finishSegmentation()
+void ModeSegLocalRGrow::FinishSegmentation()
 {
-	const EVec3i res = ImageCore::getInst()->getResolution();
-	const int    N = res[0] * res[1] * res[2];
+	const EVec3i reso = ImageCore::GetInst()->GetResolution();
+	const int    N    = reso[0] * reso[1] * reso[2];
 
 	bool bForeExist = false;
 	for (int i = 0; i < N; ++i)
 	{
-		if ( ImageCore::getInst()->m_volFlg[i] == 255)
+		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
 		{
 			bForeExist = true;
 			break;
@@ -107,103 +102,199 @@ void ModeSegLocalRGrow::finishSegmentation()
 	}
 
   m_seeds.clear();
-	ImageCore::getInst()->mask_storeCurrentForeGround();
-	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
-	formMain_redrawMainPanel();
+	ImageCore::GetInst()->StoreForegroundAsNewMask();
+	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
+	FormMain_RedrawMainPanel();
 }
 
 
-
-
-void ModeSegLocalRGrow::cancelSegmentation()
+void ModeSegLocalRGrow::CancelSegmentation()
 {
   m_seeds.clear();
   formSegLocalRGrow_updateAllItems();
-  ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
-  formMain_redrawMainPanel();
+  ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
+  FormMain_RedrawMainPanel();
 }
-
-
 
 
 
 
 ///////////////////////////////////////////////////////////////////////
 //Mouse Listener///////////////////////////////////////////////////////
+// current version(現在のもの)
+// Add F/B seed  : Button on Dialog   YET
+// Add seed cp   : shift + L click to add new CP (when one seed is activated)  OK
+// Move seed     : shift + L click & drag                                      OK
+// Remove seed   : shift + R click                                             OK
+// Remove seed cp: shift + R click                                             OK
+// cut strok     : ctrl  + L drag                                              OK
 
+// old(鶴岡君)バージョン
 // Add seed      : L/R double click to add Pos/Neg seed
 // Add seed cp   : shift + L double click to add new CP (when one seed is activated) 
-// Remove seed   : L double click 
-// Remove seed cp: L double click  
+// Remove seed   : M double click 
+// Remove seed cp: M double click  
 // Move seed     : L click & drag
+
+
+void ModeSegLocalRGrow::AddNewSeed(bool bForeSeed)
+{
+  //fix position (表示されている planeの中心に配置)
+  const EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
+
+  EVec3f cp_position;
+  if ( formVisParam_bPlaneXY() )
+  {
+    const float plane_xy = CrssecCore::GetInst()->GetPlaneXyPosition();
+    cp_position << cuboid[0]/2, cuboid[1]/2, plane_xy * cuboid[2];
+  }
+  else if ( formVisParam_bPlaneYZ() )
+  {
+    const float plane_yz = CrssecCore::GetInst()->GetPlaneYzPosition();
+    cp_position << plane_yz * cuboid[0], cuboid[1]/2, cuboid[2]/2;
+  }
+  else if ( formVisParam_bPlaneZX() )
+  {
+    const float plane_zx = CrssecCore::GetInst()->GetPlaneZxPosition();
+    cp_position << cuboid[0]/2, plane_zx * cuboid[1], cuboid[2]/2;
+  }
+  else
+  {
+    cp_position = cuboid * 0.5;
+  }
+
+  //get initial threshold
+  short vol_v  = ImageCore::GetInst()->GetVoxelValue(cp_position);
+	short min_v  = bForeSeed ? vol_v - 100 : 0         ;
+	short max_v  = bForeSeed ? 4095       : vol_v + 100;
+	float radius = bForeSeed ? cuboid[0] * 0.05f : cuboid[0] * 0.02f;
+
+  EVec2i minmax = ImageCore::GetInst()->GetVolMinMax();
+  min_v = max( min_v, (short)minmax[0]);
+  max_v = min( max_v, (short)minmax[1]);
+
+  m_seeds.push_back( LRGSeed( cp_position, min_v, max_v, bForeSeed, radius) );
+	m_activeseed_idx = (int)m_seeds.size() - 1;
+
+  //sort seed (Original code was by Hiryu Kamoshita)
+  //negativeは前半に積む
+  if( m_seeds.back().m_flg_fore == false)
+  {
+    for(int i = (int)m_seeds.size()-1; i > 0 ; --i) 
+	  {
+      //手前がnegativeなら終了
+		  if( !m_seeds[i-1].m_flg_fore ) break;
+      //そうでなければ入れ替え
+      swap(m_seeds[i-1], m_seeds[i] );
+      m_activeseed_idx = i-1;
+	  }
+  }
+
+  formSegLocalRGrow_updateAllItems();
+  FormMain_RedrawMainPanel();
+}
+
+
 
 
 void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bL = true;
 
-  if (isShiftKeyOn() )
+  if (IsCtrKeyOn() )
   {
-    return;
-  }
-
-  if (isCtrKeyOn() )
-  {
-    m_bDrawCutStr = true;
+    m_b_drawstroke = true;
     m_stroke.clear();
-    return;
+  }
+  else if ( IsShiftKeyOn() )
+  {
+    EVec3f ray_pos, ray_dir;
+    ogl->GetCursorRay(p, ray_pos, ray_dir);
+    m_drag_seedcp_id = PickSeeds(ray_pos, ray_dir);
+
+    if(m_drag_seedcp_id[0] != -1)
+    {
+      //hit --> activate and move
+      m_activeseed_idx = m_drag_seedcp_id[0];
+	    formSegLocalRGrow_updateAllItems();
+    }
+    else if( 0 <= m_activeseed_idx && m_activeseed_idx < (int)m_seeds.size() )
+    {
+      //not hit --> pick crossection and add cp
+      EVec3f pos;
+	    if ( PickCrssec(ray_pos, ray_dir, &pos) != CRSSEC_NON)
+	    {
+        m_seeds[ m_activeseed_idx ].m_cps.push_back(pos);
+	    }
+      formSegLocalRGrow_updateAllItems();
+    }
+  }
+  else
+  {
+    ogl->BtnDown_Trans(p);
   }
 
-	EVec3f rayP, rayD;
-	ogl->GetCursorRay(p, rayP, rayD);
-
-	m_moveSeedCpId = pickSeeds(rayP, rayD);
-  m_ActiveSeedIdx = m_moveSeedCpId[0];
-	formSegLocalRGrow_updateAllItems();
-
-  if(m_moveSeedCpId[0] == -1)
-	{
-		ogl->BtnDown_Trans(p);
-	}
-
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
 void ModeSegLocalRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-  if (m_bDrawCutStr)
+  if (m_b_drawstroke)
 	{
-		CrssecCore::getInst()->GenerateCurvedCrssec( ImageCore::getInst()->getCuboidF(), ogl->GetCamPos(), m_stroke );
+    EVec3f cuboid  = ImageCore::GetInst()->GetCuboid();
+    EVec3f cam_pos = ogl->GetCamPos();
+		CrssecCore::GetInst()->GenerateCurvedCrssec( cuboid, cam_pos, m_stroke );
 	}
 
-	m_bDrawCutStr = m_bL = false;
-	m_moveSeedCpId << -1, -1;
+	m_b_drawstroke = false;
+  m_bL = false;
+	m_drag_seedcp_id << -1, -1;
 	ogl->BtnUp();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
+
 
 
 void ModeSegLocalRGrow::RBtnDown(const EVec2i &p, OglForCLI *ogl)
 {	
   m_bR = true;
   
-  EVec3f rayP, rayD;
-	ogl->GetCursorRay(p, rayP, rayD);
-	m_moveSeedCpId = pickSeeds(rayP, rayD);
+  if( IsShiftKeyOn() )
+  {
+    EVec3f ray_pos, ray_dir;
+	  ogl->GetCursorRay(p, ray_pos, ray_dir);
+	  EVec2i seedid_cpid = PickSeeds(ray_pos, ray_dir);
+    int seedId = seedid_cpid[0];
+    int cpId   = seedid_cpid[1];
+	  
+    if(0 <= seedId && seedId < (int)m_seeds.size() ) 
+    {
+		  m_seeds[ seedId ].m_cps.erase( m_seeds[seedId].m_cps.begin() + cpId );
 
-	if(m_moveSeedCpId [0] == -1) ogl->BtnDown_Rot(p);
-	
-  formMain_redrawMainPanel();
+      if( m_seeds[ seedId ].m_cps.size() == 0 )
+      {
+		    m_seeds.erase( m_seeds.begin() + seedId );
+      }
+      formSegLocalRGrow_updateAllItems();
+    }
+  }
+  else
+  {
+    ogl->BtnDown_Rot(p);
+  }
+
+  FormMain_RedrawMainPanel();
 }
+
 
 
 void ModeSegLocalRGrow::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   ogl->BtnUp();
   m_bR = false;
-  m_moveSeedCpId << -1, -1;
-  formMain_redrawMainPanel();
+  m_drag_seedcp_id << -1, -1;
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -212,85 +303,48 @@ void ModeSegLocalRGrow::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = true;
   ogl->BtnDown_Zoom(p);
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   ogl->BtnUp();
 	m_bM = false;
-	m_moveSeedCpId << -1, -1;
-  formMain_redrawMainPanel();
+	m_drag_seedcp_id << -1, -1;
+  FormMain_RedrawMainPanel();
 }
 
 
 
 void ModeSegLocalRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 {
-  EVec3f rayP, rayD;
-	ogl->GetCursorRay(p, rayP, rayD);
-
-  // highlight済み + Shift Ldouble click --> add cp to a seed
-	if( isShiftKeyOn() && m_ActiveSeedIdx  != -1) 
-	{
-		dblclkToAddNewCp(rayP, rayD, m_ActiveSeedIdx);
-	}
-	else
-	{
-		dblclkToAddNewSeed(rayP, rayD, true);
-	}
-
-  formMain_redrawMainPanel();
 }
-
-
 
 
 void ModeSegLocalRGrow::RBtnDclk(const EVec2i &p, OglForCLI *ogl) 
 {
-  EVec3f rayP, rayD;
-  ogl->GetCursorRay(p, rayP, rayD);
-	
-  // highlight済み + Shift Ldouble click --> add cp to a seed
-	if( isShiftKeyOn() && m_ActiveSeedIdx  != -1) 
-	{
-		dblclkToAddNewCp(rayP, rayD, m_ActiveSeedIdx);
-	}
-	else
-	{
-		 dblclkToAddNewSeed(rayP, rayD, false); 
-	}
-
-  formMain_redrawMainPanel();
 }
 
 
 void ModeSegLocalRGrow::MBtnDclk(const EVec2i &p, OglForCLI *ogl) 
 {
-  EVec3f rayP, rayD;
-  ogl->GetCursorRay(p, rayP, rayD);
-	
-	EVec2i seedId = pickSeeds(rayP, rayD);
-	if(seedId[0] != -1 && seedId[1] != -1) dblclkToRemoveCP( seedId );
-		
-  formMain_redrawMainPanel();
 }
 
 
 
-EVec2i ModeSegLocalRGrow::pickSeeds(const EVec3f &rayP, const EVec3f &rayD)
+EVec2i ModeSegLocalRGrow::PickSeeds(const EVec3f &ray_pos, const EVec3f &ray_dir)
 {
-  for(int i = 0; i < (int)m_seeds.size(); ++i)
+  float CP_RADIUS = LRGSeed::GetCpRadius();
+  for(int i = 0; i < (int) m_seeds.size(); ++i)
 	{
-		for(int j = 0; j < m_seeds[i].m_pos.size(); ++j)
+		for(int j = 0; j < (int) m_seeds[i].m_cps.size(); ++j)
 		{
-			if ( t_distRayToPoint(rayP,rayD,m_seeds[i].m_pos[j]) < m_CpSize )
+			if ( t_distRayToPoint(ray_pos, ray_dir, m_seeds[i].m_cps[j] ) < CP_RADIUS )
 			{				
 				return EVec2i(i,j);
 			}
 		}
 	}	
-
 	return EVec2i( -1, -1);
 }
 
@@ -302,214 +356,135 @@ void ModeSegLocalRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
 {
 	if ( !m_bL && !m_bR && !m_bM ) return;
 
-	EVec3f rayP, rayD, pos;
-	ogl->GetCursorRay(p, rayP, rayD);
+	EVec3f ray_pos, ray_dir, pos;
+	ogl->GetCursorRay( p, ray_pos, ray_dir);
 
-	if ( m_bDrawCutStr )
+	if ( m_b_drawstroke )
 	{
-		m_stroke.push_back( rayP + 0.1f * rayD );
+		m_stroke.push_back( ray_pos + 0.1f * ray_dir );
 	}
-	else if( m_moveSeedCpId[0] != -1 )
+	else if ( m_drag_seedcp_id[0] != -1 )
 	{
-    if ( pickCrsSec( rayP, rayD, &pos) != CRSSEC_NON )
-      m_seeds[ m_moveSeedCpId[0] ].m_pos[m_moveSeedCpId[1] ] = pos;
+    if ( PickCrssec( ray_pos, ray_dir, &pos) != CRSSEC_NON )
+    {
+      m_seeds[ m_drag_seedcp_id[0] ].m_cps[ m_drag_seedcp_id[1] ] = pos;
+    }
 	}
   else 
 	{
 		ogl->MouseMove( p );
 	}
 
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
-void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
+void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
-  EVec3f rayP, rayD, pos;
-	ogl->GetCursorRay(p, rayP, rayD);	
-	
 
-	if ( 0 <= m_ActiveSeedIdx && m_ActiveSeedIdx < m_seeds.size() )
+	if ( IsShiftKeyOn() && 0 <= m_activeseed_idx && m_activeseed_idx < m_seeds.size() )
 	{
     //active seed があれば、その半径を変更する (algキーが押されているときは高速) 
-    double d = isAltKeyOn() ? (float)(zDelta * 0.1) : (float)(zDelta * 0.001);
-    m_seeds[m_ActiveSeedIdx].modifyRadius( (float)d );
+    float d = IsAltKeyOn() ? (float)(z_delta * 0.1) : (float)(z_delta * 0.001);
+    m_seeds[ m_activeseed_idx ].ModifyRadius( d );
     formSegLocalRGrow_updateSliders();
 	}
 	else
 	{
-    CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
-    if( id != CRSSEC_NON ) {
-      CrssecCore::getInst()->MoveCrssec( ImageCore::getInst()->getResolution(), 
-                                         ImageCore::getInst()->getPitch(), id, 
-                                         (isAltKeyOn()) ? 3 * zDelta : zDelta);
+    EVec3f ray_pos, ray_dir, pos;
+    ogl->GetCursorRay(p, ray_pos, ray_dir);	
+
+    CRSSEC_ID id = PickCrssec(ray_pos, ray_dir, &pos);
+    if( id != CRSSEC_NON ) 
+    {
+      CrssecCore::GetInst()->MoveCrssec( ImageCore::GetInst()->GetResolution(), 
+                                         ImageCore::GetInst()->GetPitch(), id, 
+                                         (IsAltKeyOn()) ? 3 * z_delta : z_delta);
     }
 	}
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
 
-void ModeSegLocalRGrow::keyDown(int nChar) {formMain_redrawMainPanel();}
-void ModeSegLocalRGrow::keyUp(int nChar) {formMain_redrawMainPanel();}
+void ModeSegLocalRGrow::KeyDown(int nChar) 
+{ 
+  FormMain_RedrawMainPanel(); 
+}
 
 
-
-
-
-
-
-
-
-void ModeSegLocalRGrow::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
+void ModeSegLocalRGrow::KeyUp  (int nChar) 
 {
-  const bool   bXY      = formVisParam_bPlaneXY();
-  const bool   bYZ      = formVisParam_bPlaneYZ();
-  const bool   bZX      = formVisParam_bPlaneZX();
-  const bool   bDrawVol = formVisParam_bRendVol();
-  const bool   bGradMag = formVisParam_bGradMag();
-  const bool   bPsuedo  = formVisParam_bDoPsued();
-  const float  alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::getInst()->getResolution();
-  const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-  const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+  FormMain_RedrawMainPanel(); 
+}
 
+
+
+void ModeSegLocalRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center)
+{
+  
 	//bind volumes ---------------------------------------
 	glActiveTextureARB(GL_TEXTURE0);
-	ImageCore::getInst()->m_vol.BindOgl();
+	ImageCore::GetInst()->m_vol.BindOgl();
 	glActiveTextureARB(GL_TEXTURE1);
-	ImageCore::getInst()->m_volGmag.BindOgl();
+	ImageCore::GetInst()->m_vol_gm.BindOgl();
 	glActiveTextureARB(GL_TEXTURE2);
-	ImageCore::getInst()->m_volFlg.BindOgl(false);
+	ImageCore::GetInst()->m_vol_flag.BindOgl(false);
 	glActiveTextureARB(GL_TEXTURE3);
-	ImageCore::getInst()->m_volMsk.BindOgl(false);
+	ImageCore::GetInst()->m_vol_mask.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE4);
   formVisParam_bindTfImg();
   glActiveTextureARB(GL_TEXTURE5);
   formVisParam_bindPsuImg();
   glActiveTextureARB(GL_TEXTURE6);
-  ImageCore::getInst()->m_imgMskCol.BindOgl(false);
+  ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 
 	//render cross sections ----------------------------------
+  const bool   b_xy = formVisParam_bPlaneXY();
+  const bool   b_yz = formVisParam_bPlaneYZ();
+  const bool   b_zx = formVisParam_bPlaneZX();
+  const bool   b_gm = formVisParam_bGradMag();
+  const EVec3i reso = ImageCore::GetInst()->GetResolution();
+
   glColor3d(1, 1, 1);
-  m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
-  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
-  m_crssecShader.unbind();
+  m_crssec_shader.Bind( 0, 1, 2, 3, 6, reso, b_gm, !IsSpaceKeyOn());
+  CrssecCore::GetInst()->DrawCrssec(b_xy, b_yz, b_zx, cuboid);
+  m_crssec_shader.Unbind();
 
 
 	//volume rendering ---------------------------------------
-	if ( bDrawVol && !isSpaceKeyOn() )
+  const bool   b_draw_vol = formVisParam_bRendVol();
+	if ( b_draw_vol && !IsSpaceKeyOn() )
 	{
+    const bool  b_psuedo  = formVisParam_bDoPsued();
+    const float alpha     = formVisParam_getAlpha();
+    const bool  b_onmanip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int   num_slice = (int)((b_onmanip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, true );
-		t_drawSlices(sliceN, camP, camF, cuboid);
-		m_volumeShader.unbind();
+		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, b_psuedo, true );
+		t_DrawCuboidSlices(num_slice, cam_pos, cam_center, cuboid);
+		m_volume_shader.Unbind();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 	}
 
   //draw seeds
-  if(!isShiftKeyOn()) 
+  if( !IsSpaceKeyOn() ) 
   {
-    for( const auto& s : m_seeds) s.draw( m_CPmesh );
-  }
-	if(0 <= m_ActiveSeedIdx && m_ActiveSeedIdx < m_seeds.size())
-  {
-    m_seeds[m_ActiveSeedIdx].drawAsActive( m_CPmesh );
+    for( const auto& s : m_seeds) s.Draw( );
   }
 
+	if(0 <= m_activeseed_idx && m_activeseed_idx < m_seeds.size())
+  {
+    m_seeds[m_activeseed_idx].DrawAsActive( );
+  }
 	
-	if (m_bDrawCutStr)
-    t_drawLineStrip(EVec3f(1,1,0), 3, m_stroke);
-}
-
-#pragma managed
-
-
-
-
-
-
-// 新しいSeedを追加
-// bNegPos = true : foreground seed
-// bNegPos = false: background seed
-void ModeSegLocalRGrow::dblclkToAddNewSeed(const EVec3f &rayP, const EVec3f &rayD, bool bNegPos)
-{
-  EVec3f cuboid = ImageCore::getInst()->getCuboidF();
-  EVec3f pos;
-	CRSSEC_ID id = pickCrsSec( rayP, rayD, &pos);
-	if (id == CRSSEC_NON) return;
-
-	short imgV = ImageCore::getInst()->getVoxelValue(pos);
-	short minV = bNegPos ? imgV - 100 : 0         ;
-	short maxV = bNegPos ? 4095       : imgV + 100;
-	float size = bNegPos ? cuboid[0] * 0.05f : cuboid[0] * 0.02f;
-
-  EVec2i minMax = ImageCore::getInst()->getVolMinMax();
-  minV = max( minV, minMax[0]);
-  maxV = min( maxV, minMax[1]);
-  
-  m_seeds.push_back( LRGseed( pos, minV, maxV, bNegPos, size) );
-	m_ActiveSeedIdx = (int)m_seeds.size() - 1;
-
-  //sort seed (Original code is by Hiryu Kamoshita)
-  //negativeは前半に積む
-  if( m_seeds.back().m_flg == false)
+	if (m_b_drawstroke)
   {
-    for(int i = (int)m_seeds.size()-1; i > 0 ; --i) 
-	  {
-      //手前がnegativeなら終了
-		  if( !m_seeds[i-1].m_flg ) break;
-      //そうでなければ入れ替え
-      swap(m_seeds[i-1], m_seeds[i] );
-      m_ActiveSeedIdx = i-1;
-	  }
+    t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
   }
-
-  formSegLocalRGrow_updateAllItems();
-  formMain_redrawMainPanel();
-}
-
-
-
-//SeedにControl pointを追加
-void ModeSegLocalRGrow::dblclkToAddNewCp(const EVec3f &rayP, const EVec3f &rayD, const int seedId)
-{
-	EVec3f pos;
-
-	if ( pickCrsSec(rayP, rayD, &pos) != CRSSEC_NON)
-	{
-    m_seeds[seedId].m_pos.push_back(pos);
-	}
-
-  formSegLocalRGrow_updateAllItems();
-  formMain_redrawMainPanel();
-}
-
-
-
-//SeedからControl Pointを削除
-void ModeSegLocalRGrow::dblclkToRemoveCP(EVec2i seedIdCpId)
-{
-  int seedId = seedIdCpId[0];
-  int cpId   = seedIdCpId[1];
-
-  if( seedId < 0 || m_seeds.size() <= seedId) return;
-
-	if( cpId == 0 ) 
-	{
-    //seed自体を削除
-		m_seeds.erase(m_seeds.begin() + seedId);
-		m_ActiveSeedIdx = -1;
-	}
-	else
-	{
-    //control point だけを削除
-		m_seeds[seedId].m_pos.erase( m_seeds[seedId].m_pos.begin() + cpId );
-	}
-  formSegLocalRGrow_updateAllItems();
-  formMain_redrawMainPanel();
 }
 
 
@@ -526,6 +501,21 @@ void ModeSegLocalRGrow::dblclkToRemoveCP(EVec2i seedIdCpId)
 
 
 
+
+
+
+
+static void s_LocalRegionGrow
+(
+	const int W,
+	const int H,
+	const int D,
+	const LRGSeed &seed ,
+  const short   *vol  ,
+	const EVec3f  &pitch,
+
+	byte* vol_f
+);
 
 
 // Local Region Grow
@@ -535,69 +525,82 @@ void ModeSegLocalRGrow::dblclkToRemoveCP(EVec2i seedIdCpId)
 // 2   : negative region
 // 3   : now visiting
 // 255 : pogitive region
-void ModeSegLocalRGrow::runLocalRegionGrow()
+void ModeSegLocalRGrow::RunLocalRegionGrow()
 {
-	const short *vol   = ImageCore::getInst()->m_volOrig      ;
-	const EVec3f pitch = ImageCore::getInst()->getPitch()     ;
-	const EVec3i res   = ImageCore::getInst()->getResolution();
-	const int W  = res[0];
-	const int H  = res[1];
-	const int D  = res[2], WH = W*H, WHD = W*H*D;
+	const short *vol   = ImageCore::GetInst()->m_vol_orig      ;
+	const EVec3f pitch = ImageCore::GetInst()->GetPitch()     ;
+	const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+	const int W  = reso[0];
+	const int H  = reso[1];
+	const int D  = reso[2];
+  const int WH = W*H, WHD = W * H * D;
 
-	OglImage3D &vFlg = ImageCore::getInst()->m_volFlg;
-	for (int i = 0; i < WHD; ++i ) vFlg[i] = (vFlg[i] == 0) ? 0 : 1;
+	OglImage3D &vol_flg = ImageCore::GetInst()->m_vol_flag;
 
-	byte *flg = new byte[W*H*D];
+	for (int i = 0; i < WHD; ++i ) vol_flg[i] = (vol_flg[i] == 0) ? 0 : 1;
 
-  //seed毎にひとつづつRegion growingを計算
-	for( int j = 0; j < m_seeds.size(); ++j)
+	byte *flg = new byte[ W * H * D ];
+
+  //seed毎にRegion growingを計算
+	for( int j = 0; j < (int) m_seeds.size(); ++j)
 	{
-		//flg初期化(0:locked, 1:yet fixed, 2:negative, 255:positive)
-    //前景の時 : locked(0)とnegaticve(2)以外をyet(1)に
-    //背景の時 : 領域の計算は全体に対して行う
-		if ( m_seeds[j].m_flg) for (int i=0;i<WHD;++i) flg[i] = (vFlg[i] == 255) ? 1 : vFlg[i];
-		else                   for (int i=0;i<WHD;++i) flg[i] = 1;
+    //flg初期化(0:locked, 1:yet fixed, 2:negative, 255:positive)
+    //前景seed : locked(0)とnegative(2)以外をyet(1)に
+    //背景seed : 領域計算は全体に対して行う
+		if ( m_seeds[j].m_flg_fore)
+    {
+      for ( int i = 0; i < WHD; ++i) 
+        flg[i] = (vol_flg[i] == 255) ? 1 : vol_flg[i];
+    }
+		else
+    {
+      for ( int i = 0; i < WHD; ++i) 
+        flg[i] = 1;
+    }
 	
     //region grow
-		s_LocalRegionGrow( m_seeds[j], W, H, D, vol, pitch, flg, j);
+		s_LocalRegionGrow( W,H,D, m_seeds[j], vol, pitch, flg);
 		
-		for (int i = 0; i < WHD; ++i ) if(flg[i] != 1) vFlg[i] = flg[i];
+		for (int i = 0; i < WHD; ++i ) 
+      if(flg[i] != 1) 
+        vol_flg[i] = flg[i];
 	}
 
 	delete[] flg;
 
-  vFlg.SetUpdated();
-	printf("Local Region Grow done\n");
+  vol_flg.SetUpdated();
+	std::cout << "Local Region Grow done\n";
 }
 
 
 
 
 
-
-static float distTrans_growFronteer
+// grow distans transform volume (vol_dist)
+// return minimum value of grown voxel
+static float s_DistTransGrowFronteer
 (
-	 deque<EVec4i> &Q1,
-	 deque<EVec4i> &Q2,
-	 float *dist,
-	 byte  *flg  
+    const int W, const int H, const int D,
+    const EVec3f &pitch, 
+
+    deque<EVec4i> &Q1, //input : current fronteer 
+    deque<EVec4i> &Q2, //output: new fronteer
+
+    float *vol_dist,
+    byte  *vol_flg  
 )
 {
-	const EVec3f pitch = ImageCore::getInst()->getPitch();
-	const EVec3i res   = ImageCore::getInst()->getResolution();
-	const int W  = res[0];
-	const int H  = res[1];
-	const int D  = res[2], WH = W*H, WHD = W*H*D;
-	vector <float> distbox;
-
-	float minD = FLT_MAX; 
-
-	float pX   = pitch[0], pY = pitch[1], pZ = pitch[2];
+	const int WH = W*H, WHD = W*H*D;
+	float pX   = pitch[0];
+  float pY   = pitch[1];
+  float pZ   = pitch[2];
 	float pXY  = sqrt(pX*pX + pY*pY        );
 	float pYZ  = sqrt(        pY*pY + pZ*pZ);
 	float pXZ  = sqrt(pX*pX         + pZ*pZ);
 	float pXYZ = sqrt(pX*pX + pY*pY + pZ*pZ);
 	
+	float min_dist = FLT_MAX; 
+
 	while(!Q1.empty())
 	{
 		const int x = Q1.front()[0];
@@ -605,100 +608,104 @@ static float distTrans_growFronteer
 		const int z = Q1.front()[2];
 		const int I = Q1.front()[3];
 		Q1.pop_front();
-	
 
 		int K ;
-	
+	  
+    //1. vol[I]の26近傍を見て，距離が最小となるものを入れる
+    //2. one ring分growさせる
 		//calc Dist for voxel (x,y,z) 
     //unisotropic volumeで、seedが曲線状なのでこの実装のほうが多少正確
-		K = I-1-W-WH; if(x>0  &&y>0  &&z>0	&& flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
-		K = I  -W-WH; if(       y>0  &&z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pYZ  );
-		K = I+1-W-WH; if(x<W-1&&y>0  &&z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
-		K = I-1  -WH; if(x>0         &&z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pXZ  );
-		K = I    -WH; if(              z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pZ   );
-		K = I+1  -WH; if(x<W-1       &&z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pXZ  );
-		K = I-1+W-WH; if(x>0  &&y<H-1&&z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
-		K = I  +W-WH; if(       y<H-1&&z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pYZ  );
-		K = I+1+W-WH; if(x<W-1&&y<H-1&&z>0  && flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
+		K = I-1-W-WH; if(x>0  &&y>0  &&z>0	&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXYZ );
+		K = I  -W-WH; if(       y>0  &&z>0  && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pYZ  );
+		K = I+1-W-WH; if(x<W-1&&y>0  &&z>0  && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXYZ );
+		K = I-1  -WH; if(x>0         &&z>0  && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXZ  );
+		K = I    -WH; if(              z>0  && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pZ   );
+		K = I+1  -WH; if(x<W-1       &&z>0  && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXZ  );
+		K = I-1+W-WH; if(x>0  &&y<H-1&&z>0  && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXYZ );
+		K = I  +W-WH; if(       y<H-1&&z>0  && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pYZ  );
+		K = I+1+W-WH; if(x<W-1&&y<H-1&&z>0  && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXYZ );
 		
-		K = I-1-W   ; if(x>0  &&y>0         && flg[K]) dist[I] = min( dist[I], dist[K] + pXY );
-		K = I  -W   ; if(       y>0         && flg[K]) dist[I] = min( dist[I], dist[K] + pY  );
-		K = I+1-W   ; if(x<W-1&&y>0         && flg[K]) dist[I] = min( dist[I], dist[K] + pXY );
-		K = I-1     ; if(x>0                && flg[K]) dist[I] = min( dist[I], dist[K] + pX  );
-		K = I+1     ; if(x<W-1              && flg[K]) dist[I] = min( dist[I], dist[K] + pX  );
-		K = I-1+W   ; if(x>0  &&y<H-1       && flg[K]) dist[I] = min( dist[I], dist[K] + pXY );
-		K = I  +W   ; if(       y<H-1       && flg[K]) dist[I] = min( dist[I], dist[K] + pY  );
-		K = I+1+W   ; if(x<W-1&&y<H-1       && flg[K]) dist[I] = min( dist[I], dist[K] + pXY );
+		K = I-1-W   ; if(x>0  &&y>0         && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXY );
+		K = I  -W   ; if(       y>0         && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pY  );
+		K = I+1-W   ; if(x<W-1&&y>0         && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXY );
+		K = I-1     ; if(x>0                && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pX  );
+		K = I+1     ; if(x<W-1              && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pX  );
+		K = I-1+W   ; if(x>0  &&y<H-1       && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXY );
+		K = I  +W   ; if(       y<H-1       && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pY  );
+		K = I+1+W   ; if(x<W-1&&y<H-1       && vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXY );
 
-		K = I-1-W+WH; if(x>0  &&y>0  &&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
-		K = I  -W+WH; if(       y>0  &&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pYZ  );
-		K = I+1-W+WH; if(x<W-1&&y>0  &&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
-		K = I-1  +WH; if(x>0         &&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pXZ  );
-		K = I    +WH; if(              z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pZ   );
-		K = I+1  +WH; if(x<W-1       &&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pXZ  );
-		K = I-1+W+WH; if(x>0  &&y<H-1&&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
-		K = I  +W+WH; if(       y<H-1&&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pYZ  );
-		K = I+1+W+WH; if(x<W-1&&y<H-1&&z<D-1&& flg[K]) dist[I] = min( dist[I], dist[K] + pXYZ );
+		K = I-1-W+WH; if(x>0  &&y>0  &&z<D-1&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXYZ );
+		K = I  -W+WH; if(       y>0  &&z<D-1&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pYZ  );
+		K = I+1-W+WH; if(x<W-1&&y>0  &&z<D-1&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXYZ );
+		K = I-1  +WH; if(x>0         &&z<D-1&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXZ  );
+		K = I    +WH; if(              z<D-1&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pZ   );
+		K = I+1  +WH; if(x<W-1       &&z<D-1&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXZ  );
+		K = I-1+W+WH; if(x>0  &&y<H-1&&z<D-1&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXYZ );
+		K = I  +W+WH; if(       y<H-1&&z<D-1&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pYZ  );
+		K = I+1+W+WH; if(x<W-1&&y<H-1&&z<D-1&& vol_flg[K]) vol_dist[I] = min( vol_dist[I], vol_dist[K] + pXYZ );
 
 		//grow fronteer to deque
-		K = I-1-W-WH; if(x>0  &&y>0  &&z>0	&&!flg[K]) { Q2.push_back(EVec4i(x-1, y-1, z-1, K)); flg[K] = 1;}	
-		K = I  -W-WH; if(       y>0  &&z>0  &&!flg[K]) { Q2.push_back(EVec4i(x  , y-1, z-1, K)); flg[K] = 1;}	
-		K = I+1-W-WH; if(x<W-1&&y>0  &&z>0  &&!flg[K]) { Q2.push_back(EVec4i(x+1, y-1, z-1, K)); flg[K] = 1;}	
-		K = I-1  -WH; if(x>0         &&z>0  &&!flg[K]) { Q2.push_back(EVec4i(x-1, y  , z-1, K)); flg[K] = 1;}	
-		K = I    -WH; if(              z>0  &&!flg[K]) { Q2.push_back(EVec4i(x  , y  , z-1, K)); flg[K] = 1;}
-		K = I+1  -WH; if(x<W-1       &&z>0  &&!flg[K]) { Q2.push_back(EVec4i(x+1, y  , z-1, K)); flg[K] = 1;}
-		K = I-1+W-WH; if(x>0  &&y<H-1&&z>0  &&!flg[K]) { Q2.push_back(EVec4i(x-1, y+1, z-1, K)); flg[K] = 1;}
-		K = I  +W-WH; if(       y<H-1&&z>0  &&!flg[K]) { Q2.push_back(EVec4i(x  , y+1, z-1, K)); flg[K] = 1;}
-		K = I+1+W-WH; if(x<W-1&&y<H-1&&z>0  &&!flg[K]) { Q2.push_back(EVec4i(x+1, y+1, z-1, K)); flg[K] = 1;}
+		K = I-1-W-WH; if(x>0  &&y>0  &&z>0	&&!vol_flg[K]) { Q2.push_back(EVec4i(x-1, y-1, z-1, K)); vol_flg[K] = 1;}	
+		K = I  -W-WH; if(       y>0  &&z>0  &&!vol_flg[K]) { Q2.push_back(EVec4i(x  , y-1, z-1, K)); vol_flg[K] = 1;}	
+		K = I+1-W-WH; if(x<W-1&&y>0  &&z>0  &&!vol_flg[K]) { Q2.push_back(EVec4i(x+1, y-1, z-1, K)); vol_flg[K] = 1;}	
+		K = I-1  -WH; if(x>0         &&z>0  &&!vol_flg[K]) { Q2.push_back(EVec4i(x-1, y  , z-1, K)); vol_flg[K] = 1;}	
+		K = I    -WH; if(              z>0  &&!vol_flg[K]) { Q2.push_back(EVec4i(x  , y  , z-1, K)); vol_flg[K] = 1;}
+		K = I+1  -WH; if(x<W-1       &&z>0  &&!vol_flg[K]) { Q2.push_back(EVec4i(x+1, y  , z-1, K)); vol_flg[K] = 1;}
+		K = I-1+W-WH; if(x>0  &&y<H-1&&z>0  &&!vol_flg[K]) { Q2.push_back(EVec4i(x-1, y+1, z-1, K)); vol_flg[K] = 1;}
+		K = I  +W-WH; if(       y<H-1&&z>0  &&!vol_flg[K]) { Q2.push_back(EVec4i(x  , y+1, z-1, K)); vol_flg[K] = 1;}
+		K = I+1+W-WH; if(x<W-1&&y<H-1&&z>0  &&!vol_flg[K]) { Q2.push_back(EVec4i(x+1, y+1, z-1, K)); vol_flg[K] = 1;}
 		
-		K = I-1-W   ; if(x>0  &&y>0         &&!flg[K]) { Q2.push_back(EVec4i(x-1, y-1, z  , K)); flg[K] = 1;}
-		K = I  -W   ; if(       y>0         &&!flg[K]) { Q2.push_back(EVec4i(x  , y-1, z  , K)); flg[K] = 1;}
-		K = I+1-W   ; if(x<W-1&&y>0         &&!flg[K]) { Q2.push_back(EVec4i(x+1, y-1, z  , K)); flg[K] = 1;}
-		K = I-1     ; if(x>0                &&!flg[K]) { Q2.push_back(EVec4i(x-1, y  , z  , K)); flg[K] = 1;}
-		K = I+1     ; if(x<W-1              &&!flg[K]) { Q2.push_back(EVec4i(x+1, y  , z  , K)); flg[K] = 1;}
-		K = I-1+W   ; if(x>0  &&y<H-1       &&!flg[K]) { Q2.push_back(EVec4i(x-1, y+1, z  , K)); flg[K] = 1;}
-		K = I  +W   ; if(       y<H-1       &&!flg[K]) { Q2.push_back(EVec4i(x  , y+1, z  , K)); flg[K] = 1;}
-		K = I+1+W   ; if(x<W-1&&y<H-1       &&!flg[K]) { Q2.push_back(EVec4i(x+1, y+1, z  , K)); flg[K] = 1;}
+		K = I-1-W   ; if(x>0  &&y>0         &&!vol_flg[K]) { Q2.push_back(EVec4i(x-1, y-1, z  , K)); vol_flg[K] = 1;}
+		K = I  -W   ; if(       y>0         &&!vol_flg[K]) { Q2.push_back(EVec4i(x  , y-1, z  , K)); vol_flg[K] = 1;}
+		K = I+1-W   ; if(x<W-1&&y>0         &&!vol_flg[K]) { Q2.push_back(EVec4i(x+1, y-1, z  , K)); vol_flg[K] = 1;}
+		K = I-1     ; if(x>0                &&!vol_flg[K]) { Q2.push_back(EVec4i(x-1, y  , z  , K)); vol_flg[K] = 1;}
+		K = I+1     ; if(x<W-1              &&!vol_flg[K]) { Q2.push_back(EVec4i(x+1, y  , z  , K)); vol_flg[K] = 1;}
+		K = I-1+W   ; if(x>0  &&y<H-1       &&!vol_flg[K]) { Q2.push_back(EVec4i(x-1, y+1, z  , K)); vol_flg[K] = 1;}
+		K = I  +W   ; if(       y<H-1       &&!vol_flg[K]) { Q2.push_back(EVec4i(x  , y+1, z  , K)); vol_flg[K] = 1;}
+		K = I+1+W   ; if(x<W-1&&y<H-1       &&!vol_flg[K]) { Q2.push_back(EVec4i(x+1, y+1, z  , K)); vol_flg[K] = 1;}
 
-		K = I-1-W+WH; if(x>0  &&y>0  &&z<D-1&&!flg[K]) { Q2.push_back(EVec4i(x-1, y-1, z+1, K)); flg[K] = 1;}
-		K = I  -W+WH; if(       y>0  &&z<D-1&&!flg[K]) { Q2.push_back(EVec4i(x  , y-1, z+1, K)); flg[K] = 1;}
-		K = I+1-W+WH; if(x<W-1&&y>0  &&z<D-1&&!flg[K]) { Q2.push_back(EVec4i(x+1, y-1, z+1, K)); flg[K] = 1;}
-		K = I-1  +WH; if(x>0         &&z<D-1&&!flg[K]) { Q2.push_back(EVec4i(x-1, y  , z+1, K)); flg[K] = 1;}
-		K = I    +WH; if(              z<D-1&&!flg[K]) { Q2.push_back(EVec4i(x  , y  , z+1, K)); flg[K] = 1;}
-		K = I+1  +WH; if(x<W-1       &&z<D-1&&!flg[K]) { Q2.push_back(EVec4i(x+1, y  , z+1, K)); flg[K] = 1;}
-		K = I-1+W+WH; if(x>0  &&y<H-1&&z<D-1&&!flg[K]) { Q2.push_back(EVec4i(x-1, y+1, z+1, K)); flg[K] = 1;}
-		K = I  +W+WH; if(       y<H-1&&z<D-1&&!flg[K]) { Q2.push_back(EVec4i(x  , y+1, z+1, K)); flg[K] = 1;}
-		K = I+1+W+WH; if(x<W-1&&y<H-1&&z<D-1&&!flg[K]) { Q2.push_back(EVec4i(x+1, y+1, z+1, K)); flg[K] = 1;}
+		K = I-1-W+WH; if(x>0  &&y>0  &&z<D-1&&!vol_flg[K]) { Q2.push_back(EVec4i(x-1, y-1, z+1, K)); vol_flg[K] = 1;}
+		K = I  -W+WH; if(       y>0  &&z<D-1&&!vol_flg[K]) { Q2.push_back(EVec4i(x  , y-1, z+1, K)); vol_flg[K] = 1;}
+		K = I+1-W+WH; if(x<W-1&&y>0  &&z<D-1&&!vol_flg[K]) { Q2.push_back(EVec4i(x+1, y-1, z+1, K)); vol_flg[K] = 1;}
+		K = I-1  +WH; if(x>0         &&z<D-1&&!vol_flg[K]) { Q2.push_back(EVec4i(x-1, y  , z+1, K)); vol_flg[K] = 1;}
+		K = I    +WH; if(              z<D-1&&!vol_flg[K]) { Q2.push_back(EVec4i(x  , y  , z+1, K)); vol_flg[K] = 1;}
+		K = I+1  +WH; if(x<W-1       &&z<D-1&&!vol_flg[K]) { Q2.push_back(EVec4i(x+1, y  , z+1, K)); vol_flg[K] = 1;}
+		K = I-1+W+WH; if(x>0  &&y<H-1&&z<D-1&&!vol_flg[K]) { Q2.push_back(EVec4i(x-1, y+1, z+1, K)); vol_flg[K] = 1;}
+		K = I  +W+WH; if(       y<H-1&&z<D-1&&!vol_flg[K]) { Q2.push_back(EVec4i(x  , y+1, z+1, K)); vol_flg[K] = 1;}
+		K = I+1+W+WH; if(x<W-1&&y<H-1&&z<D-1&&!vol_flg[K]) { Q2.push_back(EVec4i(x+1, y+1, z+1, K)); vol_flg[K] = 1;}
 
-
-
-		minD = min( minD, dist[I]);
+		min_dist = min( min_dist, vol_dist[I] );
 	}
-	return minD;
+	return min_dist;
 }
 
 
 
 //Written by Shogo Tsuruoka 11/15
 //refactored by Takashi Ijiri 11/29
-static void calcDistTrans
+static void s_calcDistTrans
 (
 	const deque<EVec4i> &seedPixels,
-	float *dist,
-	float R
+	const float max_dist, 
+	float *vol_dist //allocated
 )	
 {
-	printf( "start Distance Transform...\n");
-	const EVec3f cuboid = ImageCore::getInst()->getCuboidF();
-	const EVec3i res    = ImageCore::getInst()->getResolution();
-	const int WHD = res[0] * res[1] * res[2];
+	std::cout << "start Distance Transform...\n";
+	const EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
+	const EVec3f pitch  = ImageCore::GetInst()->GetPitch ();
+	const EVec3i reso   = ImageCore::GetInst()->GetResolution();
+  const int W = reso[0];
+  const int H = reso[1];
+  const int D = reso[2];
+	const int WHD = reso[0] * reso[1] * reso[2];
 	
-	byte *flg = new byte[WHD];
+  //vol_flg -- 0:yet, 1:visited. 
+	byte *vol_flg = new byte[WHD];
 
 	for(int i = 0; i < WHD; ++i)
 	{
-		dist[i] = FLT_MAX;
-		flg[i] = 0;
+		vol_dist[i] = FLT_MAX;
+		vol_flg [i] = 0;
 	}
 	
 	deque<EVec4i> Q1, Q2;
@@ -706,90 +713,93 @@ static void calcDistTrans
 	for (const auto &p : seedPixels)
 	{
 		Q1.push_back(p);
-		dist[p[3]] = 0.0;
-		flg [p[3]] = 1  ;
+		vol_dist[ p[3] ] = 0.0;
+		vol_flg [ p[3] ] = 1  ;
 	}
 
 
-	if(R * 2 > cuboid[0])
+	if( max_dist * 2 > cuboid[0] ) 
 	{
-		for(int i = 0; i < WHD; ++i) dist[i] = 1;
+    //R大きい場合は，distfieldの計算は無駄なので全て1にしてしまう
+		for(int i = 0; i < WHD; ++i) vol_dist[i] = 1;
 	}
 	else
 	{
 		while( !Q1.empty() || !Q2.empty() )
 		{
-			float minD;
-			minD = distTrans_growFronteer(Q1,Q2, dist, flg);
-			if(minD > R) break;
-			minD = distTrans_growFronteer(Q2,Q1, dist, flg);			
-			if(minD > R) break;
+			float min_dist;
+			min_dist = s_DistTransGrowFronteer(W,H,D,pitch, Q1,Q2, vol_dist, vol_flg);
+			if( min_dist > max_dist) break;
+			min_dist = s_DistTransGrowFronteer(W,H,D,pitch, Q2,Q1, vol_dist, vol_flg);			
+			if( min_dist > max_dist) break;
 		}
 	}
 
-	delete[] flg;
-	printf("...Distance Transform Done\n");
+	delete[] vol_flg;
+  std::cout << "...Distance Transform Done\n";
 }
 
 
 
+//vol_f
+//入力時 : 0:locked, 1:yet fixed
+//出力時 : 0:locked, 1:yet(ないはず), 2:negative, 255:positive
 
-
-//0:lock, 1:yet, 2:negative, 255:positive
-void ModeSegLocalRGrow::s_LocalRegionGrow
+static void s_LocalRegionGrow
 (
-	const LRGseed &seed,
-	const int   W,
-	const int   H,
-	const int   D,
-	const short *img,
-	const EVec3f &pitch,
+	const int W,
+	const int H,
+	const int D,
+	const LRGSeed &seed ,
+  const short   *vol  ,
+	const EVec3f  &pitch,
 
-	byte* flg , 
-	int seedId
+	byte* vol_f
 )
 {
-	const int WH = W*H;
+	if( seed.m_cps.size() == 0 )
+  {
+    std::cout << "never comes here, s_LocalRegionGrow\n";
+    return;
+  }
+  
+  const int WH = W*H;
 
-	//1 seed --> seed pixel
+	//1 seed --> seed pixel (最初と最後の二点 + ポリラインをsampling
 	deque<EVec4i> Q;
-	if (seed.m_pos.size() == 1)
-	{
-		Q.push_back( ImageCore::getInst()->getVoxelIndex4i( seed.m_pos[0] ) );
-	}
-	else
-	{
-		float len = pitch.norm() * 2;
-		for (int i = 1; i < seed.m_pos.size(); ++i)
-		{
-			const EVec3f &p1 = seed.m_pos[i - 1];
-			const EVec3f &p2 = seed.m_pos[  i  ];
-			const EVec3f d   = (p2 - p1).normalized();
-			const float  L   = (p2 - p1).norm();
 
-			for (float a = 0; a < L; a += pitch[0] * 0.5f) 
-        Q.push_back( ImageCore::getInst()->getVoxelIndex4i(p1 + a * d) );
-			Q.push_back( ImageCore::getInst()->getVoxelIndex4i( p2 ) );
-		}
+	Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i( seed.m_cps.front() ) );
+	Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i( seed.m_cps.back () ) );
+
+  float len = pitch.norm() * 2;
+	for (int i = 1; i < seed.m_cps.size(); ++i)
+	{
+		const EVec3f &p1    = seed.m_cps[i - 1];
+		const EVec3f &p2    = seed.m_cps[  i  ];
+		const EVec3f dir    = (p2 - p1).normalized();
+		const float  length = (p2 - p1).norm();
+
+		for (float step_len = 0; step_len < length; step_len += pitch[0] * 0.5f) 
+    {
+      Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i(p1 + step_len * dir) );
+    }
 	}
 
 
 	//2 distance transform
-	const byte    SET_FLG = seed.m_flg ? 255 : 2;
-	const float   R       = seed.m_rad   ;
-	const EVec3f &seedP   = seed.m_pos[0];
-	const float   minV    = seed.m_minV  ;
-	const float   maxV    = seed.m_maxV  ;
+	const byte    VALUE    = seed.m_flg_fore ? 255 : 2;
+	const float   max_dist = seed.m_radius ;
+	const EVec3f &seedP    = seed.m_cps[0] ;
+	const float   minv     = seed.m_min_v  ;
+	const float   maxv     = seed.m_max_v  ;
+  
+	float *dist = new float[ W*H*D ];
+  s_calcDistTrans( Q, max_dist, dist);
 
-	float *dist = new float[W*H*D ];
-	calcDistTrans(Q, dist, R);
-
-
-	//3  region growing
-
+	//3  region growing for pix dist[i] < max_dist
 	for (const auto &p : Q)
 	{
-		if (flg[p[3]] == 1) flg[p[3]] = SET_FLG;
+		if (vol_f[p[3]] == 1) vol_f[p[3]] = VALUE;
 	}
 
 	while ( !Q.empty() )
@@ -800,41 +810,57 @@ void ModeSegLocalRGrow::s_LocalRegionGrow
 		const int I = Q.front()[3];
 		Q.pop_front();
 		
-		if (flg[I] == 0 ) continue;
+		if (vol_f[I] == 0 ) continue;
 		
 		int K;
-    K = I - 1 ; if (x > 0   && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x - 1, y, z, K)); }
-		K = I - W ; if (y > 0   && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y - 1, z, K)); }
-		K = I - WH; if (z > 0   && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y, z - 1, K)); }
-		K = I + 1 ; if (x < W-1 && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x + 1, y, z, K)); }
-		K = I + W ; if (y < H-1 && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y + 1, z, K)); }
-		K = I + WH; if (z < D-1 && flg[K] == 1 && dist[K] < R && minV <= img[K] && img[K] <= maxV){ flg[K] = SET_FLG; Q.push_back(EVec4i(x, y, z + 1, K)); }
+    K = I - 1 ; if (x > 0   && vol_f[K] == 1 && dist[K] < max_dist && minv <= vol[K] && vol[K] <= maxv){ vol_f[K] = VALUE; Q.push_back(EVec4i(x - 1, y, z, K)); }
+		K = I - W ; if (y > 0   && vol_f[K] == 1 && dist[K] < max_dist && minv <= vol[K] && vol[K] <= maxv){ vol_f[K] = VALUE; Q.push_back(EVec4i(x, y - 1, z, K)); }
+		K = I - WH; if (z > 0   && vol_f[K] == 1 && dist[K] < max_dist && minv <= vol[K] && vol[K] <= maxv){ vol_f[K] = VALUE; Q.push_back(EVec4i(x, y, z - 1, K)); }
+		K = I + 1 ; if (x < W-1 && vol_f[K] == 1 && dist[K] < max_dist && minv <= vol[K] && vol[K] <= maxv){ vol_f[K] = VALUE; Q.push_back(EVec4i(x + 1, y, z, K)); }
+		K = I + W ; if (y < H-1 && vol_f[K] == 1 && dist[K] < max_dist && minv <= vol[K] && vol[K] <= maxv){ vol_f[K] = VALUE; Q.push_back(EVec4i(x, y + 1, z, K)); }
+		K = I + WH; if (z < D-1 && vol_f[K] == 1 && dist[K] < max_dist && minv <= vol[K] && vol[K] <= maxv){ vol_f[K] = VALUE; Q.push_back(EVec4i(x, y, z + 1, K)); }
 	}
 
 	delete[] dist;
 }
 
 
-
-
-
+//
+// class LRGSeed 
+//
 
 const static float diffR[4] = {1   ,0,0,0}, diffB[4] = {0.3f,0.3f,1   ,0}, diffG[4] = {0,  1 ,0,0};
 const static float ambiR[4] = {0.5f,0,0,0}, ambiB[4] = {0.3f,0.3f,0.8f,0}, ambiG[4] = {0,0.8f,0,0};
 const static float spec [4] = {1   ,1,1,0};
 const static float shin [1] = {56.0f};
 
-void LRGseed::draw(const TMesh &cp) const
+
+TMesh LRGSeed::m_cp_mesh = TMesh();
+float LRGSeed::m_cp_radius = 1.0;
+void LRGSeed::SetCpRadius(float radius)
+{
+  m_cp_radius = radius;
+	m_cp_mesh.initializeIcosaHedron( m_cp_radius );
+}
+
+float LRGSeed::GetCpRadius()
+{
+  return m_cp_radius;
+}
+
+
+
+void LRGSeed::Draw() const
 {
 	//draw seed 
 	glPointSize(15);
 	glEnable(GL_LIGHTING);
 
-	for( const auto& p : m_pos)
+	for( const auto& p : m_cps)
 	{
 		glTranslated( p[0], p[1], p[2] );
-		if(m_flg) cp.draw( diffR, ambiR, spec, shin);
-		else      cp.draw( diffB, ambiB, spec, shin);
+		if(m_flg_fore) m_cp_mesh.draw( diffR, ambiR, spec, shin);
+		else           m_cp_mesh.draw( diffB, ambiB, spec, shin);
 		glTranslated( -p[0], -p[1],-p[2] );
 	}
 	glDisable(GL_LIGHTING);
@@ -843,10 +869,10 @@ void LRGseed::draw(const TMesh &cp) const
 
 
 
-void LRGseed::drawAsActive(const TMesh &cp) const
+void LRGSeed::DrawAsActive() const
 {
-	float r = (m_flg == 1) ? 1.0f : 0;
-	float b = (m_flg == 1) ? 0 : 1.0f;
+	float r = (m_flg_fore == 1) ? 1.0f : 0;
+	float b = (m_flg_fore == 1) ? 0 : 1.0f;
 
 	float spec[4] = { 1,1,1,0.3f };
 	float diff[4] = { r,0,b,0.3f };
@@ -857,45 +883,21 @@ void LRGseed::drawAsActive(const TMesh &cp) const
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT  , ambi);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shin);
 
-
 	glEnable(GL_LIGHTING);
 	glEnable(GL_BLEND);
 	glDepthMask(false);
-	t_drawSphere(m_pos[0], m_rad);
+	t_drawSphere(m_cps[0], m_radius);
 
-	for (int i = 1; i < (int)m_pos.size(); ++i)
+	for (int i = 1; i < (int)m_cps.size(); ++i)
 	{
-		t_drawCylinder(m_pos[i-1], m_pos[i], m_rad);
-		t_drawSphere  (m_pos[ i ], m_rad);
+		t_drawCylinder(m_cps[i-1], m_cps[i], m_radius);
+		t_drawSphere  (m_cps[ i ], m_radius);
 	}
 
 	glDepthMask(true);
 	glDisable(GL_BLEND);
 	glDisable(GL_LIGHTING);
-
 }
 
 
-
-
-
-
-/*
-
-inline bool isInRad(
-	const EVec3f &pitch, 
-	const int x,
-	const int y, 
-	const int z, 
-	const EVec3f &P,
-	const float &R2 )
-{
-	float fx = x * pitch[0];
-	float fy = y * pitch[1];
-	float fz = z * pitch[2];
-	return (P[0] - fx) * (P[0] - fx)  + 
-		   (P[1] - fy) * (P[1] - fy)  + 
-		   (P[2] - fz) * (P[2] - fz)  < R2;
-}
-
-*/
+#pragma managed

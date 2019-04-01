@@ -14,27 +14,24 @@ This file contains multiple classes managing glsl shaders.
 #include "./COMMON/OglForCLI.h"
 
 #include <string>
-using namespace std;
-
-
 
 class GlslShaderVolume
 {
-  const string m_vtxFname;
-  const string m_frgFname;
-  GLuint       m_gl2Program;
-  bool         m_bInit;
+  const std::string m_vtxshader_fname;
+  const std::string m_frgshader_fname;
+  GLuint m_gl_program;
+  bool m_b_initialized;
 
 public:
 
-  GlslShaderVolume(string vtxFname, string frgFname) :
-    m_vtxFname(vtxFname), m_frgFname(frgFname)
+  GlslShaderVolume( std::string vtxFname, std::string frgFname ) :
+    m_vtxshader_fname( vtxFname ), m_frgshader_fname( frgFname )
   {
-    m_bInit = false;
+    m_b_initialized = false;
   }
   ~GlslShaderVolume() {}
 
-  void bind
+  void Bind
   (
     int UnitID_vol,//3D 
     int UnitID_gMag,//3D 
@@ -50,7 +47,7 @@ public:
     bool   doHL     //do high light 
   );
 
-  void unbind()
+  void Unbind()
   {
     glUseProgram(0);
   }
@@ -62,21 +59,21 @@ public:
 
 class GlslShaderVolumePolar
 {
-  const string m_vtxFname;
-  const string m_frgFname;
-  GLuint       m_gl2Program;
-  bool         m_bInit;
+  const std::string m_vtxshader_fname;
+  const std::string m_frgshader_fname;
+  GLuint m_gl_program;
+  bool   m_b_initialized;
 
 public:
 
-  GlslShaderVolumePolar(string vtxFname, string frgFname) :
-    m_vtxFname(vtxFname), m_frgFname(frgFname)
+  GlslShaderVolumePolar( std::string vtxFname, std::string frgFname ) :
+    m_vtxshader_fname(vtxFname), m_frgshader_fname(frgFname)
   {
-    m_bInit = false;
+    m_b_initialized = false;
   }
   ~GlslShaderVolumePolar() {}
 
-  void bind
+  void Bind
   (
     int UnitID_vol ,//3D 
     int UnitID_gMag,//3D 
@@ -91,7 +88,7 @@ public:
     bool   doPsuedo
   );
 
-  void unbind()
+  void Unbind()
   {
     glUseProgram(0);
   }
@@ -104,21 +101,21 @@ public:
 
 class GlslShaderCrsSec
 {
-  const string m_vtxFname;
-  const string m_frgFname;
-  GLuint       m_gl2Program;
-  bool         m_bInit;
+  const std::string m_vtxshader_fname;
+  const std::string m_frgshader_fname;
+  GLuint  m_gl_program;
+  bool    m_b_initialized;
 
 public:
 
-  GlslShaderCrsSec(string vtxFname, string frgFname) :
-    m_vtxFname(vtxFname), m_frgFname(frgFname)
+  GlslShaderCrsSec( std::string vtxFname, std::string frgFname ) :
+    m_vtxshader_fname(vtxFname), m_frgshader_fname(frgFname)
   {
-    m_bInit = false;
+    m_b_initialized = false;
   }
   ~GlslShaderCrsSec() {}
 
-  void bind
+  void Bind
   (
     int UnitID_vol,//3D 
     int UnitID_gMag,//3D 
@@ -130,7 +127,7 @@ public:
     bool   doHL
   );
 
-  void unbind()
+  void Unbind()
   {
     glUseProgram(0);
   }

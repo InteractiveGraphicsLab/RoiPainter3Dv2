@@ -4,32 +4,27 @@
 #include "GlslShader.h"
 #include <vector>
 
-using namespace::std;
-
-
-
-
 
 #pragma unmanaged
 
 class ModeRefStrokeTrim : public ModeInterface
 {
-  GlslShaderVolume m_volumeShader;
-  GlslShaderCrsSec m_crssecShader;
+  GlslShaderVolume m_volume_shader;
+  GlslShaderCrsSec m_crssec_shader;
 
-	bool m_bModified ;
-	bool m_bDrawStrok;
-	int  m_trgtMskId ;
+	bool m_b_modified ;
+	bool m_b_drawingstroke;
+	int  m_trgt_maskid ;
 
-	byte  *m_volPrev;
-	vector<EVec2i> m_stroke2D;
-	vector<EVec3f> m_stroke3D;
+	byte  *m_vol_prev;
+	std::vector<EVec2i> m_stroke2d;
+	std::vector<EVec3f> m_stroke3d;
 
   ModeRefStrokeTrim();
 public:
   ~ModeRefStrokeTrim();
 
-  static ModeRefStrokeTrim* getInst() { 
+  static ModeRefStrokeTrim* GetInst() { 
     static ModeRefStrokeTrim p; 
     return &p; 
   }
@@ -48,18 +43,18 @@ public:
   void MouseMove (const EVec2i &p, OglForCLI *ogl);
   void MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl);
 
-  void keyDown(int nChar);
-  void keyUp  (int nChar);
+  void KeyDown(int nChar);
+  void KeyUp  (int nChar);
 
-  bool canEndMode();
-  void startMode ();
-  void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF);
+  bool CanLeaveMode();
+  void StartMode ();
+  void DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center);
 
   void cancelSegmentation();
   void finishSegmentation();
 
 private:
-  void updateVolFlgByStroke( OglForCLI *ogl);
+  void UpdateVolFlgByStroke( OglForCLI *ogl);
 };
 
 

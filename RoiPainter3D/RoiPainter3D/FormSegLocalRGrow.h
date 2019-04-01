@@ -15,7 +15,13 @@ namespace RoiPainter3D {
 	public ref class FormSegLocalRGrow : public System::Windows::Forms::Form
 	{
     bool m_bListUpdating;
-    static FormSegLocalRGrow^ m_singleton;
+  private: System::Windows::Forms::Button^  button_addforeseed;
+
+  private: System::Windows::Forms::Button^  button_addbackseed;
+
+  private: System::Windows::Forms::Label^  label9;
+  private: System::Windows::Forms::Label^  label4;
+           static FormSegLocalRGrow^ m_singleton;
    
   public:
     static FormSegLocalRGrow^ getInst()
@@ -59,8 +65,8 @@ namespace RoiPainter3D {
   private: System::Windows::Forms::Label^  label1;
   private: System::Windows::Forms::Label^  label2;
   private: System::Windows::Forms::Label^  label3;
-  private: System::Windows::Forms::Label^  label4;
-  private: System::Windows::Forms::Label^  label5;
+
+
   private: System::Windows::Forms::Button^  btn_runLocalRGrow;
   private: System::Windows::Forms::Label^  label6;
   private: System::Windows::Forms::Label^  label7;
@@ -96,8 +102,6 @@ namespace RoiPainter3D {
       this->label1 = (gcnew System::Windows::Forms::Label());
       this->label2 = (gcnew System::Windows::Forms::Label());
       this->label3 = (gcnew System::Windows::Forms::Label());
-      this->label4 = (gcnew System::Windows::Forms::Label());
-      this->label5 = (gcnew System::Windows::Forms::Label());
       this->btn_runLocalRGrow = (gcnew System::Windows::Forms::Button());
       this->label6 = (gcnew System::Windows::Forms::Label());
       this->label7 = (gcnew System::Windows::Forms::Label());
@@ -108,6 +112,10 @@ namespace RoiPainter3D {
       this->trackBar_minV = (gcnew System::Windows::Forms::TrackBar());
       this->trackBar_maxV = (gcnew System::Windows::Forms::TrackBar());
       this->trackBar_radius = (gcnew System::Windows::Forms::TrackBar());
+      this->button_addforeseed = (gcnew System::Windows::Forms::Button());
+      this->button_addbackseed = (gcnew System::Windows::Forms::Button());
+      this->label9 = (gcnew System::Windows::Forms::Label());
+      this->label4 = (gcnew System::Windows::Forms::Label());
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->maskList))->BeginInit();
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar_minV))->BeginInit();
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar_maxV))->BeginInit();
@@ -170,7 +178,7 @@ namespace RoiPainter3D {
       this->btn_cancel->Location = System::Drawing::Point(12, 338);
       this->btn_cancel->Margin = System::Windows::Forms::Padding(2);
       this->btn_cancel->Name = L"btn_cancel";
-      this->btn_cancel->Size = System::Drawing::Size(73, 38);
+      this->btn_cancel->Size = System::Drawing::Size(94, 38);
       this->btn_cancel->TabIndex = 27;
       this->btn_cancel->Text = L"CANCEL";
       this->btn_cancel->UseVisualStyleBackColor = true;
@@ -180,10 +188,10 @@ namespace RoiPainter3D {
       // 
       this->btn_finish->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_finish->Location = System::Drawing::Point(98, 338);
+      this->btn_finish->Location = System::Drawing::Point(110, 338);
       this->btn_finish->Margin = System::Windows::Forms::Padding(2);
       this->btn_finish->Name = L"btn_finish";
-      this->btn_finish->Size = System::Drawing::Size(185, 38);
+      this->btn_finish->Size = System::Drawing::Size(202, 38);
       this->btn_finish->TabIndex = 27;
       this->btn_finish->Text = L"FINISH and store region";
       this->btn_finish->UseVisualStyleBackColor = true;
@@ -194,69 +202,45 @@ namespace RoiPainter3D {
       this->label1->AutoSize = true;
       this->label1->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->label1->Location = System::Drawing::Point(125, 3);
+      this->label1->Location = System::Drawing::Point(124, 4);
       this->label1->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->label1->Name = L"label1";
-      this->label1->Size = System::Drawing::Size(158, 18);
+      this->label1->Size = System::Drawing::Size(214, 18);
       this->label1->TabIndex = 28;
-      this->label1->Text = L"L-dblclk : Place Fore Seed";
+      this->label1->Text = L"shift + L-click : Add new cp to seed";
       // 
       // label2
       // 
       this->label2->AutoSize = true;
       this->label2->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->label2->Location = System::Drawing::Point(121, 43);
+      this->label2->Location = System::Drawing::Point(124, 40);
       this->label2->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->label2->Name = L"label2";
-      this->label2->Size = System::Drawing::Size(162, 18);
+      this->label2->Size = System::Drawing::Size(198, 18);
       this->label2->TabIndex = 29;
-      this->label2->Text = L"M-dblclk : Erase Seed / CP";
+      this->label2->Text = L"shift + R-click : Erase cp or seed";
       // 
       // label3
       // 
       this->label3->AutoSize = true;
       this->label3->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->label3->Location = System::Drawing::Point(123, 23);
+      this->label3->Location = System::Drawing::Point(124, 22);
       this->label3->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->label3->Name = L"label3";
-      this->label3->Size = System::Drawing::Size(166, 18);
+      this->label3->Size = System::Drawing::Size(197, 18);
       this->label3->TabIndex = 30;
-      this->label3->Text = L"R-dblclk : Place Back Seed ";
-      // 
-      // label4
-      // 
-      this->label4->AutoSize = true;
-      this->label4->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-        static_cast<System::Byte>(128)));
-      this->label4->Location = System::Drawing::Point(121, 63);
-      this->label4->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
-      this->label4->Name = L"label4";
-      this->label4->Size = System::Drawing::Size(106, 18);
-      this->label4->TabIndex = 31;
-      this->label4->Text = L"Shift + L-dblclk :";
-      // 
-      // label5
-      // 
-      this->label5->AutoSize = true;
-      this->label5->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-        static_cast<System::Byte>(128)));
-      this->label5->Location = System::Drawing::Point(152, 80);
-      this->label5->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
-      this->label5->Name = L"label5";
-      this->label5->Size = System::Drawing::Size(134, 18);
-      this->label5->TabIndex = 31;
-      this->label5->Text = L"add CP to active seed";
+      this->label3->Text = L"shift + L-drag : move cp of seed";
       // 
       // btn_runLocalRGrow
       // 
       this->btn_runLocalRGrow->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_runLocalRGrow->Location = System::Drawing::Point(131, 291);
+      this->btn_runLocalRGrow->Location = System::Drawing::Point(143, 301);
       this->btn_runLocalRGrow->Margin = System::Windows::Forms::Padding(2);
       this->btn_runLocalRGrow->Name = L"btn_runLocalRGrow";
-      this->btn_runLocalRGrow->Size = System::Drawing::Size(152, 30);
+      this->btn_runLocalRGrow->Size = System::Drawing::Size(169, 30);
       this->btn_runLocalRGrow->TabIndex = 32;
       this->btn_runLocalRGrow->Text = L"Run Local Region Grow";
       this->btn_runLocalRGrow->UseVisualStyleBackColor = true;
@@ -267,7 +251,7 @@ namespace RoiPainter3D {
       this->label6->AutoSize = true;
       this->label6->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->label6->Location = System::Drawing::Point(128, 115);
+      this->label6->Location = System::Drawing::Point(128, 156);
       this->label6->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->label6->Name = L"label6";
       this->label6->Size = System::Drawing::Size(30, 18);
@@ -279,7 +263,7 @@ namespace RoiPainter3D {
       this->label7->AutoSize = true;
       this->label7->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->label7->Location = System::Drawing::Point(127, 165);
+      this->label7->Location = System::Drawing::Point(127, 206);
       this->label7->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->label7->Name = L"label7";
       this->label7->Size = System::Drawing::Size(34, 18);
@@ -291,7 +275,7 @@ namespace RoiPainter3D {
       this->label8->AutoSize = true;
       this->label8->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->label8->Location = System::Drawing::Point(124, 212);
+      this->label8->Location = System::Drawing::Point(124, 253);
       this->label8->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->label8->Name = L"label8";
       this->label8->Size = System::Drawing::Size(43, 18);
@@ -300,7 +284,7 @@ namespace RoiPainter3D {
       // 
       // textBox_minV
       // 
-      this->textBox_minV->Location = System::Drawing::Point(160, 115);
+      this->textBox_minV->Location = System::Drawing::Point(160, 156);
       this->textBox_minV->Margin = System::Windows::Forms::Padding(2);
       this->textBox_minV->Name = L"textBox_minV";
       this->textBox_minV->ReadOnly = true;
@@ -309,7 +293,7 @@ namespace RoiPainter3D {
       // 
       // textBox_maxV
       // 
-      this->textBox_maxV->Location = System::Drawing::Point(160, 165);
+      this->textBox_maxV->Location = System::Drawing::Point(160, 206);
       this->textBox_maxV->Margin = System::Windows::Forms::Padding(2);
       this->textBox_maxV->Name = L"textBox_maxV";
       this->textBox_maxV->ReadOnly = true;
@@ -318,7 +302,7 @@ namespace RoiPainter3D {
       // 
       // textBox_radius
       // 
-      this->textBox_radius->Location = System::Drawing::Point(167, 212);
+      this->textBox_radius->Location = System::Drawing::Point(167, 253);
       this->textBox_radius->Margin = System::Windows::Forms::Padding(2);
       this->textBox_radius->Name = L"textBox_radius";
       this->textBox_radius->ReadOnly = true;
@@ -327,41 +311,94 @@ namespace RoiPainter3D {
       // 
       // trackBar_minV
       // 
-      this->trackBar_minV->Location = System::Drawing::Point(130, 135);
+      this->trackBar_minV->Location = System::Drawing::Point(130, 176);
       this->trackBar_minV->Margin = System::Windows::Forms::Padding(2);
       this->trackBar_minV->Name = L"trackBar_minV";
-      this->trackBar_minV->Size = System::Drawing::Size(158, 45);
+      this->trackBar_minV->Size = System::Drawing::Size(191, 45);
       this->trackBar_minV->TabIndex = 37;
       this->trackBar_minV->TickStyle = System::Windows::Forms::TickStyle::None;
       this->trackBar_minV->Scroll += gcnew System::EventHandler(this, &FormSegLocalRGrow::trackBar_minV_Scroll);
       // 
       // trackBar_maxV
       // 
-      this->trackBar_maxV->Location = System::Drawing::Point(130, 184);
+      this->trackBar_maxV->Location = System::Drawing::Point(130, 225);
       this->trackBar_maxV->Margin = System::Windows::Forms::Padding(2);
       this->trackBar_maxV->Name = L"trackBar_maxV";
-      this->trackBar_maxV->Size = System::Drawing::Size(158, 45);
+      this->trackBar_maxV->Size = System::Drawing::Size(191, 45);
       this->trackBar_maxV->TabIndex = 38;
       this->trackBar_maxV->TickStyle = System::Windows::Forms::TickStyle::None;
       this->trackBar_maxV->Scroll += gcnew System::EventHandler(this, &FormSegLocalRGrow::trackBar_maxV_Scroll);
       // 
       // trackBar_radius
       // 
-      this->trackBar_radius->Location = System::Drawing::Point(131, 231);
+      this->trackBar_radius->Location = System::Drawing::Point(131, 272);
       this->trackBar_radius->Margin = System::Windows::Forms::Padding(2);
       this->trackBar_radius->Name = L"trackBar_radius";
-      this->trackBar_radius->Size = System::Drawing::Size(158, 45);
+      this->trackBar_radius->Size = System::Drawing::Size(190, 45);
       this->trackBar_radius->TabIndex = 39;
       this->trackBar_radius->TickStyle = System::Windows::Forms::TickStyle::None;
       this->trackBar_radius->Scroll += gcnew System::EventHandler(this, &FormSegLocalRGrow::trackBar_radius_Scroll);
+      // 
+      // button_addforeseed
+      // 
+      this->button_addforeseed->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->button_addforeseed->Location = System::Drawing::Point(134, 105);
+      this->button_addforeseed->Margin = System::Windows::Forms::Padding(2);
+      this->button_addforeseed->Name = L"button_addforeseed";
+      this->button_addforeseed->Size = System::Drawing::Size(87, 30);
+      this->button_addforeseed->TabIndex = 40;
+      this->button_addforeseed->Text = L"Fore Seed";
+      this->button_addforeseed->UseVisualStyleBackColor = true;
+      this->button_addforeseed->Click += gcnew System::EventHandler(this, &FormSegLocalRGrow::button_addforeseed_Click);
+      // 
+      // button_addbackseed
+      // 
+      this->button_addbackseed->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->button_addbackseed->Location = System::Drawing::Point(225, 105);
+      this->button_addbackseed->Margin = System::Windows::Forms::Padding(2);
+      this->button_addbackseed->Name = L"button_addbackseed";
+      this->button_addbackseed->Size = System::Drawing::Size(87, 30);
+      this->button_addbackseed->TabIndex = 41;
+      this->button_addbackseed->Text = L"Back Seed";
+      this->button_addbackseed->UseVisualStyleBackColor = true;
+      this->button_addbackseed->Click += gcnew System::EventHandler(this, &FormSegLocalRGrow::button_addbackseed_Click);
+      // 
+      // label9
+      // 
+      this->label9->AutoSize = true;
+      this->label9->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->label9->Location = System::Drawing::Point(169, 89);
+      this->label9->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
+      this->label9->Name = L"label9";
+      this->label9->Size = System::Drawing::Size(110, 20);
+      this->label9->TabIndex = 31;
+      this->label9->Text = L"Add New Seed";
+      // 
+      // label4
+      // 
+      this->label4->AutoSize = true;
+      this->label4->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->label4->Location = System::Drawing::Point(124, 60);
+      this->label4->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
+      this->label4->Name = L"label4";
+      this->label4->Size = System::Drawing::Size(208, 18);
+      this->label4->TabIndex = 42;
+      this->label4->Text = L"shift + wheel : modify seed radius";
       // 
       // FormSegLocalRGrow
       // 
       this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(289, 386);
-      this->Controls->Add(this->label5);
+      this->ClientSize = System::Drawing::Size(337, 386);
       this->Controls->Add(this->label4);
+      this->Controls->Add(this->btn_runLocalRGrow);
+      this->Controls->Add(this->button_addbackseed);
+      this->Controls->Add(this->button_addforeseed);
+      this->Controls->Add(this->label9);
       this->Controls->Add(this->label2);
       this->Controls->Add(this->label3);
       this->Controls->Add(this->trackBar_radius);
@@ -371,7 +408,6 @@ namespace RoiPainter3D {
       this->Controls->Add(this->label8);
       this->Controls->Add(this->label7);
       this->Controls->Add(this->label6);
-      this->Controls->Add(this->btn_runLocalRGrow);
       this->Controls->Add(this->label1);
       this->Controls->Add(this->btn_finish);
       this->Controls->Add(this->btn_cancel);
@@ -399,8 +435,8 @@ namespace RoiPainter3D {
     System::Void btn_runLocalRGrow_Click(System::Object^  sender, System::EventArgs^  e) ;
     System::Void btn_cancel_Click(System::Object^  sender, System::EventArgs^  e) ;
     System::Void btn_finish_Click(System::Object^  sender, System::EventArgs^  e) ;
-
-
+    System::Void button_addforeseed_Click(System::Object^  sender, System::EventArgs^  e);
+    System::Void button_addbackseed_Click(System::Object^  sender, System::EventArgs^  e);
 };
 
   inline void formSegLocalRGrow_Show(){ FormSegLocalRGrow::getInst()->Show();}

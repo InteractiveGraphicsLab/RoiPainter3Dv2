@@ -29,12 +29,12 @@ ModeSegThreshfieldPaint::ModeSegThreshfieldPaint() :
 
 
 
-bool ModeSegThreshfieldPaint::canEndMode()
+bool ModeSegThreshfieldPaint::CanLeaveMode()
 {
   return true;
 }
 
-void ModeSegThreshfieldPaint::startMode()
+void ModeSegThreshfieldPaint::StartMode()
 {
 }
 
@@ -87,11 +87,11 @@ void ModeSegThreshfieldPaint::MouseWheel(const EVec2i &p, short zDelta, OglForCL
 
 
 
-void ModeSegThreshfieldPaint::keyDown(int nChar) {}
-void ModeSegThreshfieldPaint::keyUp(int nChar) {}
+void ModeSegThreshfieldPaint::KeyDown(int nChar) {}
+void ModeSegThreshfieldPaint::KeyUp(int nChar) {}
 
 
-void ModeSegThreshfieldPaint::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
+void ModeSegThreshfieldPaint::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
 {
 }
 

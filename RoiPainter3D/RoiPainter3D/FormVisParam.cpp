@@ -4,13 +4,13 @@
 
 
 using namespace RoiPainter3D;
-
+using namespace std;
 
 FormVisParam::FormVisParam(void)
 {
   InitializeComponent();
 
-  this->ControlBox = false;
+  this->ControlBox  = false;
   this->MaximizeBox = false;
   m_isMouseOn = false;
 
@@ -23,30 +23,14 @@ FormVisParam::FormVisParam(void)
   //load transfer function image 
   m_imgPsu = new OglImage1D<CH_RGBA>();
   m_imgPsu->AllocateHeuImg(TRANS_FUNC_SIZE);
-
-  /*
-  OGLImage2D4 tmpImg;
-  tmpImg.Allocate("./shader/psued_bar.bmp");
-  printf("%d %d", tmpImg.GetW(), tmpImg.GetH());
-  for( int i=0; i < TRANS_FUNC_SIZE; ++i)
-  {
-    int xi = (int)( i / (double) TRANS_FUNC_SIZE * tmpImg.GetW() ) + 2 * tmpImg.GetW(); 
-    printf("%d  ", xi);
-    (*m_imgPsu)[4*i  ] = tmpImg[ 4*xi  ];
-    (*m_imgPsu)[4*i+1] = tmpImg[ 4*xi+1];
-    (*m_imgPsu)[4*i+2] = tmpImg[ 4*xi+2];
-    (*m_imgPsu)[4*i+3] = tmpImg[ 4*xi+3];
-  }
-  */
-
 }
 
 
 void FormVisParam::initAllItemsForNewImg()
 {
-  EVec3i reso      = ImageCore::getInst()->getResolution();
-  EVec3f pitch     = ImageCore::getInst()->getPitch();
-  EVec2i volMinMax = ImageCore::getInst()->getVolMinMax();
+  EVec3i reso      = ImageCore::GetInst()->GetResolution();
+  EVec3f pitch     = ImageCore::GetInst()->GetPitch();
+  EVec2i volMinMax = ImageCore::GetInst()->GetVolMinMax();
 
   sizeX->Text = reso.x().ToString();
   sizeY->Text = reso.y().ToString();
@@ -80,8 +64,8 @@ void FormVisParam::initAllItemsForNewImg()
 
 void FormVisParam::updateHistogramBmp()
 {
-  const OglImage3D &vol   = ImageCore::getInst()->m_vol    ;
-  const OglImage3D &volGM = ImageCore::getInst()->m_volGmag;
+  const OglImage3D &vol   = ImageCore::GetInst()->m_vol    ;
+  const OglImage3D &volGM = ImageCore::GetInst()->m_vol_gm;
   const int N = vol.GetW() * vol.GetH()* vol.GetD();
 
   //1. compute normalized histogram
@@ -174,7 +158,7 @@ void FormVisParam::redrawTransFuncPictBox()
 
 void FormVisParam::pitchTextBoxChanged()
 {
-  EVec3f pitch = ImageCore::getInst()->getPitch();
+  EVec3f pitch = ImageCore::GetInst()->GetPitch();
  
   float px, py, pz;
   if( float::TryParse( pitchX->Text, px ) ) pitch[0] = px;
@@ -186,8 +170,8 @@ void FormVisParam::pitchTextBoxChanged()
   pitchX->Text = pitch[0].ToString("F5");
   pitchY->Text = pitch[1].ToString("F5");
   pitchZ->Text = pitch[2].ToString("F5");
-  ImageCore::getInst()->setPitch( pitch );
-  formMain_redrawMainPanel();
+  ImageCore::GetInst()->SetPitch( pitch );
+  FormMain_RedrawMainPanel();
 }
 System::Void FormVisParam::pitchX_TextChanged(System::Object^  sender, System::EventArgs^  e) {
   pitchTextBoxChanged();
@@ -216,11 +200,11 @@ System::Void FormVisParam::winLevelMinBar_MouseUp(System::Object^  sender, Syste
 {
   winLevelMinTextBox->Text = winLevelMinBar->Value.ToString();
   winLevelMinTextBox->Refresh();
-  ImageCore::getInst()->updateVisVolume(winLevelMinBar->Value, winLevelMaxBar->Value);
+  ImageCore::GetInst()->UpdateOGLVolume(winLevelMinBar->Value, winLevelMaxBar->Value);
 
   updateHistogramBmp();
   redrawTransFuncPictBox();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 System::Void FormVisParam::winLevelMaxBar_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) 
@@ -228,37 +212,37 @@ System::Void FormVisParam::winLevelMaxBar_MouseUp(System::Object^  sender, Syste
   winLevelMaxTextBox->Text = winLevelMaxBar->Value.ToString();
   winLevelMaxTextBox->Refresh();
 
-  ImageCore::getInst()->updateVisVolume(winLevelMinBar->Value, winLevelMaxBar->Value);
+  ImageCore::GetInst()->UpdateOGLVolume(winLevelMinBar->Value, winLevelMaxBar->Value);
 
   updateHistogramBmp();
   redrawTransFuncPictBox();
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
 
-System::Void FormVisParam::isRendFrame_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {formMain_redrawMainPanel();}
-System::Void FormVisParam::isRendVolume_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {formMain_redrawMainPanel();}
-System::Void FormVisParam::isRendPseudo_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {formMain_redrawMainPanel();}
-System::Void FormVisParam::isRendIndi_CheckedChanged(System::Object^  sender, System::EventArgs^  e)   {formMain_redrawMainPanel();}
-System::Void FormVisParam::isRendPlaneXY_CheckedChanged(System::Object^  sender, System::EventArgs^  e){formMain_redrawMainPanel();}
-System::Void FormVisParam::isRendPlaneYZ_CheckedChanged(System::Object^  sender, System::EventArgs^  e){formMain_redrawMainPanel();}
-System::Void FormVisParam::isRendPlaneZX_CheckedChanged(System::Object^  sender, System::EventArgs^  e){formMain_redrawMainPanel();}
-System::Void FormVisParam::isRendGradMag_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {formMain_redrawMainPanel();}
-System::Void FormVisParam::transBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {formMain_redrawMainPanel();}
-System::Void FormVisParam::sliceBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {formMain_redrawMainPanel();}
+System::Void FormVisParam::isRendFrame_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendVolume_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendPseudo_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendIndi_CheckedChanged(System::Object^  sender, System::EventArgs^  e)   {FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendPlaneXY_CheckedChanged(System::Object^  sender, System::EventArgs^  e){FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendPlaneYZ_CheckedChanged(System::Object^  sender, System::EventArgs^  e){FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendPlaneZX_CheckedChanged(System::Object^  sender, System::EventArgs^  e){FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendGradMag_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {FormMain_RedrawMainPanel();}
+System::Void FormVisParam::transBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {FormMain_RedrawMainPanel();}
+System::Void FormVisParam::sliceBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {FormMain_RedrawMainPanel();}
 
 System::Void FormVisParam::isWhite_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
-  formMain_setBkColor(1,1,1);
-  formMain_redrawMainPanel();
+  FormMain_SetBkColor(1,1,1);
+  FormMain_RedrawMainPanel();
 }
 System::Void FormVisParam::isBlack_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
-  formMain_setBkColor(  0,  0,  0);
-  formMain_redrawMainPanel();
+  FormMain_SetBkColor(  0,  0,  0);
+  FormMain_RedrawMainPanel();
 }
 System::Void FormVisParam::isGray_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {
-  formMain_setBkColor(0.5f,0.5f,0.5f);
-  formMain_redrawMainPanel();
+  FormMain_SetBkColor(0.5f,0.5f,0.5f);
+  FormMain_RedrawMainPanel();
 }
 
 

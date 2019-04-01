@@ -11,31 +11,31 @@
 #include "FormMaskIDselection.h"
 #include "climessagebox.h"
 
-
 using namespace RoiPainter3D;
+using namespace std;
 
 #pragma unmanaged
 
 
 ModeRefStrokeTrim::~ModeRefStrokeTrim()
 {
-	if( m_volPrev ) delete[] m_volPrev;
+	if( m_vol_prev ) delete[] m_vol_prev;
 }
+
 
 ModeRefStrokeTrim::ModeRefStrokeTrim() :
-	  m_volumeShader("shader/volVtx.glsl"   , "shader/volFlg_Seg.glsl"),
-	  m_crssecShader("shader/crssecVtx.glsl", "shader/crssecFlg_Seg.glsl")
+	  m_volume_shader("shader/volVtx.glsl"   , "shader/volFlg_Seg.glsl"),
+	  m_crssec_shader("shader/crssecVtx.glsl", "shader/crssecFlg_Seg.glsl")
 {
-  m_bL = m_bR = m_bM = m_bDrawStrok = false;
-  m_bModified = false;
-
-  m_volPrev = 0;
+  m_bL = m_bR = m_bM = m_b_drawingstroke = false;
+  m_b_modified = false;
+  m_vol_prev = 0;
 }
 
 
-bool ModeRefStrokeTrim::canEndMode()
+bool ModeRefStrokeTrim::CanLeaveMode()
 {
-  if( !m_bModified ) return true;
+  if( !m_b_modified ) return true;
 	
   if (CLI_MessageBox_YESNO_Show("Current Result is not stored. Do you want to leave?", "message") )
 	{
@@ -45,42 +45,41 @@ bool ModeRefStrokeTrim::canEndMode()
 }
 
 
-
 //volFlg
 // 0  : locked and never changed, 
 // 1  : back  
 //255 : fore 
-void ModeRefStrokeTrim::startMode()
+void ModeRefStrokeTrim::StartMode()
 {
-	m_bModified = false;
+	m_b_modified = false;
 
-  m_trgtMskId = formMaskIdSelection_showModalDialog();
-  if( m_trgtMskId < 0 ){
-    ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+  m_trgt_maskid = formMaskIdSelection_showModalDialog();
+  if( m_trgt_maskid < 0 ){
+    ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
     return;
   }
 
-  if( m_trgtMskId == 0  ){
+  if( m_trgt_maskid == 0  ){
     CLI_MessageBox_OK_Show("Cant modify mask ID = 0", "message");
-    ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+    ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
     return;
   }
 
   formRefStrokeTrim_Show();
-  CrssecCore::getInst()->ClearCurvedCrossec();
+  CrssecCore::GetInst()->ClearCurvedCrossec();
 
-  const vector<MaskData> &mask = ImageCore::getInst()->m_maskData;
-  OglImage3D  &vMask = ImageCore::getInst()->m_volMsk  ;
-	OglImage3D  &vFlg  = ImageCore::getInst()->m_volFlg  ;
-	const EVec3i r  =  ImageCore::getInst()->getResolution();
-	const int    N  =  r[0] * r[1] * r[2];
+  const vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
+  OglImage3D  &vMask = ImageCore::GetInst()->m_vol_mask  ;
+	OglImage3D  &vFlg  = ImageCore::GetInst()->m_vol_flag  ;
+	const EVec3i r     = ImageCore::GetInst()->GetResolution();
+	const int    N     = r[0] * r[1] * r[2];
 
-	for (int i = 0; i < N; ++i) vFlg[i] = ( vMask[i] == m_trgtMskId) ? 255 : 0;
+	for (int i = 0; i < N; ++i) vFlg[i] = ( vMask[i] == m_trgt_maskid) ? 255 : 0;
 	vFlg.SetUpdated();
 
-	if( m_volPrev ) delete[] m_volPrev;
-	m_volPrev = new byte[N];
-	memcpy(m_volPrev, &(vMask[0]), sizeof(byte)*N);
+	if( m_vol_prev ) delete[] m_vol_prev;
+	m_vol_prev = new byte[N];
+	memcpy(m_vol_prev, &(vMask[0]), sizeof(byte)*N);
 	
 }
 
@@ -89,29 +88,29 @@ void ModeRefStrokeTrim::startMode()
 
 void ModeRefStrokeTrim::cancelSegmentation()
 {
-  if( m_volPrev ) delete[] m_volPrev;
-  m_volPrev = 0;
-  ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
-  formMain_redrawMainPanel();
+  if( m_vol_prev ) delete[] m_vol_prev;
+  m_vol_prev = 0;
+  ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
+  FormMain_RedrawMainPanel();
 }
 
 
 void ModeRefStrokeTrim::finishSegmentation()
 {
-  vector<MaskData> &mask = ImageCore::getInst()->m_maskData;
-	OglImage3D      &vMask = ImageCore::getInst()->m_volMsk;
-	OglImage3D      &vFlg  = ImageCore::getInst()->m_volFlg;
-	const EVec3i     r     = ImageCore::getInst()->getResolution();
+  vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
+	OglImage3D      &vMask = ImageCore::GetInst()->m_vol_mask;
+	OglImage3D      &vFlg  = ImageCore::GetInst()->m_vol_flag;
+	const EVec3i     r     = ImageCore::GetInst()->GetResolution();
 	const int        N     = r[0] * r[1] * r[2];
 
 
 	//一旦 トリムされた画素のIDを0に
 	for( int i= 0; i < N; ++i)
 	{
-		if( vMask[i] == m_trgtMskId && vFlg[i] != 255 ) vMask[i] = 0;
+		if( vMask[i] == m_trgt_maskid && vFlg[i] != 255 ) vMask[i] = 0;
 	}
-	mask[m_trgtMskId].surf.clear();
-	mask[m_trgtMskId].bRendSurf = false;
+	mask[m_trgt_maskid].m_surface.clear();
+	mask[m_trgt_maskid].m_b_drawsurface = false;
 
 	//トリムされた領域を新しい領域として追加
   bool bTrimRegionExist = false;
@@ -121,23 +120,18 @@ void ModeRefStrokeTrim::finishSegmentation()
     vFlg[i] = ( vFlg[i] == 1 ) ? 255 : 0;
   }
   if(bTrimRegionExist)
-	  ImageCore::getInst()->mask_storeCurrentForeGround();
-
+	  ImageCore::GetInst()->StoreForegroundAsNewMask();
 
 	vFlg .SetUpdated();
 	vMask.SetUpdated();
-	m_bModified = false;
+	m_b_modified = false;
 
-  if( m_volPrev ) delete[] m_volPrev;
-  m_volPrev = 0;
+  if( m_vol_prev ) delete[] m_vol_prev;
+  m_vol_prev = 0;
 
-	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK );
-	formMain_redrawMainPanel();
+	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
+	FormMain_RedrawMainPanel();
 }
-
-
-
-
 
 
 
@@ -148,24 +142,20 @@ void ModeRefStrokeTrim::LBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
 void ModeRefStrokeTrim::RBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
 void ModeRefStrokeTrim::MBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
 
-
-
-
-
 void ModeRefStrokeTrim::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bL = true;
-	m_stroke2D.clear();
-	m_stroke3D.clear();
+	m_stroke2d.clear();
+	m_stroke3d.clear();
 
-	if (isShiftKeyOn())
+	if (IsShiftKeyOn())
 	{
-		m_bDrawStrok = true;
+		m_b_drawingstroke = true;
 		EVec3f rayP, rayD;
 		ogl->GetCursorRay(p,rayP,rayD);
 
-		m_stroke2D.push_back( p );
-		m_stroke3D.push_back( rayP + 0.1f * rayD );
+		m_stroke2d.push_back( p );
+		m_stroke3d.push_back( rayP + 0.1f * rayD );
 	}
 	else 
   {
@@ -176,26 +166,26 @@ void ModeRefStrokeTrim::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 
 void ModeRefStrokeTrim::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-  if( m_bDrawStrok ) updateVolFlgByStroke(ogl);
+  if( m_b_drawingstroke ) UpdateVolFlgByStroke(ogl);
 
 	ogl->BtnUp();
 	m_bL = false;
-	m_bDrawStrok = false;
-	m_stroke2D.clear();
-	m_stroke3D.clear();
-  formMain_redrawMainPanel();
+	m_b_drawingstroke = false;
+	m_stroke2d.clear();
+	m_stroke3d.clear();
+  FormMain_RedrawMainPanel();
 }
 
 
 void ModeRefStrokeTrim::RBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
-  if (m_bL && m_bDrawStrok)
+  if (m_bL && m_b_drawingstroke)
 	{
     //cancel current trimming stroke
-		m_bDrawStrok = false;
+		m_b_drawingstroke = false;
 		m_bL = false;
-		m_stroke2D.clear();
-		m_stroke3D.clear();
+		m_stroke2d.clear();
+		m_stroke3d.clear();
 		return;
 	}
   else
@@ -209,7 +199,7 @@ void ModeRefStrokeTrim::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   ogl->BtnUp();
   m_bR = false;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeRefStrokeTrim::MBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -222,25 +212,25 @@ void ModeRefStrokeTrim::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   ogl->BtnUp();
   m_bM = false;
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 void ModeRefStrokeTrim::MouseMove(const EVec2i &p, OglForCLI *ogl)
 {
   if( !m_bL && !m_bR && !m_bM ) return;
 
-	if (m_bDrawStrok)
+	if (m_b_drawingstroke)
 	{
 		EVec3f rayP, rayD;
 		ogl->GetCursorRay(p,rayP,rayD);
-		m_stroke2D.push_back( p);
-		m_stroke3D.push_back( rayP + 0.1f * rayD );
+		m_stroke2d.push_back( p);
+		m_stroke3d.push_back( rayP + 0.1f * rayD );
 	}
 	else
 	{
 		ogl->MouseMove( p );
 	}
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
 
@@ -249,80 +239,80 @@ void ModeRefStrokeTrim::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
   EVec3f rayP, rayD, pos;
 	ogl->GetCursorRay(p, rayP, rayD);
   
-  CRSSEC_ID id = pickCrsSec(rayP, rayD, &pos);
-  if( id != CRSSEC_NON ) CrssecCore::getInst()->MoveCrssec(ImageCore::getInst()->getResolution(), 
-                                                           ImageCore::getInst()->getPitch(), id, zDelta);
+  CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
+  if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
+                                                           ImageCore::GetInst()->GetPitch(), id, zDelta);
   else ogl->ZoomCam(zDelta * 0.1f);
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
 }
 
-void ModeRefStrokeTrim::keyDown(int nChar) 
+void ModeRefStrokeTrim::KeyDown(int nChar) 
 {
   if (nChar == 'Z')
 	{
     // 変更前の状態を一個だけ持っておく実装（今後複数回のundoに対応したい）
-    printf( "undo!!");
+    std::cout<< "undo!!\n";
 
-		OglImage3D &vFlg  = ImageCore::getInst()->m_volFlg ;
-		EVec3i r = ImageCore::getInst()->getResolution();
-		memcpy(&vFlg[0], m_volPrev, sizeof( byte ) * r[0] * r[1] * r[2] );
+		OglImage3D &vFlg  = ImageCore::GetInst()->m_vol_flag ;
+		EVec3i r = ImageCore::GetInst()->GetResolution();
+		memcpy(&vFlg[0], m_vol_prev, sizeof( byte ) * r[0] * r[1] * r[2] );
 		vFlg.SetUpdated();
 
-    formMain_redrawMainPanel();
+    FormMain_RedrawMainPanel();
 	}
 }
 
 
-void ModeRefStrokeTrim::keyUp(int nChar) {}
+void ModeRefStrokeTrim::KeyUp(int nChar) {}
 
 
-void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
+void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center)
 {
-  const bool   bXY      = formVisParam_bPlaneXY();
-  const bool   bYZ      = formVisParam_bPlaneYZ();
-  const bool   bZX      = formVisParam_bPlaneZX();
-  const bool isOnManip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-  const int  sliceN    = (int)( (isOnManip ? ONMOVE_SLICE_RATE : 1.0 ) * formVisParam_getSliceNum() );
-  const float alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::getInst()->getResolution();
+  //renderingに必用なパラメータを集めておく
+  const EVec3i reso  = ImageCore::GetInst()->GetResolution();
 
-  if (m_bDrawStrok && m_stroke3D.size() > 1)
+  if (m_b_drawingstroke && m_stroke3d.size() > 1)
 	{
-    m_stroke3D.push_back(m_stroke3D.front());
-    t_drawLineStrip( EVec3f(1,1,0), 4, m_stroke3D );
-    m_stroke3D.pop_back();
+    t_DrawPolyLine( EVec3f(1,1,0), 4, m_stroke3d, true );
 	}
 	
 	//bind volumes ---------------------------------------
 	glActiveTextureARB(GL_TEXTURE0);
-	ImageCore::getInst()->m_vol.BindOgl();
+	ImageCore::GetInst()->m_vol.BindOgl();
 	glActiveTextureARB(GL_TEXTURE1);
-	ImageCore::getInst()->m_volGmag.BindOgl();
+	ImageCore::GetInst()->m_vol_gm.BindOgl();
 	glActiveTextureARB(GL_TEXTURE2);
-	ImageCore::getInst()->m_volFlg.BindOgl(false);
+	ImageCore::GetInst()->m_vol_flag.BindOgl(false);
 	glActiveTextureARB(GL_TEXTURE3);
-	ImageCore::getInst()->m_volMsk.BindOgl(false);
+	ImageCore::GetInst()->m_vol_mask.BindOgl(false);
 	glActiveTextureARB(GL_TEXTURE4);
 	formVisParam_bindTfImg();
 	glActiveTextureARB(GL_TEXTURE5);
 	formVisParam_bindPsuImg();
 	glActiveTextureARB(GL_TEXTURE6);
-	ImageCore::getInst()->m_imgMskCol.BindOgl(false);
+	ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 		
  //render cross sections ----------------------------------
   glColor3d(1, 1, 1);
-  m_crssecShader.bind(0, 1, 2, 3, 6, reso, false, !isSpaceKeyOn());
-  CrssecCore::getInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
-  m_crssecShader.unbind();
+  m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, false, !IsSpaceKeyOn());
+  const bool b_xy  = formVisParam_bPlaneXY();
+  const bool b_yz  = formVisParam_bPlaneYZ();
+  const bool b_zx  = formVisParam_bPlaneZX();
+  CrssecCore::GetInst()->DrawCrssec(b_xy, b_yz, b_zx, cuboid);
+  m_crssec_shader.Unbind();
 
 	//volume rendering ---------------------------------------
 	if ( formVisParam_bRendVol() )
 	{
+    const float alpha  = formVisParam_getAlpha();
+    const bool b_on_manipuration = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int  slice_num         = (int)( (b_on_manipuration ? ONMOVE_SLICE_RATE : 1.0 ) * formVisParam_getSliceNum() );
+
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volumeShader.bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, false, !isSpaceKeyOn());
-		t_drawSlices( sliceN, camP,camF, cuboid);
-		m_volumeShader.unbind();
+		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, false, !IsSpaceKeyOn());
+		t_DrawCuboidSlices( slice_num, cam_pos, cam_center, cuboid);
+		m_volume_shader.Unbind();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 	}
@@ -331,41 +321,23 @@ void ModeRefStrokeTrim::drawScene(const EVec3f &cuboid, const EVec3f &camP, cons
 
 
 
-#pragma managed
 
 
-
-
-
-static double calcAngle(const EVec2d &d1, const EVec2d &d2)
-{
-	double l = d1.norm() * d2.norm();
-	if( l == 0 ) return 0;
-
-	double cosT = t_crop<double>(-1., 1., ( d1.dot(d2) ) / l);
-
-	if( d1[0] * d2[1] - d1[1] * d2[0] >= 0)
-    return  acos(cosT);
-	else
-    return -acos(cosT);
-}
-
-
-static bool isInClosedStroke(double x, double y, const vector<EVec2i> &stroke)
+static bool IsInClosedStroke(double x, double y, const vector<EVec2i> &stroke)
 {
 	//stroke.size() > 3 
 	EVec2d d1,d2;
 	double sum = 0;
 
-	d1 << stroke.back()[0] - x, stroke.back()[1] - y;
-	d2 << stroke[0]    [0] - x, stroke[0]    [1]- y;
-	sum = calcAngle(d1,d2);
+	d1 << stroke.back ()[0] - x, stroke.back() [1] - y;
+	d2 << stroke.front()[0] - x, stroke.front()[1] - y;
+	sum = t_CalcAngle(d1,d2);
 	
 	for (int i = 1; i < (int)stroke.size(); ++i)
 	{
 		d1 << stroke[i-1][0] - x, stroke[i-1][1] - y;
 		d2 << stroke[ i ][0] - x, stroke[ i ][1] - y;
-		sum += calcAngle(d1,d2);
+		sum += t_CalcAngle(d1,d2);
 	}
 
 	return fabs(sum) > M_PI * 1.5;
@@ -373,78 +345,90 @@ static bool isInClosedStroke(double x, double y, const vector<EVec2i> &stroke)
 
 
 
-void ModeRefStrokeTrim::updateVolFlgByStroke( OglForCLI *ogl)
+void ModeRefStrokeTrim::UpdateVolFlgByStroke( OglForCLI *ogl)
 {
-	if( m_stroke2D.size() < 3 ) return;
+	if( m_stroke2d.size() < 3 ) return;
 
-	
-	OglImage3D  &vFlg  = ImageCore::getInst()->m_volFlg ;
-	const EVec3i r     = ImageCore::getInst()->getResolution();
-	const EVec3f pitch = ImageCore::getInst()->getPitch();
-	const int    WH    = r[0] * r[1];
+	OglImage3D  &vol_flg = ImageCore::GetInst()->m_vol_flag ;
+	const EVec3i reso    = ImageCore::GetInst()->GetResolution();
+	const EVec3f pitch   = ImageCore::GetInst()->GetPitch();
+	const int    WH      = reso[0] * reso[1];
 
-	memcpy( m_volPrev, &vFlg[0], sizeof( byte ) * r[0] * r[1] * r[2] );
+	memcpy( m_vol_prev, &vol_flg[0], sizeof( byte ) * reso[0] * reso[1] * reso[2] );
 
   //get projection information
-	if( !ogl->isDrawing() ) ogl->oglMakeCurrent();
-	double model[16], proj[16];
-	int vp[4];
-	glGetDoublev(GL_MODELVIEW_MATRIX, model);
-	glGetDoublev(GL_PROJECTION_MATRIX, proj);
-	glGetIntegerv(GL_VIEWPORT, vp);
+	if( !ogl->IsDrawing() ) ogl->oglMakeCurrent();
+
+	double model_mat[16], projection_mat[16];
+	int viewport[4];
+	glGetDoublev(GL_MODELVIEW_MATRIX , model_mat      );
+	glGetDoublev(GL_PROJECTION_MATRIX, projection_mat );
+	glGetIntegerv(GL_VIEWPORT        , viewport       );
   
 
-  //gen 2D in/out image 
-  printf("get 2D foreground image\n");
-	byte *imgInOut = new byte[ vp[2] * vp[3] ];
-	memset( imgInOut, 0, sizeof(byte) * vp[2] * vp[3] );
+  //gen screen_img (binary inside/outside image) 
+  std::cout << "get 2D foreground image\n";
 
-	for( auto &p : m_stroke2D) p[1] = vp[3] - p[1];
+	byte *screen_img = new byte[ viewport[2] * viewport[3] ];
+	memset( screen_img, 0, sizeof(byte) * viewport[2] * viewport[3] );
 
-	EVec2i minBB, maxBB;
-	t_calcBoundBox2D(m_stroke2D, minBB, maxBB);
-	minBB[0] = max( 0     , minBB[0] - 1);
-	minBB[1] = max( 0     , minBB[1] - 1);
-	maxBB[0] = min(vp[2]-1, maxBB[0] + 1);
-	maxBB[1] = min(vp[3]-1, maxBB[1] + 1);
+	for( auto &p : m_stroke2d) p[1] = viewport[3] - p[1];
+
+	EVec2i bb_min, bb_max;
+	t_CalcBoundingBox(m_stroke2d, bb_min, bb_max);
+	bb_min[0] = max( 0           , bb_min[0] - 1);
+	bb_min[1] = max( 0           , bb_min[1] - 1);
+	bb_max[0] = min(viewport[2]-1, bb_max[0] + 1);
+	bb_max[1] = min(viewport[3]-1, bb_max[1] + 1);
 
 #pragma omp parallel for
-	for (int y = minBB[1]; y < maxBB[1]; ++y)
+	for ( int y = bb_min[1]; y < bb_max[1]; ++y)
 	{
-		for (int x = minBB[0]; x < maxBB[0]; ++x)
+		for ( int x = bb_min[0]; x < bb_max[0]; ++x)
 		{
-			imgInOut[x + y * vp[2] ] = isInClosedStroke( x, y, m_stroke2D ) ? 255 : 0;
+			if ( IsInClosedStroke( x, y, m_stroke2d ) ) 
+        screen_img[x + y * viewport[2] ] = 255;
 		}
 	}
 
 
   //compute projection of all foreground voxels
-  printf("compute projection of all voxels\n");
+  std::cout << "compute projection of all voxels\n";
+
 #pragma omp parallel for
-	for (int z = 0; z < r[2]; ++z)
+	for ( int z = 0; z < reso[2]; ++z)
 	{
-		for( int y = 0 ; y < r[1]; ++y)
+		for( int y = 0 ; y < reso[1]; ++y)
 		{
-			for (int x = 0; x < r[0]; ++x)
+			for ( int x = 0; x < reso[0]; ++x)
 			{
-				const int I = x + y * r[0] + z * WH;
-				if( vFlg[I] != 255 ) continue;
+				const int I = x + y * reso[0] + z * WH;
+				if( vol_flg[I] != 255 ) continue;
 
+        double posx = (x + 0.5) * pitch[0];
+        double posy = (y + 0.5) * pitch[1];
+        double posz = (z + 0.5) * pitch[2];
 				double px, py, pz;
-				gluProject(	(x+0.5)*pitch[0],  (y+0.5)*pitch[1],  (z+0.5)*pitch[2],  model, proj, vp, &px,&py,&pz);
+				gluProject(	posx,  posy, posz,  model_mat, projection_mat, viewport, &px, &py, &pz);
 
-				if( 0<= px && px <= vp[2]-1 && 
-					  0<= py && py <= vp[3]-1 && imgInOut[ (int)px + (int)py*vp[2] ] == 255 ) vFlg[I] = 1;
+				if( 0<= px && px <= viewport[2]-1 && 
+					  0<= py && py <= viewport[3]-1 && screen_img[ (int)px + (int)py*viewport[2] ] == 255 ) vol_flg[I] = 1;
 			}	
 		}
 	}
 
-	delete[] imgInOut;
 
-	printf( "...done\n");
+	delete[] screen_img;
 
-	if( !ogl->isDrawing() ) wglMakeCurrent(NULL,NULL);
+	if( !ogl->IsDrawing() ) wglMakeCurrent(NULL,NULL);
 
-	vFlg.SetUpdated();
-	m_bModified = true;
+	vol_flg.SetUpdated();
+  m_b_modified = true;
+	
+  std::cout << "...done\n";
 }
+
+
+
+
+#pragma managed

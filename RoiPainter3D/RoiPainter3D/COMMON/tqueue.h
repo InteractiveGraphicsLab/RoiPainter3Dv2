@@ -2,7 +2,6 @@
 
 #pragma unmanaged
 
-
 //--------------------------------------------------------------------------
 // This file is released under 3-clause modified bsd license.
 //
@@ -42,6 +41,7 @@
  *
  * CG Gems JP 2013/2014用にOpenSourceとして開発を開始
  * 2015/9/7 に再メンテナンス
+ * 2019/3/29 リファクタリング
 -------------------------------------------------------------------*/
 
 
@@ -62,16 +62,16 @@ public:
 
   //init_size     : キューが最初に用意しておくメモリサイズ (要素数)
   //increase_size : 要素数が用意したメモリの上限に達したときに再確保するメモリサイズ (要素数)
-  TQueue(const int init_size = T_QUEUE_INIT_SIZE, const int increase_size = T_QUEUE_ADD_SIZE) : m_INCREASE_SIZE(max(20, increase_size))
+  TQueue(const int init_size = T_QUEUE_INIT_SIZE, const int increase_size = T_QUEUE_ADD_SIZE) : m_INCREASE_SIZE( std::max(20, increase_size))
   {
-    printf("TQueue standard constractor\n");
-    m_size = max(10, init_size);
+    std::cout << "TQueue standard constractor\n";
+    m_size = std::max(10, init_size);
     m_data = new T[m_size];
     m_tail = m_head = 0;
   }
 
   TQueue(const TQueue &src) : m_INCREASE_SIZE(src.m_INCREASE_SIZE) {
-    printf("TQueue copy constractor\n");
+    std::cout << "TQueue copy constractor\n";
     m_size = src.m_size;
     m_tail = src.m_tail;
     m_head = src.m_head;
@@ -85,7 +85,7 @@ public:
   }
 
   TQueue& operator=(const TQueue& src) {
-    printf("TQeue operator = \n");
+    std::cout << "TQeue operator = \n";
     delete[] m_data;
     m_size = src.m_size;
     m_tail = src.m_tail;
@@ -142,7 +142,7 @@ public:
 private:
   inline void increase_size()
   {
-    printf("*");
+    std::cout << "*";
     T* newData = new T[m_size + m_INCREASE_SIZE];
 
     //head -- m_size-1 をコピー (memcpyは浅いコピーだから使っちゃダメ)
@@ -162,14 +162,13 @@ public:
   //debug用
   void vis()
   {
-    printf("\n");
-    printf("%d %d %d\n", m_size, m_head, m_tail);
+    std::cout << "\n" << m_size << " " << m_head << " " << m_tail << "\n";
     for (int i = 0; i < m_size; ++i) {
-      if (i == m_head) printf("h");
-      if (i == m_tail) printf("t");
-      printf("%d  ", m_data[i]);
+      if (i == m_head) std::cout << "h";
+      if (i == m_tail) std::cout << "t";
+      std::cout << m_data[i] << "  ";
     }
-    printf("\n");
+    std::cout << "\n";
   }
   static void test() {
 

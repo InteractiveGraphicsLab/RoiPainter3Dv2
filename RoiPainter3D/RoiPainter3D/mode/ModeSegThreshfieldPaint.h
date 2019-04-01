@@ -41,12 +41,12 @@ public:
   void MouseMove (const EVec2i &p, OglForCLI *ogl);
   void MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl);
 
-  void keyDown(int nChar);
-  void keyUp  (int nChar);
+  void KeyDown(int nChar);
+  void KeyUp  (int nChar);
 
-  bool canEndMode();
-  void startMode ();
-  void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF);
+  bool CanLeaveMode();
+  void StartMode ();
+  void DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF);
 
 };
 

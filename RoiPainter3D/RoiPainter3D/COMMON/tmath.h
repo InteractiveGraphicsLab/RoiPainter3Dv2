@@ -1,18 +1,18 @@
 ﻿#pragma once
 
+
+
+//Eigen (should be unmanaged)
 #pragma unmanaged
-
-
-using namespace std;
-
-
-//Eigen 
 #include <Dense>
 #include <Geometry> 
 
 //stl
 #include <vector>
 #include <list>
+#include <iostream>
+
+#pragma unmanaged
 
 typedef Eigen::Vector2i EVec2i;
 typedef Eigen::Vector2d EVec2d;
@@ -26,63 +26,54 @@ typedef Eigen::Vector4i EVec4i;
 typedef Eigen::Vector4d EVec4d;
 typedef Eigen::Vector4f EVec4f;
 
-
 typedef Eigen::Matrix2d EMat2d;
 typedef Eigen::Matrix3f EMat3f;
 typedef Eigen::Matrix4f EMat4f;
 typedef Eigen::Matrix3d EMat3d;
 typedef Eigen::Matrix4d EMat4d;
 
-
 #ifndef max3
-#define max3(a,b,c)      max((a), max( (b),(c) ))
+#define max3(a,b,c)      std::max((a), std::max( (b),(c) ))
 #endif
 
 #ifndef min3
-#define min3(a,b,c)      min((a), min( (b),(c) ))
+#define min3(a,b,c)      std::min((a), std::min( (b),(c) ))
 #endif
-
-
 
 
 inline void Trace(const EVec3d &v)
 {
-  fprintf(stderr, "%f %f %f\n", v[0], v[1], v[2]);
+  std::cout << v[0] << " " <<  v[1] << " " << v[2] << "\n";
 }
-
 
 inline void Trace(const EVec3f &v)
 {
-  fprintf(stderr, "%f %f %f\n", v[0], v[1], v[2]);
+  std::cout << v[0] << " " <<  v[1] << " " << v[2] << "\n";
 }
 
 
 inline void Trace(const EVec2d &v)
 {
-  fprintf(stderr, "%f %f \n", v[0], v[1]);
+  std::cout << v[0] << " " <<  v[1] << "\n";
 }
 
 inline void Trace(const EMat4d &m)
 {
-  for (int i = 0; i < 4; i++) printf("%lf %lf %lf %lf\n", m(i, 0), m(i, 1), m(i, 2), m(i, 3));
-
+  for (int i = 0; i < 4; i++) 
+    std::cout << m(i, 0) << " " << m(i, 1) << " " << m(i, 2) << " " << m(i, 3) << "\n";
 }
 
 inline void Trace(const EMat3d &m)
 {
-  for (int i = 0; i < 3; i++) printf("%lf %lf %lf\n", m(i, 0), m(i, 1), m(i, 2));
-
+  for (int i = 0; i < 3; i++) 
+    std::cout << m(i, 0) << " " << m(i, 1) << " " << m(i, 2) << "\n";
 }
 
 inline void Trace(const EMat3f &m)
 {
-  for (int i = 0; i < 3; i++) printf("%lf %lf %lf\n", m(i, 0), m(i, 1), m(i, 2));
-
+  for (int i = 0; i < 3; i++) 
+    std::cout << m(i, 0) << " " << m(i, 1) << " " << m(i, 2) << "\n";
 }
-
-
-
-
 
 
 inline float t_distRayToPoint(const EVec3f &rayP, const EVec3f &rayD, const EVec3f &p)
@@ -233,7 +224,7 @@ void t_getMaxMinOfArray(const int N, const T* src, T& minV, T& maxV)
 template<class T>
 inline T t_crop(const T &minV, const T &maxV, const T &v)
 {
-  return min(maxV, max(minV, v));
+  return std::min(maxV, std::max(minV, v));
 }
 
 
@@ -255,22 +246,22 @@ inline bool t_bInWindow3D(const EVec3f &minW, const EVec3f &maxW, const EVec3f &
 inline double t_dist(const EVec3d &p1, const EVec3d &p2)
 {
   return sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) +
-    (p1[1] - p2[1]) * (p1[1] - p2[1]) +
-    (p1[2] - p2[2]) * (p1[2] - p2[2]));
+              (p1[1] - p2[1]) * (p1[1] - p2[1]) +
+              (p1[2] - p2[2]) * (p1[2] - p2[2]));
 }
 
 
 inline float t_dist(const EVec3f &p1, const EVec3f &p2)
 {
   return sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) +
-    (p1[1] - p2[1]) * (p1[1] - p2[1]) +
-    (p1[2] - p2[2]) * (p1[2] - p2[2]));
+              (p1[1] - p2[1]) * (p1[1] - p2[1]) +
+              (p1[2] - p2[2]) * (p1[2] - p2[2]) );
 }
 
 
 
 template<class T>
-inline T t_calcGravityCenter(const vector<T> &vs)
+inline T t_calcGravityCenter(const std::vector<T> &vs)
 {
   T gc(0, 0, 0);
   for (const auto &p : vs) gc += p;
@@ -281,18 +272,18 @@ inline T t_calcGravityCenter(const vector<T> &vs)
 
 
 template<class T>
-inline void t_curveSmoothing(int TIME, vector<T> &curve)
+inline void t_curveSmoothing(int TIME, std::vector<T> &curve)
 {
   const int N = (int)curve.size();
   if (N < 3) return;
 
   for (int time = 0; time < TIME; ++time)
   {
-    vector<T> c(curve.size());
+    std::vector<T> c(curve.size());
 
-    c[0] = 0.25*curve[N - 1] + 0.5*curve[0] + 0.25*curve[1];
+    c[ 0 ] = 0.25*curve[N - 1] + 0.5*curve[0] + 0.25*curve[1];
     for (int i = 1; i < N - 1; ++i) c[i] = 0.25*curve[i - 1] + 0.5*curve[i] + 0.25*curve[i + 1];
-    c[N - 1] = 0.25*curve[N - 2] + 0.5*curve[N - 1] + 0.25*curve[0];
+    c[N-1] = 0.25*curve[N - 2] + 0.5*curve[N - 1] + 0.25*curve[0];
     curve = c;
 
   }
@@ -409,6 +400,11 @@ inline void t_verts_Smoothing(const int times, std::vector<EVec3f> &verts)
 
 
 
+
+
+
+
+
 //	  | a b | |s|    w1
 //    | c d | |t|  = w2
 inline bool t_solve2by2LinearEquation(const double a, const double b,
@@ -427,35 +423,55 @@ inline bool t_solve2by2LinearEquation(const double a, const double b,
 
 
 
-static void t_calcBoundBox2D(const vector<EVec2i> &verts, EVec2i &BBmin, EVec2i &BBmax)
+static void t_CalcBoundingBox(const std::vector<EVec2i> &verts, EVec2i &BBmin, EVec2i &BBmax)
 {
   BBmin << INT_MAX, INT_MAX;
   BBmax << INT_MIN, INT_MIN;
 
   for (int i = 0; i < (int)verts.size(); ++i)
   {
-    BBmin[0] = min(BBmin[0], verts[i][0]);
-    BBmin[1] = min(BBmin[1], verts[i][1]);
-    BBmax[0] = max(BBmax[0], verts[i][0]);
-    BBmax[1] = max(BBmax[1], verts[i][1]);
+    BBmin[0] = std::min(BBmin[0], verts[i][0]);
+    BBmin[1] = std::min(BBmin[1], verts[i][1]);
+    BBmax[0] = std::max(BBmax[0], verts[i][0]);
+    BBmax[1] = std::max(BBmax[1], verts[i][1]);
   }
 }
 
 
 
-static void t_calcBoundBox3D(const int N, const EVec3f* verts, EVec3f &BBmin, EVec3f &BBmax)
+static void t_CalcBoundingBox(const int N, const EVec3f* verts, EVec3f &BBmin, EVec3f &BBmax)
 {
-  BBmin << FLT_MAX, FLT_MAX, FLT_MAX;
+  BBmin <<  FLT_MAX,  FLT_MAX,  FLT_MAX;
   BBmax << -FLT_MAX, -FLT_MAX, -FLT_MAX;
 
   for (int i = 0; i < N; ++i)
   {
-    BBmin[0] = min(BBmin[0], (float)verts[i][0]);
-    BBmin[1] = min(BBmin[1], (float)verts[i][1]);
-    BBmin[2] = min(BBmin[2], (float)verts[i][2]);
-    BBmax[0] = max(BBmax[0], (float)verts[i][0]);
-    BBmax[1] = max(BBmax[1], (float)verts[i][1]);
-    BBmax[2] = max(BBmax[2], (float)verts[i][2]);
+    BBmin[0] = std::min(BBmin[0], (float)verts[i][0]);
+    BBmin[1] = std::min(BBmin[1], (float)verts[i][1]);
+    BBmin[2] = std::min(BBmin[2], (float)verts[i][2]);
+    BBmax[0] = std::max(BBmax[0], (float)verts[i][0]);
+    BBmax[1] = std::max(BBmax[1], (float)verts[i][1]);
+    BBmax[2] = std::max(BBmax[2], (float)verts[i][2]);
+  }
+}
+
+inline void t_CalcBoundingBox
+(
+  const std::vector<EVec3f> &verts,
+  EVec3f &BBmin,
+  EVec3f &BBmax
+)
+{
+  BBmin << FLT_MAX, FLT_MAX, FLT_MAX;
+  BBmax <<-FLT_MAX,-FLT_MAX,-FLT_MAX;
+  
+  for( const auto &v : verts ){
+    BBmin[0] = std::min(BBmin[0], v[0]);
+    BBmin[1] = std::min(BBmin[1], v[1]);
+    BBmin[2] = std::min(BBmin[2], v[2]);
+    BBmax[0] = std::max(BBmax[0], v[0]);
+    BBmax[1] = std::max(BBmax[1], v[1]);
+    BBmax[2] = std::max(BBmax[2], v[2]);
   }
 }
 
@@ -464,18 +480,19 @@ static void t_calcBoundBox3D(const int N, const EVec3f* verts, EVec3f &BBmin, EV
 
 
 
-
-inline double t_calcAngleTwoVec(
-  EVec3f v1,
-  EVec3f v2,
-  EVec3f axis
+//calculate the angle of two 3D vectors
+//axisに対して右ねじ方向が正
+inline double t_CalcAngle(
+  const EVec3f &v1,
+  const EVec3f &v2,
+  const EVec3f &axis
 )
 {
   double v1_len = v1.norm();
   double v2_len = v2.norm();
   if (v1_len == 0 || v2_len == 0) return 0;
   double cosT = v1.dot(v2) / v1_len / v2_len;
-  if (cosT >= 1.0) cosT = 1;
+  if (cosT >=  1.0) cosT = 1;
   if (cosT <= -1.0) cosT = -1;
 
   if (axis.dot(v1.cross(v2)) >= 0) return acos(cosT);
@@ -483,6 +500,20 @@ inline double t_calcAngleTwoVec(
 }
 
 
+
+//2D座標系において左回りが正（右ねじ座標系でz(0,0,1)を軸にして右回りが正）
+inline double t_CalcAngle(const EVec2d &d1, const EVec2d &d2)
+{
+	double l = d1.norm() * d2.norm();
+	if( l == 0 ) return 0;
+
+	double cosT = t_crop<double>(-1., 1., ( d1.dot(d2) ) / l);
+
+	if( d1[0] * d2[1] - d1[1] * d2[0] >= 0)
+    return  acos(cosT);
+	else
+    return -acos(cosT);
+}
 
 
 static double t_calcTriangleArea(
@@ -524,7 +555,7 @@ static double c_findShortestPathByDP(
   double **edgeCostH, //2pN x (qN+1) NotChanged
   double **costArray, //2pN x (qN+1)
   int    **fromArray, //2pN x (qN+1)
-  list<pair<int, int>> &path
+  std::list< std::pair<int, int> > &path
 )
 {
   for (int p = 0; p < 2 * pN; ++p)
@@ -552,13 +583,13 @@ static double c_findShortestPathByDP(
 
   int p = pivPi + pN;
   int q = qN;
-  path.push_front(make_pair(p, q));
+  path.push_front(std::make_pair(p, q));
 
   while (true)
   {
     if (fromArray[p][q] == 1) p--;
     else q--;
-    path.push_front(make_pair(p, q));
+    path.push_front(std::make_pair(p, q));
 
     if (p == pivPi && q == 0) break;
   }
@@ -576,10 +607,10 @@ enum POLY_MACH_METRIC
 
 inline void c_polylineMatching
 (
-  const vector<EVec3f>   &P,
-  const vector<EVec3f>   &Q,
+  const std::vector<EVec3f>   &P,
+  const std::vector<EVec3f>   &Q,
   const POLY_MACH_METRIC metric,
-  list<pair<int, int>>   &matchedIds
+  std::list<std::pair<int, int>>   &matchedIds
 )
 {
   matchedIds.clear();
@@ -622,7 +653,7 @@ inline void c_polylineMatching
 
   for (int pivPi = 0; pivPi < pNum; ++pivPi)
   {
-    list <pair<int, int>> pivPiPath;
+    std::list < std::pair<int, int> > pivPiPath;
     double pivPiCost = c_findShortestPathByDP(pivPi, pNum, qNum, edgeCostV, edgeCostH, costArray, fromArray, pivPiPath);
     if (pivPiCost < minCost)
     {
@@ -643,9 +674,6 @@ inline void c_polylineMatching
   delete[] costArray;
   delete[] fromArray;
 }
-
-
-
 
 
 

@@ -4,7 +4,6 @@
 #include "ModeCore.h"
 #include "ViewAngleCore.h"
 
-
 #include "FormVisParam.h"
 #include "FormVisNorm.h"
 #include "FormVisMask.h"
@@ -14,26 +13,23 @@
 #include "FormSegVoxelPaint.h"
 #include "FormSegLocalRGrow.h"
 #include "FormRefStrokeTrim.h"
-
-
-
+#include "climessagebox.h"
+#include <iostream>
 
 using namespace System;
 using namespace System::IO;
 using namespace System::Runtime::InteropServices;
 using namespace RoiPainter3D;
-
+using namespace std;
 
 #pragma comment( lib, "opengl32.lib" )
 #pragma comment( lib, "glu32.lib"    )
 #pragma comment( lib, "gdi32.lib"    )
 #pragma comment( lib, "User32.lib"   )
 
-
-
 FormMain::FormMain(void)
 {
-  printf("FormMain constructor\n");
+  std::cout << "FormMain constructor\n";
 
   m_prevKeyID = -1;
   m_ogl = 0;
@@ -41,31 +37,31 @@ FormMain::FormMain(void)
   InitializeComponent();
   
   m_ogl = new OglForCLI(GetDC((HWND)FormMainPanel->Handle.ToPointer()));
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   m_ogl->SetBgColor(0.3f, 0.3f, 0.3f, 0.5f);
 
-  printf("FormMain constructor .. DONE\n");
+  std::cout << "FormMain constructor .. DONE\n";
 }
 
 
 
 System::Void FormMain::FormMainPanel_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
 {
-  if (e->Button == System::Windows::Forms::MouseButtons::Left  ) ModeCore::getInst()->LBtnDown(EVec2i(e->X, e->Y), m_ogl);
-  if (e->Button == System::Windows::Forms::MouseButtons::Middle) ModeCore::getInst()->MBtnDown(EVec2i(e->X, e->Y), m_ogl);
-  if (e->Button == System::Windows::Forms::MouseButtons::Right ) ModeCore::getInst()->RBtnDown(EVec2i(e->X, e->Y), m_ogl);
+  if (e->Button == System::Windows::Forms::MouseButtons::Left  ) ModeCore::GetInst()->LBtnDown(EVec2i(e->X, e->Y), m_ogl);
+  if (e->Button == System::Windows::Forms::MouseButtons::Middle) ModeCore::GetInst()->MBtnDown(EVec2i(e->X, e->Y), m_ogl);
+  if (e->Button == System::Windows::Forms::MouseButtons::Right ) ModeCore::GetInst()->RBtnDown(EVec2i(e->X, e->Y), m_ogl);
 }
 
 System::Void FormMain::FormMainPanel_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
 {
-  ModeCore::getInst()->MouseMove(EVec2i(e->X, e->Y), m_ogl);
+  ModeCore::GetInst()->MouseMove(EVec2i(e->X, e->Y), m_ogl);
 }
 
 System::Void FormMain::FormMainPanel_MouseUp  (System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
 {
-  if (e->Button == System::Windows::Forms::MouseButtons::Left  ) ModeCore::getInst()->LBtnUp(EVec2i(e->X, e->Y), m_ogl);
-  if (e->Button == System::Windows::Forms::MouseButtons::Middle) ModeCore::getInst()->MBtnUp(EVec2i(e->X, e->Y), m_ogl);
-  if (e->Button == System::Windows::Forms::MouseButtons::Right ) ModeCore::getInst()->RBtnUp(EVec2i(e->X, e->Y), m_ogl);
+  if (e->Button == System::Windows::Forms::MouseButtons::Left  ) ModeCore::GetInst()->LBtnUp(EVec2i(e->X, e->Y), m_ogl);
+  if (e->Button == System::Windows::Forms::MouseButtons::Middle) ModeCore::GetInst()->MBtnUp(EVec2i(e->X, e->Y), m_ogl);
+  if (e->Button == System::Windows::Forms::MouseButtons::Right ) ModeCore::GetInst()->RBtnUp(EVec2i(e->X, e->Y), m_ogl);
 }
 
 System::Void FormMain::FormMainPanel_MouseDoubleClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e)
@@ -73,10 +69,10 @@ System::Void FormMain::FormMainPanel_MouseDoubleClick(System::Object^  sender, S
   if (e->Button == System::Windows::Forms::MouseButtons::Left)
   {
     EVec2i cursorP(e->X, e->Y);
-    if (!pickViewAngleIndicator(cursorP) ) ModeCore::getInst()->LBtnDblClk( cursorP, m_ogl);
+    if (!pickViewAngleIndicator(cursorP) ) ModeCore::GetInst()->LBtnDblClk( cursorP, m_ogl);
   }
-  if (e->Button == System::Windows::Forms::MouseButtons::Middle) ModeCore::getInst()->MBtnDblClk(EVec2i(e->X, e->Y), m_ogl);
-  if (e->Button == System::Windows::Forms::MouseButtons::Right) ModeCore::getInst()->RBtnDblClk(EVec2i(e->X, e->Y), m_ogl);
+  if (e->Button == System::Windows::Forms::MouseButtons::Middle) ModeCore::GetInst()->MBtnDblClk(EVec2i(e->X, e->Y), m_ogl);
+  if (e->Button == System::Windows::Forms::MouseButtons::Right) ModeCore::GetInst()->RBtnDblClk(EVec2i(e->X, e->Y), m_ogl);
 }
 
 
@@ -116,7 +112,7 @@ System::Void FormMain::FormMain_MouseWheel(System::Object^  sender, System::Wind
   int x = e->X - this->FormMainPanel->Location.X;
   int y = e->Y - this->FormMainPanel->Location.Y;
 
-  ModeCore::getInst()->MouseWheel(EVec2i(x, y), e->Delta, m_ogl);
+  ModeCore::GetInst()->MouseWheel(EVec2i(x, y), e->Delta, m_ogl);
 }
 
 
@@ -133,7 +129,7 @@ bool FormMain::pickViewAngleIndicator(const EVec2i p)
   EVec3f  camC = m_ogl->GetCamCnt();
   EVec3f  camY = m_ogl->GetCamUp();
 
-  int flg = ViewAngleCore::getInst()->pickIndicator(*m_ogl, curViewW, curViewH, camP, camC, camY, p);
+  int flg = ViewAngleCore::GetInst()->PickIndicator(*m_ogl, curViewW, curViewH, camP, camC, camY, p);
 
   bool tf = false;
   if      (flg == 1) { camP << 0,-1, 0;  camY << 0, 0, 1; tf = true; }
@@ -145,12 +141,12 @@ bool FormMain::pickViewAngleIndicator(const EVec2i p)
 
   if (!tf) return false;
 
-  EVec3f cuboid = ImageCore::getInst()->getCuboidF();
+  EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
   double  D = cuboid.norm() * 1.0;
   camC = 0.5 * cuboid;
   camP = camC + ((float)D) * camP;
   m_ogl->SetCam(camP, camC, camY);
-  formMain_redrawMainPanel();
+  FormMain_RedrawMainPanel();
   return true;
 }
 
@@ -185,7 +181,7 @@ void FormMain::replaceOtherForms()
 //managedクラスはここで初期化する
 void FormMain::initializeOtherForms()
 {
-  printf("--------initialize form(dialogs)...\n");
+  std::cout << "--------initialize form(dialogs)...\n";
   FormVisParam::getInst()->initAllItemsForNewImg();
   FormVisParam::getInst()->Show();
   FormVisParam::getInst()->Location = Point(this->Location.X + this->Width, this->Location.Y);
@@ -212,7 +208,7 @@ void FormMain::initializeOtherForms()
   FormRefStrokeTrim ::getInst()->Hide();
   FormSegThreshfieldPaint::getInst()->Hide();
 
-  printf("--------initialize form(dialogs)...DONE\n");
+  std::cout << "--------initialize form(dialogs)...DONE\n";
 }
 
 
@@ -281,10 +277,10 @@ void FormMain::redrawMainPanel()
     //このタイミングで 他のformを生成し, Show()も読んでOK
     isFirst = false;
     initializeOtherForms();
-    ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+    ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
   }
 
-  const EVec3f cuboid   = ImageCore::getInst()->getCuboidF();
+  const EVec3f cuboid   = ImageCore::GetInst()->GetCuboid();
   const float  nearDist = (cuboid[0] + cuboid[1] + cuboid[2]) / 3.0f * 0.01f;
   const float  farDist  = (cuboid[0] + cuboid[1] + cuboid[2]) / 3.0f * 8;
   const int    viewW    = FormMainPanel->Width;
@@ -295,11 +291,11 @@ void FormMain::redrawMainPanel()
 
   if (FormVisParam::getInst()->bRendFrame()) t_drawFrame(cuboid);
 
-  ModeCore::getInst()->drawScene(cuboid, m_ogl->GetCamPos(), m_ogl->GetCamCnt());
+  ModeCore::GetInst()->DrawScene(cuboid, m_ogl->GetCamPos(), m_ogl->GetCamCnt());
 
   if (FormVisParam::getInst()->bRendIndi())
   {
-    ViewAngleCore::getInst()->drawIndicator(viewW, viewH, m_ogl->GetCamPos(), m_ogl->GetCamCnt(), m_ogl->GetCamUp());
+    ViewAngleCore::GetInst()->DrawIndicator(viewW, viewH, m_ogl->GetCamPos(), m_ogl->GetCamCnt(), m_ogl->GetCamUp());
   }
   m_ogl->OnDrawEnd();
 }
@@ -424,12 +420,12 @@ System::Void FormMain::open2DSlicesToolStripMenuItem_Click      (System::Object^
   if( fNames.size() == 0 || fNames.front().length() < 3) return;
 
   string fext = fNames.front().substr(fNames.front().length()-3, 3);
-  printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
+  std::cout << fext.c_str() << "!!!!!!!!!!!!!!!!\n";
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fNames,fext);
+  ImageCore   ::GetInst()->LoadVolume(fNames,fext);
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
 
@@ -442,9 +438,9 @@ System::Void FormMain::open2DSlicesdcmToolStripMenuItem_Click   (System::Object^
   if( fNames.size() == 0 || fNames.front().length() < 3) return;
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fNames,string("dcm"));
+  ImageCore   ::GetInst()->LoadVolume(fNames,string("dcm"));
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
 
@@ -456,12 +452,12 @@ System::Void FormMain::open3DVolumetraw3DToolStripMenuItem_Click(System::Object^
   if( fname.length() < 9) return;
 
   string fext = fname.substr(fname.length()-9, 9);
-  printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
+  std::cout << fext.c_str() << "!!!!!!!!!!!!!!!!\n";
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fname,fext);
+  ImageCore   ::GetInst()->LoadVolume(fname,fext);
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
 
@@ -472,9 +468,9 @@ System::Void FormMain::open3DColumedcmToolStripMenuItem_Click   (System::Object^
   if( fname.length() < 3) return;
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fname,string("dcm"));
+  ImageCore   ::GetInst()->LoadVolume(fname,string("dcm"));
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
 
@@ -485,20 +481,38 @@ System::Void FormMain::open3DVolumefavToolStripMenuItem_Click   (System::Object^
   if( fname.length() < 3) return;
 
   string fext = fname.substr(fname.length()-3, 3);
-  printf("%s !!!!!!!!!!!!!!!!", fext.c_str());
+  std::cout << fext.c_str() << "!!!!!!!!!!!!!!!!\n";
 
   //load volume / update visParam / init camera / redraw 
-  ImageCore   ::getInst()->loadVolume(fname,fext);
+  ImageCore   ::GetInst()->LoadVolume(fname,fext);
   FormVisParam::getInst()->initAllItemsForNewImg();
-  initCameraPosition(ImageCore::getInst()->getCuboidF());
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
   redrawMainPanel();
 }
+
+
+System::Void FormMain::open3DVolumepvmSphToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) 
+{
+  string fname;
+  if( !t_showOpenFileDlg_single("3d volume (*.pvm; sph)|*.pvm; *.sph", fname) ) return;
+  if( fname.length() < 3) return;
+
+  string fext = fname.substr(fname.length()-3, 3);
+  std::cout << fext.c_str() << "!!!!!!!!!!!!!!!!\n";
+
+  //load volume / update visParam / init camera / redraw 
+  ImageCore   ::GetInst()->LoadVolume(fname,fext);
+  FormVisParam::getInst()->initAllItemsForNewImg();
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
+  redrawMainPanel();
+}
+
 
 
 System::Void FormMain::saveMaskmskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
   string fname;
   if( !t_showSaveFileDlg("RoiPainter Mask data (*.msk)|*.msk", fname) ) return;
-  ImageCore::getInst()->saveMask(fname.c_str());
+  ImageCore::GetInst()->SaveMask(fname.c_str());
   redrawMainPanel();
 }
 
@@ -506,8 +520,8 @@ System::Void FormMain::saveMaskmskToolStripMenuItem_Click(System::Object^  sende
 System::Void FormMain::loadMaskmskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
   string fname;
   if( !t_showOpenFileDlg_single("RoiPainter Mask data (*.msk)|*.msk", fname) ) return;
-	ImageCore::getInst()->loadMask( fname.c_str() );
-	ModeCore::getInst()->ModeSwitch( MODE_VIS_MASK);
+	ImageCore::GetInst()->LoadMask( fname.c_str() );
+	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK);
   redrawMainPanel();
 }
 
@@ -518,72 +532,76 @@ System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Obj
 {
   string fname;
   if( !t_showSaveFileDlg("traw3d signed short file (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
-  ImageCore::getInst()->saveVolumeAsTraw3dss(fname.c_str());
+  ImageCore::GetInst()->SaveVolumeAsTraw3dss(fname.c_str());
 }
 
 
 //fav
-System::Void FormMain::saveMaskfavbToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e)
+System::Void FormMain::saveMaskfavbToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
 {
-
+  CLI_MessageBox_OK_Show( "export mask as fab is under construction", "message" );
 }
 
 
+System::Void FormMain::exportMaskAsMeshobjToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
+{
+  CLI_MessageBox_OK_Show( "export mask as mesh (obj) is under construction", "message" );
+}
 
 
 
 System::Void FormMain::FormMain_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) 
 {
   if (m_prevKeyID == (int)e->KeyCode) return;
-  ModeCore::getInst()->keyDown((int)e->KeyCode);
+  ModeCore::GetInst()->KeyDown((int)e->KeyCode);
   m_prevKeyID = (int)e->KeyCode;
   redrawMainPanel();
 }
 
 System::Void FormMain::FormMain_KeyUp(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) 
 {
-  ModeCore::getInst()->keyUp((int)e->KeyCode);
+  ModeCore::GetInst()->KeyUp((int)e->KeyCode);
   m_prevKeyID = -1;
   redrawMainPanel();
 }
 
 // mode switch items
 System::Void FormMain::visualizationStandardToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
-  ModeCore::getInst()->ModeSwitch(MODE_VIS_NORMAL);
+  ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
   redrawMainPanel();
 }
 System::Void FormMain::visualizationMaskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
-  ModeCore::getInst()->ModeSwitch(MODE_VIS_MASK);
+  ModeCore::GetInst()->ModeSwitch(MODE_VIS_MASK);
   redrawMainPanel();
 }
 
 System::Void FormMain::segmentationThresholdToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
-  ModeCore::getInst()->ModeSwitch(MODE_SEG_REGGROW);
+  ModeCore::GetInst()->ModeSwitch(MODE_SEG_REGGROW);
   redrawMainPanel();
 }
 
 System::Void FormMain::segmentationGraphCutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
-  ModeCore::getInst()->ModeSwitch(MODE_SEG_GCUT);
+  ModeCore::GetInst()->ModeSwitch(MODE_SEG_GCUT);
   redrawMainPanel();
 }
 
 System::Void FormMain::segmentationToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
-  ModeCore::getInst()->ModeSwitch(MODE_SEG_VOXPAINT);
+  ModeCore::GetInst()->ModeSwitch(MODE_SEG_VOXPAINT);
   redrawMainPanel();
 }
 
 System::Void FormMain::refinementVoxelPaintToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
-  ModeCore::getInst()->ModeSwitch(MODE_REF_VOXPAINT);
+  ModeCore::GetInst()->ModeSwitch(MODE_REF_VOXPAINT);
   redrawMainPanel();
 }
 
 System::Void FormMain::refinementStrokeTrimingToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
-  ModeCore::getInst()->ModeSwitch(MODE_REF_STRKTRIM);
+  ModeCore::GetInst()->ModeSwitch(MODE_REF_STRKTRIM);
   redrawMainPanel();
 }
 
 System::Void FormMain::segmentationToolStripMenuItem1_Click(System::Object^  sender, System::EventArgs^  e) {
-  ModeCore::getInst()->ModeSwitch(MODE_SEG_LCLRGROW);
+  ModeCore::GetInst()->ModeSwitch(MODE_SEG_LCLRGROW);
   redrawMainPanel();
 
 }

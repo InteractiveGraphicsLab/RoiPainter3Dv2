@@ -53,29 +53,28 @@ public:
 	virtual void RBtnDclk	  (const EVec2i &p, OglForCLI *ogl) = 0;
 	virtual void MBtnDclk	  (const EVec2i &p, OglForCLI *ogl) = 0;
 	virtual void MouseMove	(const EVec2i &p, OglForCLI *ogl) = 0;
-	virtual void MouseWheel	(const EVec2i &p, short zDelta, OglForCLI *ogl) = 0;
+	virtual void MouseWheel	(const EVec2i &p, short z_delta, OglForCLI *ogl) = 0;
 
-	virtual void keyDown(int nChar) = 0;
-	virtual void keyUp  (int nChar) = 0;
+	virtual void KeyDown(int nChar) = 0;
+	virtual void KeyUp  (int nChar) = 0;
 
 	//this function is called before switch the mode (if return false, the mode will not be switched)
-	virtual bool canEndMode() = 0;
+	virtual bool CanLeaveMode() = 0;
 
 	//this function is called just after switch the mode
-	virtual void startMode() = 0;
-
-	virtual void drawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF) = 0;
+	virtual void StartMode() = 0;
+	virtual void DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center) = 0;
 };
 
 
-inline bool isCtrKeyOn  () { return GetKeyState(VK_CONTROL) < 0; }
-inline bool isSpaceKeyOn() { return GetKeyState(VK_SPACE  ) < 0; }
-inline bool isShiftKeyOn() { return GetKeyState(VK_SHIFT  ) < 0; }
-inline bool isAltKeyOn  () { return GetKeyState(VK_MENU   ) < 0; }
+inline bool IsCtrKeyOn  () { return GetKeyState(VK_CONTROL) < 0; }
+inline bool IsSpaceKeyOn() { return GetKeyState(VK_SPACE  ) < 0; }
+inline bool IsShiftKeyOn() { return GetKeyState(VK_SHIFT  ) < 0; }
+inline bool IsAltKeyOn  () { return GetKeyState(VK_MENU   ) < 0; }
 //inline bool isTabKeyOn  (){ return GetKeyState( VK_TAB     ) < 0 ; }
 
 
-CRSSEC_ID pickCrsSec(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos);
-CRSSEC_ID pickCrsSec(const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos, const bool bXY, const bool bYZ, const bool bZX);
-CRSSEC_ID pickCrsSec_onlyTrgt(const CRSSEC_ID trgtID, const EVec3f &rayP, const EVec3f &rayD, EVec3f *pos);
+CRSSEC_ID PickCrssec(const EVec3f &ray_pos, const EVec3f &ray_dir, EVec3f *pos);
+CRSSEC_ID PickCrsSec(const EVec3f &ray_pos, const EVec3f &ray_dir, EVec3f *pos, const bool b_xy, const bool b_yz, const bool b_zx);
+CRSSEC_ID PickCrsSec(const CRSSEC_ID trgt_id, const EVec3f &ray_pos, const EVec3f &ray_dir, EVec3f *pos);
 

@@ -1,0 +1,111 @@
+コーディングスタイルについて
+
++ インデント - スペース2個
+
++ 命名規則
+  - クラス名     : UpperCamelCase 
+  - 型名         : UpperCamelCase
+  - 関数名　　　 : UpperCamelCase 
+  - メンバ関数名 : UpperCamelCase 
+　- 変数名 　　  : snake_case
+　- メンバ変数名 : m_snake_case
+  - 定数名       : SNAKE_CASE
+
+//明らかな場合を覗きなるべく省略をしない
+
+
+
+- 20190328-20190329に行なった修正（主にリファクタリング）
+ + CrsSecCore 
+	- インデント
+	- rename
+	- pragma unmanaged追加
+	- 汎用関数をtmeshへ移動
+ + ImageCore
+	- インデント
+	- rename
+	- pragma unmanaged追加
+	- 各関数については見直しが必要
+ + ModeCore
+	- インデント
+	- rename
+	- pragma unmanaged追加
+ + ViewAngleCore
+ 	- rename
+	- pragma unmanaged追加
+	- 関数のインタフェース微修正
+ + OGLImage.h
+ 	- rename
+	- pragma unmanaged追加
+ + OglForCLI 
+ 	- rename
+	- windows.hの max/minを無効化
+ + ModeSegVoxelPaint
+    - lasso paintを高速化
+ 	- rename
+
+ + kcurves
+   - remove using namespace std;
+   - replace printf --> std::cout << 
+ + tmath
+   - remove using namespace std;
+   - replace printf --> std::cout <<
+   - TODO YET 関数名
++ tmesh
+   - remove using namespace std;
+   - replace printf --> std::cout << 
+   - TODO YET 関数名
+
++ ModeRefStrokeTrim
+   - remove using namespace std;
+   - replace printf --> std::cout << 
+   - pragma unmanaged 追加
+   - rename
++ ModeSegVoxelPaint
+   - rename
+   - pragma unmanaged 追加
+   - replace printf --> std::cout << 
++ ModeSegRGrow 
+   - rename 
+   - replace printf --> std::cout << 
++ ModeSegLocalRGrow
+   - rename 
+   - check the algorithm
+   - UIの整理（詳細はdialog + ソースコードへ）
++ ModeSegLocalRGrow
+   - rename 
++ ModeSegGCut
+
++ watershed
+   - replace printf --> std::cout << 
++ GlslShader
+   - replace printf --> std::cout << 
+
+
+
++ 機能のテスト 
++ input 
+ - 2D bmp slice OK 
+ - 2D dcm slice OK
+ - tiff slice データがないためテスト不可
+ - 3D traw3dss, pvm, sph OK
+ - 3D dcm OK	
+ - 3D pvm OK
+ - 3D sph yet メッセージを表示するように変更
+ - 3D fav yet メッセージを表示するように変更
++ mask
+ - save mask OK
+ - load mask OK
++ export 
+ - export volume as traw3dss OK
+ - export mask as obj メッセージを出すように修正
+ - export mask as fav メッセージを出すように修正
+
++ ModeVisNormal - OK
++ ModeVisMask   - OK
++ ModeSegRGrow  - OK
++ ModeSegGCut   - OK TODO 前計算が終わったらdialog出通知をしたい
++ ModeSegLocalRGrow - OK
++ ModeSegVoxelPaint - OK 
++ ModeRefStrokeTrim - OK
+
