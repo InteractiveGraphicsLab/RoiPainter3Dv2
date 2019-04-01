@@ -515,10 +515,19 @@ static void t_drawCubes
 	const bool   &tf
 ) 
 {
-	if( tf ) glColor3d(0.2, 0.8, 1.0);
-	else     glColor3d(0.9, 0.9, 0.9);
+  static const float spec[4] = { 1,1,1,0.3f };
+  static const float shin[1] = { 64.0f };
+  static const float diff_f[4] = { 0.3f, 1.0f, 0.3f, 0.3f };
+  static const float ambi_f[4] = { 0.3f, 1.0f, 0.3f, 0.3f };
+  static const float diff_b[4] = { 1.0f, 0.3f, 0.3f, 0.3f };
+  static const float ambi_b[4] = { 1.0f, 0.3f, 0.3f, 0.3f };
 
-	const float x = pitch[0];
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR , spec);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE  , tf ? diff_f : diff_b);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT  , tf ? ambi_f : ambi_b);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shin);
+
+  const float x = pitch[0];
 	const float y = pitch[1];
 	const float z = pitch[2];
 
@@ -600,13 +609,20 @@ void ModeSegVoxelPaint::DrawScene
   }
 
 
-	if ( m_b_paintmode ) t_drawCubes( m_paint_voxels, pitch, m_bL);
-	
-	if (m_b_lassomode) {
+	if ( m_b_paintmode )
+  {
+    t_drawCubes( m_paint_voxels, pitch, m_bL);
+  }
+	if (m_b_lassomode) 
+  {
 		EVec3f ofset = (camP - camF).normalized() * 0.5;
 		glLineWidth(2);
-		glColor3d(0.2, 0.4, 1.0);
-		
+
+    if( m_bL ) 
+      glColor3d(0.3, 1.0, 0.3);
+    else       		
+      glColor3d(1.0, 0.3, 0.3);
+
 		glPushMatrix();
 		glTranslated(ofset[0], ofset[1], ofset[2]);	
 		glBegin(GL_LINE_LOOP);

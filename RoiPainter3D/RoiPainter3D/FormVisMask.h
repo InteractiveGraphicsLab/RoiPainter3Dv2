@@ -25,7 +25,7 @@ namespace RoiPainter3D {
     System::Windows::Forms::Button^  btnFillHole;
     System::Windows::Forms::Button^  btnMargeTo;
     System::Windows::Forms::Button^  btnDelete;
-    System::Windows::Forms::Button^  btnTestAdd;
+
     System::Windows::Forms::Button^  btnColorPallet;
     System::Windows::Forms::CheckBox^  checkbox_lock;
     System::Windows::Forms::DataGridView^  maskList;
@@ -82,10 +82,9 @@ namespace RoiPainter3D {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-      System::Windows::Forms::DataGridViewCellStyle^  dataGridViewCellStyle6 = (gcnew System::Windows::Forms::DataGridViewCellStyle());
+      System::Windows::Forms::DataGridViewCellStyle^  dataGridViewCellStyle3 = (gcnew System::Windows::Forms::DataGridViewCellStyle());
       this->btnMargeTo = (gcnew System::Windows::Forms::Button());
       this->btnDelete = (gcnew System::Windows::Forms::Button());
-      this->btnTestAdd = (gcnew System::Windows::Forms::Button());
       this->btnColorPallet = (gcnew System::Windows::Forms::Button());
       this->checkbox_lock = (gcnew System::Windows::Forms::CheckBox());
       this->maskList = (gcnew System::Windows::Forms::DataGridView());
@@ -103,10 +102,11 @@ namespace RoiPainter3D {
       // 
       // btnMargeTo
       // 
-      this->btnMargeTo->Location = System::Drawing::Point(271, 112);
-      this->btnMargeTo->Margin = System::Windows::Forms::Padding(4);
+      this->btnMargeTo->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->btnMargeTo->Location = System::Drawing::Point(204, 88);
       this->btnMargeTo->Name = L"btnMargeTo";
-      this->btnMargeTo->Size = System::Drawing::Size(99, 29);
+      this->btnMargeTo->Size = System::Drawing::Size(74, 23);
       this->btnMargeTo->TabIndex = 34;
       this->btnMargeTo->Text = L"MARGE TO";
       this->btnMargeTo->UseVisualStyleBackColor = true;
@@ -114,31 +114,23 @@ namespace RoiPainter3D {
       // 
       // btnDelete
       // 
-      this->btnDelete->Location = System::Drawing::Point(179, 112);
-      this->btnDelete->Margin = System::Windows::Forms::Padding(4);
+      this->btnDelete->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->btnDelete->Location = System::Drawing::Point(135, 88);
       this->btnDelete->Name = L"btnDelete";
-      this->btnDelete->Size = System::Drawing::Size(88, 29);
+      this->btnDelete->Size = System::Drawing::Size(66, 23);
       this->btnDelete->TabIndex = 33;
       this->btnDelete->Text = L"DELETE";
       this->btnDelete->UseVisualStyleBackColor = true;
       this->btnDelete->Click += gcnew System::EventHandler(this, &FormVisMask::btnDelete_Click);
       // 
-      // btnTestAdd
-      // 
-      this->btnTestAdd->Location = System::Drawing::Point(264, 463);
-      this->btnTestAdd->Margin = System::Windows::Forms::Padding(4);
-      this->btnTestAdd->Name = L"btnTestAdd";
-      this->btnTestAdd->Size = System::Drawing::Size(100, 29);
-      this->btnTestAdd->TabIndex = 30;
-      this->btnTestAdd->Text = L"Add";
-      this->btnTestAdd->UseVisualStyleBackColor = true;
-      // 
       // btnColorPallet
       // 
-      this->btnColorPallet->Location = System::Drawing::Point(255, 6);
-      this->btnColorPallet->Margin = System::Windows::Forms::Padding(4);
+      this->btnColorPallet->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->btnColorPallet->Location = System::Drawing::Point(197, 8);
       this->btnColorPallet->Name = L"btnColorPallet";
-      this->btnColorPallet->Size = System::Drawing::Size(100, 29);
+      this->btnColorPallet->Size = System::Drawing::Size(75, 23);
       this->btnColorPallet->TabIndex = 29;
       this->btnColorPallet->Text = L"color";
       this->btnColorPallet->UseVisualStyleBackColor = true;
@@ -147,10 +139,11 @@ namespace RoiPainter3D {
       // checkbox_lock
       // 
       this->checkbox_lock->AutoSize = true;
-      this->checkbox_lock->Location = System::Drawing::Point(184, 11);
-      this->checkbox_lock->Margin = System::Windows::Forms::Padding(4);
+      this->checkbox_lock->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->checkbox_lock->Location = System::Drawing::Point(138, 9);
       this->checkbox_lock->Name = L"checkbox_lock";
-      this->checkbox_lock->Size = System::Drawing::Size(60, 19);
+      this->checkbox_lock->Size = System::Drawing::Size(57, 22);
       this->checkbox_lock->TabIndex = 26;
       this->checkbox_lock->Text = L"Lock";
       this->checkbox_lock->UseVisualStyleBackColor = true;
@@ -169,15 +162,14 @@ namespace RoiPainter3D {
         this->regionIDColumn,
           this->colorColumn
       });
-      this->maskList->Location = System::Drawing::Point(6, 7);
-      this->maskList->Margin = System::Windows::Forms::Padding(4);
+      this->maskList->Location = System::Drawing::Point(4, 6);
       this->maskList->MultiSelect = false;
       this->maskList->Name = L"maskList";
       this->maskList->ReadOnly = true;
       this->maskList->RowHeadersVisible = false;
       this->maskList->RowTemplate->Height = 21;
       this->maskList->SelectionMode = System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
-      this->maskList->Size = System::Drawing::Size(171, 490);
+      this->maskList->Size = System::Drawing::Size(128, 392);
       this->maskList->TabIndex = 25;
       this->maskList->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &FormVisMask::maskList_CellContentClick);
       this->maskList->SelectionChanged += gcnew System::EventHandler(this, &FormVisMask::maskList_SelectionChanged);
@@ -194,11 +186,11 @@ namespace RoiPainter3D {
       // colorColumn
       // 
       this->colorColumn->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::Fill;
-      dataGridViewCellStyle6->BackColor = System::Drawing::Color::White;
-      dataGridViewCellStyle6->ForeColor = System::Drawing::Color::Black;
-      dataGridViewCellStyle6->SelectionBackColor = System::Drawing::Color::Transparent;
-      dataGridViewCellStyle6->SelectionForeColor = System::Drawing::Color::Black;
-      this->colorColumn->DefaultCellStyle = dataGridViewCellStyle6;
+      dataGridViewCellStyle3->BackColor = System::Drawing::Color::White;
+      dataGridViewCellStyle3->ForeColor = System::Drawing::Color::Black;
+      dataGridViewCellStyle3->SelectionBackColor = System::Drawing::Color::Transparent;
+      dataGridViewCellStyle3->SelectionForeColor = System::Drawing::Color::Black;
+      this->colorColumn->DefaultCellStyle = dataGridViewCellStyle3;
       this->colorColumn->FillWeight = 80;
       this->colorColumn->HeaderText = L"color";
       this->colorColumn->Name = L"colorColumn";
@@ -208,31 +200,33 @@ namespace RoiPainter3D {
       // 
       // trackbar_alpha
       // 
-      this->trackbar_alpha->Location = System::Drawing::Point(216, 41);
-      this->trackbar_alpha->Margin = System::Windows::Forms::Padding(4);
+      this->trackbar_alpha->Location = System::Drawing::Point(134, 61);
       this->trackbar_alpha->Name = L"trackbar_alpha";
-      this->trackbar_alpha->Size = System::Drawing::Size(148, 56);
+      this->trackbar_alpha->Size = System::Drawing::Size(143, 45);
       this->trackbar_alpha->TabIndex = 27;
+      this->trackbar_alpha->TickStyle = System::Windows::Forms::TickStyle::None;
       this->trackbar_alpha->Scroll += gcnew System::EventHandler(this, &FormVisMask::trackbar_alpha_Scroll);
       // 
       // alpha
       // 
       this->alpha->BackColor = System::Drawing::SystemColors::Menu;
       this->alpha->BorderStyle = System::Windows::Forms::BorderStyle::None;
-      this->alpha->Location = System::Drawing::Point(180, 56);
-      this->alpha->Margin = System::Windows::Forms::Padding(4);
+      this->alpha->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->alpha->Location = System::Drawing::Point(143, 45);
       this->alpha->Name = L"alpha";
       this->alpha->ReadOnly = true;
-      this->alpha->Size = System::Drawing::Size(59, 15);
+      this->alpha->Size = System::Drawing::Size(44, 18);
       this->alpha->TabIndex = 28;
       this->alpha->Text = L"alpha";
       // 
       // btnExpObj
       // 
-      this->btnExpObj->Location = System::Drawing::Point(215, 283);
-      this->btnExpObj->Margin = System::Windows::Forms::Padding(4);
+      this->btnExpObj->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->btnExpObj->Location = System::Drawing::Point(148, 219);
       this->btnExpObj->Name = L"btnExpObj";
-      this->btnExpObj->Size = System::Drawing::Size(79, 29);
+      this->btnExpObj->Size = System::Drawing::Size(70, 25);
       this->btnExpObj->TabIndex = 35;
       this->btnExpObj->Text = L"Exp Obj";
       this->btnExpObj->UseVisualStyleBackColor = true;
@@ -240,54 +234,57 @@ namespace RoiPainter3D {
       // 
       // btnErode
       // 
-      this->btnErode->Location = System::Drawing::Point(216, 174);
-      this->btnErode->Margin = System::Windows::Forms::Padding(4);
+      this->btnErode->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->btnErode->Location = System::Drawing::Point(149, 132);
       this->btnErode->Name = L"btnErode";
-      this->btnErode->Size = System::Drawing::Size(69, 29);
+      this->btnErode->Size = System::Drawing::Size(69, 25);
       this->btnErode->TabIndex = 36;
-      this->btnErode->Text = L"erode";
+      this->btnErode->Text = L"Erode";
       this->btnErode->UseVisualStyleBackColor = true;
       this->btnErode->Click += gcnew System::EventHandler(this, &FormVisMask::btnErode_Click);
       // 
       // btnDilate
       // 
-      this->btnDilate->Location = System::Drawing::Point(216, 211);
-      this->btnDilate->Margin = System::Windows::Forms::Padding(4);
+      this->btnDilate->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->btnDilate->Location = System::Drawing::Point(149, 162);
       this->btnDilate->Name = L"btnDilate";
-      this->btnDilate->Size = System::Drawing::Size(69, 29);
+      this->btnDilate->Size = System::Drawing::Size(69, 25);
       this->btnDilate->TabIndex = 37;
-      this->btnDilate->Text = L"dilate";
+      this->btnDilate->Text = L"Dilate";
       this->btnDilate->UseVisualStyleBackColor = true;
       this->btnDilate->Click += gcnew System::EventHandler(this, &FormVisMask::btnDilate_Click);
       // 
       // btnFillHole
       // 
-      this->btnFillHole->Location = System::Drawing::Point(216, 247);
-      this->btnFillHole->Margin = System::Windows::Forms::Padding(4);
+      this->btnFillHole->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->btnFillHole->Location = System::Drawing::Point(149, 191);
       this->btnFillHole->Name = L"btnFillHole";
-      this->btnFillHole->Size = System::Drawing::Size(69, 29);
+      this->btnFillHole->Size = System::Drawing::Size(69, 25);
       this->btnFillHole->TabIndex = 38;
-      this->btnFillHole->Text = L"fill hole";
+      this->btnFillHole->Text = L"Fill hole";
       this->btnFillHole->UseVisualStyleBackColor = true;
       this->btnFillHole->Click += gcnew System::EventHandler(this, &FormVisMask::btnFillHole_Click);
       // 
       // FormVisMask
       // 
-      this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
+      this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(378, 505);
+      this->ClientSize = System::Drawing::Size(284, 404);
       this->Controls->Add(this->btnExpObj);
       this->Controls->Add(this->btnErode);
       this->Controls->Add(this->btnDilate);
       this->Controls->Add(this->btnFillHole);
       this->Controls->Add(this->btnMargeTo);
       this->Controls->Add(this->btnDelete);
-      this->Controls->Add(this->btnTestAdd);
       this->Controls->Add(this->btnColorPallet);
       this->Controls->Add(this->checkbox_lock);
       this->Controls->Add(this->maskList);
       this->Controls->Add(this->trackbar_alpha);
       this->Controls->Add(this->alpha);
+      this->Margin = System::Windows::Forms::Padding(2);
       this->Name = L"FormVisMask";
       this->Text = L"FormVisMask";
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->maskList))->EndInit();

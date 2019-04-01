@@ -31,7 +31,7 @@ void main(void)
 
 		if( imgFlg > 1 - COEF_1_255_2) //flg == 255
 		{
-			gl_FragColor.x = 1.0;
+			gl_FragColor.y = 1.0;
 		}
 		else if( imgFlg < COEF_1_255_2) //flg == 0
 		{

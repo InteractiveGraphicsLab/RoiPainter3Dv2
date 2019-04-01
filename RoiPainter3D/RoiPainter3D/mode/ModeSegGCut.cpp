@@ -110,8 +110,15 @@ void ModeSegGCut::StartMode()
 	  }
 
 	  //threadを起動しwatershedを計算する
-	  m_b_wsdnode_computing = true;
-    _beginthread( ModeSegGCut::InitializeWsdNodes_thread, 0, (LPVOID)this); 
+    if( m_b_wsdnode_computing )
+    {
+      CLI_MessageBox_OK_Show("現在 GraphCut用の前計算（watershed）中です．\n計算が終わるとrunGraphCutボタンが\n有効になります", "message");
+    }
+    else
+    {
+      m_b_wsdnode_computing = true;
+      _beginthread( ModeSegGCut::InitializeWsdNodes_thread, 0, (LPVOID)this); 
+    }
   }
 
 }

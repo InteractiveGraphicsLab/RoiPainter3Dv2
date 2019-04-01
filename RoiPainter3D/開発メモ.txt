@@ -102,10 +102,10 @@
  - export mask as fav メッセージを出すように修正
 
 + ModeVisNormal - OK
-+ ModeVisMask   - 
-+ ModeSegRGrow
-+ ModeSegGCut
-+ ModeSegLocalRGrow
-+ ModeSegVoxelPaint
-+ ModeRefStrokeTrim
++ ModeVisMask   - OK
++ ModeSegRGrow  - OK
++ ModeSegGCut   - OK TODO 前計算が終わったらdialog出通知をしたい
++ ModeSegLocalRGrow - OK
++ ModeSegVoxelPaint - OK 
++ ModeRefStrokeTrim - OK
 
