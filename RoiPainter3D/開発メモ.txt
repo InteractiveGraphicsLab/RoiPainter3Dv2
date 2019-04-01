@@ -101,8 +101,8 @@
  - export mask as obj メッセージを出すように修正
  - export mask as fav メッセージを出すように修正
 
-+ ModeVisMask
-+ ModeVisNormal
++ ModeVisNormal - OK
++ ModeVisMask   - 
 + ModeSegRGrow
 + ModeSegGCut
 + ModeSegLocalRGrow
