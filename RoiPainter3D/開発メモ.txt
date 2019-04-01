@@ -90,11 +90,22 @@
  - tiff slice データがないためテスト不可
  - 3D traw3dss, pvm, sph OK
  - 3D dcm OK	
- - 3D pvm 
- - 3D sph yet
- - 3D fav yet
-+ output 
- - 
- - 
- -
- - 
+ - 3D pvm OK
+ - 3D sph yet メッセージを表示するように変更
+ - 3D fav yet メッセージを表示するように変更
++ mask
+ - save mask OK
+ - load mask OK
++ export 
+ - export volume as traw3dss OK
+ - export mask as obj メッセージを出すように修正
+ - export mask as fav メッセージを出すように修正
+
++ ModeVisMask
++ ModeVisNormal
++ ModeSegRGrow
++ ModeSegGCut
++ ModeSegLocalRGrow
++ ModeSegVoxelPaint
++ ModeRefStrokeTrim
+

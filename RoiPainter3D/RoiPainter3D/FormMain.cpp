@@ -13,6 +13,7 @@
 #include "FormSegVoxelPaint.h"
 #include "FormSegLocalRGrow.h"
 #include "FormRefStrokeTrim.h"
+#include "climessagebox.h"
 #include <iostream>
 
 using namespace System;
@@ -490,6 +491,24 @@ System::Void FormMain::open3DVolumefavToolStripMenuItem_Click   (System::Object^
 }
 
 
+System::Void FormMain::open3DVolumepvmSphToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) 
+{
+  string fname;
+  if( !t_showOpenFileDlg_single("3d volume (*.pvm; sph)|*.pvm; *.sph", fname) ) return;
+  if( fname.length() < 3) return;
+
+  string fext = fname.substr(fname.length()-3, 3);
+  std::cout << fext.c_str() << "!!!!!!!!!!!!!!!!\n";
+
+  //load volume / update visParam / init camera / redraw 
+  ImageCore   ::GetInst()->LoadVolume(fname,fext);
+  FormVisParam::getInst()->initAllItemsForNewImg();
+  initCameraPosition(ImageCore::GetInst()->GetCuboid());
+  redrawMainPanel();
+}
+
+
+
 System::Void FormMain::saveMaskmskToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
   string fname;
   if( !t_showSaveFileDlg("RoiPainter Mask data (*.msk)|*.msk", fname) ) return;
@@ -518,12 +537,16 @@ System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Obj
 
 
 //fav
-System::Void FormMain::saveMaskfavbToolStripMenuItem_Click      (System::Object^  sender, System::EventArgs^  e)
+System::Void FormMain::saveMaskfavbToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
 {
-
+  CLI_MessageBox_OK_Show( "export mask as fab is under construction", "message" );
 }
 
 
+System::Void FormMain::exportMaskAsMeshobjToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
+{
+  CLI_MessageBox_OK_Show( "export mask as mesh (obj) is under construction", "message" );
+}
 
 
 

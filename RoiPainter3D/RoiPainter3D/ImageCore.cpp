@@ -410,6 +410,7 @@ bool ImageCore::LoadVolume(vector<string> fnames, string fext)
 		(fnames.size() == 1 && ( fext == "dcm" || fext == "DCM" || L == 0) ) ? 3 :
 		(fnames.size() == 1 && ( fext == "pvm" || fext == "PVM"          ) ) ? 4 :
 		(fnames.size() == 1 && ( fext == "fav" || fext == "FAV"          ) ) ? 5 :
+		(fnames.size() == 1 && ( fext == "sph" || fext == "SPH"          ) ) ? 6 :
 		(fnames.size() >  1 && ( fext == "dcm" || fext == "DCM" || L == 0) ) ? 10 :	
 		(fnames.size() >  1 && ( fext == "bmp" || fext == "BMP"	         ) ) ? 11 :
 		(fnames.size() >  1 && ( fext == "tif" || fext == "TIF"	         ) ) ? 11 : -1;
@@ -425,7 +426,11 @@ bool ImageCore::LoadVolume(vector<string> fnames, string fext)
 	if ( trgtId == 2 && t_LoadTxt      (fnames[0].c_str(), m_resolution, m_pitch, m_vol_orig) ) success = true;
 	if ( trgtId == 3 && t_LoadDCM3D    (fnames[0].c_str(), m_resolution, m_pitch, m_vol_orig) ) success = true;
 	if ( trgtId == 4 && t_LoadPVM3D    (fnames[0].c_str(), m_resolution, m_pitch, m_vol_orig) ) success = true;
-	//if ( trgtId == 5 && t_LoadFAV      (fnames[0].c_str(), m_Reso, m_Pitch, m_volOrig) ) success = true;
+	
+  //if ( trgtId == 5 && t_LoadFAV      (fnames[0].c_str(), m_Reso, m_Pitch, m_volOrig) ) success = true;
+  if ( trgtId == 5 ) CLI_MessageBox_OK_Show("fav loader is under construction.", "message");
+  if ( trgtId == 6 ) CLI_MessageBox_OK_Show("sph loader is under construction.", "message");
+
   //2D slices
 	if ( trgtId ==10 && t_LoadDCMs     (fnames           , m_resolution, m_pitch, m_vol_orig) ) success = true;
 	if ( trgtId ==11 && t_LoadBMP_TIFs (fnames           , m_resolution, m_pitch, m_vol_orig) ) success = true;
@@ -433,7 +438,8 @@ bool ImageCore::LoadVolume(vector<string> fnames, string fext)
 
 	bool strangePitch = m_pitch[0] <= 0 || m_pitch[1] <= 0 || m_pitch[2] <= 0;
 
-	if( success && strangePitch ){
+	if( success && strangePitch )
+  {
 		m_pitch[0] = m_pitch[1] = m_pitch[2] = 1;
 		CLI_MessageBox_OK_Show("Pitch情報を読み込めませんでした。\n正しい値をダイアログより指定してください.", "message");
 	}
