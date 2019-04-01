@@ -24,13 +24,25 @@ public:
 		m_pos  = p   ;
 		m_vidx = vidx;
 	}	
+
+  GCutCp(const GCutCp& src)
+	{
+		m_pos  = src.m_pos ;
+		m_vidx = src.m_vidx;
+	}	
+
+  GCutCp &operator=(const GCutCp &src)
+  {
+		m_pos  = src.m_pos ;
+		m_vidx = src.m_vidx;
+    return *this;
+  }
 };
 
 
 
-
 //Watershed super pixel node (WsdLevel)
-class WsdNode
+class GCWsdNode
 {
 public:
 	
@@ -44,25 +56,25 @@ public:
   //target for segmentation?
   bool   m_b_enable ;
 	
-  ~WsdNode(){}
+  ~GCWsdNode(){}
   
-  WsdNode ()
+  GCWsdNode ()
   {
-    m_total_val  = m_mean_val = 0;
-    m_b_enable =  false;
+    m_total_val = m_mean_val = 0;
+    m_b_enable  =  false;
   }
 
-  WsdNode(const WsdNode &src)
+  GCWsdNode(const GCWsdNode &src)
   {
     Set(src);
   }
   
-  WsdNode &operator=(const WsdNode &src)
+  GCWsdNode &operator=(const GCWsdNode &src)
   {
     Set(src);
     return *this;
   }
-  void Set(const WsdNode &src)
+  void Set(const GCWsdNode &src)
   {
     m_total_val = src.m_total_val;   
     m_mean_val  = src.m_mean_val;  
@@ -70,9 +82,9 @@ public:
     m_voxel_ids = src.m_voxel_ids;
   }
 
-  inline void addVoxel(int voxelIdx, float intensity)
+  inline void addVoxel(int voxel_idx, float intensity)
   {
-    m_voxel_ids.push_back( voxelIdx );
+    m_voxel_ids.push_back( voxel_idx );
     m_total_val += intensity;
     m_mean_val  = m_total_val / (float) m_voxel_ids.size();
   }
@@ -103,12 +115,12 @@ public:
   }
 
   void Set( const int &vox_idx, const float &intensity){
-    m_idx   = vox_idx;
+    m_idx = vox_idx;
     m_val = intensity;
   }
 
   void Set( const GCVoxNode &src ){
-    m_idx   = src.m_idx  ;
+    m_idx = src.m_idx  ;
     m_val = src.m_val;
   }
 
@@ -123,26 +135,25 @@ public:
 
 class ModeSegGCut : public ModeInterface
 {
-  GlslShaderVolume m_volumeShader;
-  GlslShaderCrsSec m_crssecShader;
+  GlslShaderVolume m_volume_shader;
+  GlslShaderCrsSec m_crssec_shader;
   
 	//mouse manipuration
-	bool m_bPaintCP;
-	bool m_bDrawCutStr;
+	bool m_b_paint_cps     ;
+	bool m_b_draw_cutsrtoke;
 	std::vector<EVec3f> m_stroke;
 
 	//control points
-	std::vector<GCutCp> m_fCPs, m_bCPs;
-	TMesh          m_CpMesh;
-	float          m_CpSize;
+	std::vector<GCutCp> m_cps_fore, m_cps_back;
+	TMesh  m_cp_mesh;
+	float  m_cp_radius;
 
 	//watershad super pixel 
-	bool             m_bWsdInitialized;
-	bool             m_bWsdComputing  ;
-	std::vector<int     > m_map_vox2wsd; // map voxel idx --> wsdNode idx --> 
-	std::vector<WsdNode > m_wsdNodes   ; // wsdNodes 
-	std::vector<std::set<int>> m_wsdNodeNei ; // neighbors of wsdNode[i] (small idx --> local idx)
-
+	bool   m_b_wsdnode_initialized;
+	bool   m_b_wsdnode_computing  ;
+	std::vector<int       >    m_map_vox2wsd   ; // map voxel idx --> wsdNode idx 
+	std::vector<GCWsdNode >    m_wsdnodes      ; // wsd nodes
+	std::vector<std::set<int>> m_wsdnode_neibor; // 1 ring neighbors of wsdNode[i] (片方向, 小さいラベル値Nodeに大きいラベル値Nodeを追加 --)
 
   ModeSegGCut();
 public:
@@ -175,15 +186,16 @@ public:
   void DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF);
 
 public:
-	void runGraphCutWsdLv(float lambda);
-	void runGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnlyBack );
-	void finishSegm ();
-	void cancelSegm ();
-	void clearAllCPs();
-  void newVolLoaded(){ m_bWsdInitialized = false; }
+	void RunGraphCutWsdLv(float lambda);
+	void RunGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnlyBack );
+
+	void FinishSegmemntation ();
+	void CancelSegmentation ();
+	void ClearAllCPs();
+  void NewVolLoaded();
 
 private:
-	static void initWsdNodes_thread( void *pParam );
+	static void InitializeWsdNodes_thread( void *pParam );
 };
 
 #pragma managed

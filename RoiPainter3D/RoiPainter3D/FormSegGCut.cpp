@@ -29,7 +29,7 @@ FormSegGCut::FormSegGCut(void)
 
 System::Void FormSegGCut::btn_clearAllCPs_Click(System::Object^  sender, System::EventArgs^  e) 
 {
-  ModeSegGCut::getInst()->clearAllCPs();
+  ModeSegGCut::getInst()->ClearAllCPs();
   FormMain_RedrawMainPanel();
 }
 
@@ -38,14 +38,14 @@ System::Void FormSegGCut::trackBar_lambda_Scroll(System::Object^  sender, System
 }
 
 System::Void FormSegGCut::btn_runGraphCutWS_Click(System::Object^  sender, System::EventArgs^  e) {
-	ModeSegGCut::getInst()->runGraphCutWsdLv( trackBar_lambda->Value * SLIDER_RATE );
+	ModeSegGCut::getInst()->RunGraphCutWsdLv( trackBar_lambda->Value * SLIDER_RATE );
 }
 
 System::Void FormSegGCut::btn_runGraphCutVoxel_Click(System::Object^  sender, System::EventArgs^  e) {
   float lambda = trackBar_lambda->Value * SLIDER_RATE;
 	int seamW = rbtn_thick1->Checked ? 1 : 
 		          rbtn_thick2->Checked ? 2 : 3;
-	ModeSegGCut::getInst()->runGraphCutVoxLv( lambda, seamW, checkBox_bandOnlyBack->Checked ? true:false );
+	ModeSegGCut::getInst()->RunGraphCutVoxLv( lambda, seamW, checkBox_bandOnlyBack->Checked ? true:false );
 }
 
 System::Void FormSegGCut::rbtn_thick1_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {}
@@ -54,10 +54,10 @@ System::Void FormSegGCut::rbtn_thick3_CheckedChanged(System::Object^  sender, Sy
 
 System::Void FormSegGCut::checkBox_bandOnlyBack_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {}
 System::Void FormSegGCut::btn_canel_Click(System::Object^ sender, System::EventArgs^   e) {
-  ModeSegGCut::getInst()->cancelSegm();
+  ModeSegGCut::getInst()->CancelSegmentation();
   FormMain_RedrawMainPanel();
 }
 System::Void FormSegGCut::btn_finish_Click(System::Object^ sender, System::EventArgs^  e) {
-  ModeSegGCut::getInst()->finishSegm();
+  ModeSegGCut::getInst()->FinishSegmemntation();
   FormMain_RedrawMainPanel();
 }

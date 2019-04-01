@@ -19,19 +19,24 @@
 #define FOREBACK_MAX 1000000000.0
 #endif 
 
-
 using namespace RoiPainter3D;
 using namespace std;
 
 #pragma unmanaged
 
 
+static bool t_loadWsdLabel ( 
+    const string fname,  
+    const EVec3i &reso, 
+    vector<int> &map_vox2wsd 
+);
 
-
-static bool t_loadWsdLabel ( const string fname,  const EVec3i &reso, vector<int> &map_vox2wsd );
-static void t_constructWsdNodesFromLabel( const int W, const int H, const int D, 
-                                          const vector<int> &vLabel, const short *vol, 
-                                          vector< WsdNode> &wsdNodes, vector<set<int>> &wsdNodeNei);
+static void t_constructWsdNodesFromLabel( 
+    const int W, const int H, const int D, 
+    const vector<int> &vLabel, const short *vol, 
+    vector< GCWsdNode> &wsdNodes, 
+    vector< set<int> > &wsdNodeNei
+);
 
 
 ModeSegGCut::~ModeSegGCut()
@@ -39,76 +44,84 @@ ModeSegGCut::~ModeSegGCut()
 
 }
 
+
 ModeSegGCut::ModeSegGCut() :
-	m_volumeShader("shader/volVtx.glsl"   , "shader/volFlg_Seg.glsl"   ),
-	m_crssecShader("shader/crssecVtx.glsl", "shader/crssecFlg_Seg.glsl")
+	m_volume_shader("shader/volVtx.glsl"   , "shader/volFlg_Seg.glsl"   ),
+	m_crssec_shader("shader/crssecVtx.glsl", "shader/crssecFlg_Seg.glsl")
 {
-  m_bWsdInitialized = false;
-  m_bWsdComputing   = false;
-
-
-  printf("ModeSegGCutModeSegGCutfinish  constructor!\n");
+  std::cout << "ModeSegGCutModeSegGCut constructor! \n";
+  m_b_wsdnode_initialized = false;
+  m_b_wsdnode_computing   = false;
+  std::cout << "ModeSegGCutModeSegGCut constructor! DONE \n";
 }
 
 
 // flg 0: back
 //     1: trgt & fore
 //   255: trgt & back
-
 bool ModeSegGCut::CanLeaveMode()
 {
-	if ( (m_fCPs.size() || m_bCPs.size() ) && !CLI_MessageBox_YESNO_Show("Current Result is not stored. \nDo you want to leave?", "caution") )
+	if ( m_cps_fore.size() == 0 && m_cps_back.size() == 0 ) return true;
+  
+  if( CLI_MessageBox_YESNO_Show("Current Result is not stored. \nDo you want to leave?", "caution") )
 	{
-		return false;
+		return true;
 	}
-	return true;
+
+	return false;
 }
 
 
 void ModeSegGCut::StartMode()
 {
   //initialize flg volume --------------
-	const EVec3i r = ImageCore::GetInst()->GetResolution();
-  vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
-	OglImage3D      &vMask = ImageCore::GetInst()->m_vol_mask  ;
-	OglImage3D      &vFlg  = ImageCore::GetInst()->m_vol_flag  ; 
-	const int WHD = r[0] * r[1] * r[2];
-	for (int i = 0; i < WHD; ++i) vFlg[i] = ( mask[vMask[i]].m_b_locked ) ? 0 : 1;
-	vFlg.SetUpdated();
+  vector<MaskData> &mask    = ImageCore::GetInst()->m_mask_data;
+	OglImage3D      &vol_mask = ImageCore::GetInst()->m_vol_mask ;
+	OglImage3D      &vol_flg  = ImageCore::GetInst()->m_vol_flag ; 
+
+	const EVec3i reso = ImageCore::GetInst()->GetResolution();
+	const int WHD = reso[0] * reso[1] * reso[2];
+	
+  for (int i = 0; i < WHD; ++i) 
+  {
+    vol_flg[i] = ( mask[vol_mask[i]].m_b_locked ) ? 0 : 1;
+  }
+	vol_flg.SetUpdated();
 
   //initialize control points ----------
-	m_fCPs.clear();
-	m_bCPs.clear();
-	m_CpSize = (float) ImageCore::GetInst()->GetPitchW() * 2;
-	m_CpMesh.initializeIcosaHedron( m_CpSize );
+	m_cps_fore.clear();
+	m_cps_back.clear();
+	m_cp_radius = (float) ImageCore::GetInst()->GetPitchW() * 2;
+	m_cp_mesh.initializeIcosaHedron( m_cp_radius );
 
   formSegGCut_Show();
 
 	//compute watershad ------------------
-	if( !m_bWsdInitialized )
+	if( !m_b_wsdnode_initialized )
   {
     //backup fileの読み込みを試す
 	  string backUpFilePath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
-	  if( t_loadWsdLabel( backUpFilePath, r, m_map_vox2wsd) )
+	  if( t_loadWsdLabel( backUpFilePath, reso, m_map_vox2wsd) )
 	  {
 		  const short *vol = ImageCore::GetInst()->m_vol_orig;
-		  t_constructWsdNodesFromLabel( r[0], r[1], r[2], m_map_vox2wsd, vol, m_wsdNodes, m_wsdNodeNei);
-		  m_bWsdInitialized = true;
+		  t_constructWsdNodesFromLabel( reso[0], reso[1], reso[2], m_map_vox2wsd, vol, m_wsdnodes, m_wsdnode_neibor);
+		  m_b_wsdnode_initialized = true;
 		  return;
 	  }
 
 	  //threadを起動しwatershedを計算する
-	  m_bWsdComputing = true;
-    _beginthread( ModeSegGCut::initWsdNodes_thread, 0, (LPVOID)this); 
+	  m_b_wsdnode_computing = true;
+    _beginthread( ModeSegGCut::InitializeWsdNodes_thread, 0, (LPVOID)this); 
   }
 
 }
 
 
-void ModeSegGCut::finishSegm ()
+
+void ModeSegGCut::FinishSegmemntation ()
 {
-  const EVec3i res = ImageCore::GetInst()->GetResolution();
-	const int    N   = res[0] * res[1] * res[2];
+  const EVec3i reso = ImageCore::GetInst()->GetResolution();
+	const int    N    = reso[0] * reso[1] * reso[2];
 
 	bool bForeExist = false;
 	for (int i = 0; i < N; ++i)
@@ -127,8 +140,8 @@ void ModeSegGCut::finishSegm ()
 	}
 
 	//CPを削除（しないと、canEndModeでダイアログが表示される)
-	m_fCPs.clear();
-	m_bCPs.clear();
+	m_cps_fore.clear();
+	m_cps_back.clear();
 
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	ModeCore ::GetInst()->ModeSwitch( MODE_VIS_MASK );
@@ -136,19 +149,19 @@ void ModeSegGCut::finishSegm ()
 }
 
 
-void ModeSegGCut::cancelSegm ()
+void ModeSegGCut::CancelSegmentation ()
 {
   //CPを削除（しないと、canEndModeでダイアログが表示される)
-	m_fCPs.clear();
-	m_bCPs.clear();
+	m_cps_fore.clear();
+	m_cps_back.clear();
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
 	FormMain_RedrawMainPanel();	
 }
 
-void ModeSegGCut::clearAllCPs()
+void ModeSegGCut::ClearAllCPs()
 {
-  m_fCPs.clear();
-	m_bCPs.clear();
+  m_cps_fore.clear();
+	m_cps_back.clear();
 	FormMain_RedrawMainPanel();	
 }
 
@@ -159,46 +172,80 @@ void ModeSegGCut::clearAllCPs()
 ////////////////////////////////////////////////////////////////////
 //MOUSE LISTENER 
 
-void ModeSegGCut::LBtnDown(const EVec2i &p, OglForCLI *ogl) {
+void ModeSegGCut::LBtnDown(const EVec2i &p, OglForCLI *ogl) 
+{
   m_bL = true;
 	m_stroke.clear();
-	if (     IsShiftKeyOn()) m_bPaintCP = true;
-	else if (IsCtrKeyOn()  ) m_bDrawCutStr = true;
-	else                     ogl->BtnDown_Trans(p);
+
+  if ( IsShiftKeyOn())
+  {
+    m_b_paint_cps = true;
+  }
+	else if ( IsCtrKeyOn() )
+  {
+    m_b_draw_cutsrtoke = true;
+  }
+	else 
+  {
+    ogl->BtnDown_Trans(p);
+  }
 }
+
 
 void ModeSegGCut::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {  
-  if (m_bDrawCutStr) CrssecCore::GetInst()->GenerateCurvedCrssec( ImageCore::GetInst()->GetCuboid(), ogl->GetCamPos(), m_stroke );
-	m_bPaintCP = m_bDrawCutStr = m_bL = false;
+  if (m_b_draw_cutsrtoke) 
+  {
+    const EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
+    CrssecCore::GetInst()->GenerateCurvedCrssec( cuboid, ogl->GetCamPos(), m_stroke );
+  }
+  m_bL = false;
+	m_b_paint_cps = false;
+  m_b_draw_cutsrtoke = false;
 	ogl->BtnUp();
   FormMain_RedrawMainPanel();
 }
 
+
 void ModeSegGCut::RBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
-  if( IsShiftKeyOn() ) m_bPaintCP = true;
-	else                 ogl->BtnDown_Rot(p);
+  if( IsShiftKeyOn() ) 
+  {
+    m_b_paint_cps = true;
+  }
+  else
+  {
+    ogl->BtnDown_Rot(p);
+  }
 	m_bR = true;
 }
 
+
 void ModeSegGCut::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-  m_bR = m_bPaintCP = false;
+  m_bR = false;
+  m_b_paint_cps = false;
   ogl->BtnUp();
   FormMain_RedrawMainPanel();
 }
 
 void ModeSegGCut::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
-  if( IsShiftKeyOn() ) m_bPaintCP = true;
-	else                 ogl->BtnDown_Zoom(p);
+  if( IsShiftKeyOn() )
+  {
+    m_b_paint_cps = true;
+  }
+	else
+  {
+    ogl->BtnDown_Zoom(p);
+  }
 	m_bM = true;
 }
 
+
 void ModeSegGCut::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-  m_bM = m_bPaintCP = false;
+  m_bM = m_b_paint_cps = false;
 	ogl->BtnUp();
   FormMain_RedrawMainPanel();
 }
@@ -213,31 +260,40 @@ void ModeSegGCut::MouseMove(const EVec2i &p, OglForCLI *ogl)
 {
   if ( !m_bL && !m_bR && !m_bM)  return;
 
-	EVec3f rayP, rayD, pos;
-	ogl->GetCursorRay( p, rayP, rayD);
+	EVec3f ray_pos, ray_dir;
+	ogl->GetCursorRay( p, ray_pos, ray_dir);
 
-	if (m_bDrawCutStr)
+	if (m_b_draw_cutsrtoke)
 	{
-		m_stroke.push_back( rayP + 0.1f * rayD );
+		m_stroke.push_back( ray_pos + 0.1f * ray_dir );
 	}
-	else if (m_bPaintCP && m_bM)
+	else if (m_b_paint_cps && m_bM)
 	{
-		for (int i = 0; i < (int)m_fCPs.size(); ++i)
+    //erase control points
+		for (int i = 0; i < (int)m_cps_fore.size(); ++i)
 		{
-			if (t_distRayToPoint(rayP, rayD, m_fCPs[i].m_pos) < m_CpSize) m_fCPs.erase( m_fCPs.begin() + i );
+			if ( t_distRayToPoint(ray_pos, ray_dir, m_cps_fore[i].m_pos) < m_cp_radius) 
+      {
+        m_cps_fore.erase( m_cps_fore.begin() + i );
+      }
 		}
-		for (int i = 0; i < (int)m_bCPs.size(); ++i)
+		for (int i = 0; i < (int)m_cps_back.size(); ++i)
 		{
-			if (t_distRayToPoint(rayP, rayD, m_bCPs[i].m_pos) < m_CpSize) m_bCPs.erase( m_bCPs.begin() + i );
+			if ( t_distRayToPoint(ray_pos, ray_dir, m_cps_back[i].m_pos) < m_cp_radius)
+      {
+        m_cps_back.erase( m_cps_back.begin() + i );
+      }
 		}
 	}
-	else if( m_bPaintCP && (m_bL || m_bR) )
+	else if( m_b_paint_cps && (m_bL || m_bR) )
 	{
-		if (PickCrssec( rayP, rayD, &pos) != CRSSEC_NON )
+    //paint control points
+    EVec3f pos;
+		if ( PickCrssec( ray_pos, ray_dir, &pos) != CRSSEC_NON )
 		{
-      vector<GCutCp> &cps =  m_bL ? m_fCPs : m_bCPs;
+      vector<GCutCp> &cps =  m_bL ? m_cps_fore : m_cps_back;
 
-			if( cps.empty() || ( pos - cps.back().m_pos).norm() > m_CpSize * 3 )
+			if( cps.empty() || ( pos - cps.back().m_pos).norm() > m_cp_radius * 3 )
 			{
 				EVec4i vi = ImageCore::GetInst()->GetVoxelIndex4i(pos);
 				cps.push_back( GCutCp( pos, vi) );	
@@ -248,48 +304,47 @@ void ModeSegGCut::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	{
 		ogl->MouseMove(p);
 	}
+
   FormMain_RedrawMainPanel();
 }
 
 
-void ModeSegGCut::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
+void ModeSegGCut::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
-  EVec3f rayP, rayD, pos;
-	ogl->GetCursorRay(p, rayP, rayD);
+  EVec3f ray_pos, ray_dir, pos;
+	ogl->GetCursorRay(p, ray_pos, ray_dir);
 
-  
-  CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
-  if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
-                                                           ImageCore::GetInst()->GetPitch(), id, zDelta);
-  else ogl->ZoomCam(zDelta * 0.1f);
+  CRSSEC_ID id = PickCrssec(ray_pos, ray_dir, &pos);
+  if( id != CRSSEC_NON ) 
+  {
+    CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
+                                      ImageCore::GetInst()->GetPitch(), id, z_delta);
+  }
+  else
+  {
+    ogl->ZoomCam(z_delta * 0.1f);
+  }
 
   FormMain_RedrawMainPanel();
 }
 
 
 
-void ModeSegGCut::KeyDown(int nChar) {
-  FormMain_RedrawMainPanel();
-}
-void ModeSegGCut::KeyUp(int nChar) {
-  FormMain_RedrawMainPanel();
-}
-
-
-void ModeSegGCut::DrawScene (const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF )
+void ModeSegGCut::KeyDown(int nChar) 
 {
-  
-  const bool   bXY      = formVisParam_bPlaneXY();
-  const bool   bYZ      = formVisParam_bPlaneYZ();
-  const bool   bZX      = formVisParam_bPlaneZX();
-  const bool   bDrawVol = formVisParam_bRendVol();
-  const bool   bGradMag = formVisParam_bGradMag();
-  const bool   bPsuedo  = formVisParam_bDoPsued();
-  const float  alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::GetInst()->GetResolution();
-  const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-  const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+  FormMain_RedrawMainPanel();
+}
+void ModeSegGCut::KeyUp(int nChar) 
+{
+  FormMain_RedrawMainPanel();
+}
 
+
+void ModeSegGCut::DrawScene (
+  const EVec3f &cuboid, 
+  const EVec3f &cam_pos,
+  const EVec3f &cam_center )
+{
 	//bind volumes ---------------------------------------
 	glActiveTextureARB(GL_TEXTURE0);
 	ImageCore::GetInst()->m_vol.BindOgl();
@@ -307,51 +362,64 @@ void ModeSegGCut::DrawScene (const EVec3f &cuboid, const EVec3f &camP, const EVe
   ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 
 	//render cross sections ----------------------------------
+  const bool b_xy = formVisParam_bPlaneXY();
+  const bool b_yz = formVisParam_bPlaneYZ();
+  const bool b_zx = formVisParam_bPlaneZX();
+  const bool b_draw_gm = formVisParam_bGradMag();
+  const EVec3i reso = ImageCore::GetInst()->GetResolution();
+
   glColor3d(1, 1, 1);
-  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, !IsSpaceKeyOn());
-  CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
-  m_crssecShader.Unbind();
+  m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, b_draw_gm, !IsSpaceKeyOn());
+  CrssecCore::GetInst()->DrawCrssec(b_xy, b_yz, b_zx, cuboid);
+  m_crssec_shader.Unbind();
 
 
 	//volume rendering ---------------------------------------
-	if ( bDrawVol && !IsSpaceKeyOn())
+  const bool   b_draw_vol = formVisParam_bRendVol();
+
+	if ( b_draw_vol && !IsSpaceKeyOn())
 	{
+    const bool  b_psuedo  = formVisParam_bDoPsued();
+    const float alpha     = formVisParam_getAlpha();
+    const bool  b_onmanip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int   num_slice = (int)((b_onmanip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, camP, bPsuedo, !IsSpaceKeyOn() );
-		t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
-		m_volumeShader.Unbind();
+		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, b_psuedo, !IsSpaceKeyOn() );
+		t_DrawCuboidSlices(num_slice, cam_pos, cam_center, cuboid);
+		m_volume_shader.Unbind();
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 	}
 
-
-
+  //draw control points
 	const static float diffR[4] = {1   ,0,0,0}, diffB[4] = {0.3f,0.3f,1,1};
 	const static float ambiR[4] = {0.5f,0,0,0}, ambiB[4] = {0.3f,0.3f,0.8f,1};
 	const static float  spec[4] = {1   ,1,1,0};
 	const static float  shin[1] = {56.0f};
+
 	glEnable(GL_LIGHTING);
-	for (const auto& it: m_fCPs )
+	for (const auto& it: m_cps_fore )
 	{
 		glTranslated( it.m_pos[0], it.m_pos[1], it.m_pos[2]);
-		m_CpMesh.draw(diffR, ambiR, spec, shin);
+		m_cp_mesh.draw( diffR, ambiR, spec, shin);
 		glTranslated(-it.m_pos[0],-it.m_pos[1],-it.m_pos[2]);
 	}
-	for (const auto& it: m_bCPs )
+
+	for (const auto& it: m_cps_back )
 	{
 		glTranslated( it.m_pos[0], it.m_pos[1], it.m_pos[2]);
-		m_CpMesh.draw(diffB, ambiB, spec, shin);
+		m_cp_mesh.draw(diffB, ambiB, spec, shin);
 		glTranslated(-it.m_pos[0],-it.m_pos[1],-it.m_pos[2]);
 	}
 	glDisable(GL_LIGHTING);
 
 
   //draw cut stroke 
-  if (m_bDrawCutStr) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
+  if (m_b_draw_cutsrtoke) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
 
 }
-
 
 
 
@@ -361,10 +429,16 @@ void ModeSegGCut::DrawScene (const EVec3f &cuboid, const EVec3f &camP, const EVe
 //////////////////////////////////////////////////////////////////////////////////////
 //Watershed segmentation//////////////////////////////////////////////////////////////
 
-static bool t_loadWsdLabel ( 
-  const string fname,  
-  const EVec3i &reso, 
-  vector<int> &map_vox2wsd )
+//try to load backup wsd segmentation file (一度計算したらbackupをしておいて再利用する)
+// fname = volume_file_name.RpWsdPre
+
+static bool t_loadWsdLabel 
+(
+  const string  fname,  
+  const EVec3i &reso , 
+
+  vector<int>  &map_vox2wsd 
+)
 {
 	if( fname.length() <= 9 ) return false;
 	const int WHD = reso[0] * reso[1] * reso[2];
@@ -373,24 +447,24 @@ static bool t_loadWsdLabel (
 	if( fp == 0 ) return false;
 
 	//check volume size	
-	int volumeN; 
-	fread( &volumeN, sizeof(int),1, fp );
-	if( volumeN != WHD ) 
+	int num_voxel; 
+	fread( &num_voxel, sizeof(int),1, fp );
+	if( num_voxel != WHD ) 
 	{ 
 		fclose( fp); 
 		return false;
 	}
 
 	//check user's intension
-	fprintf( stderr, "fname:%s\n\n", fname.c_str());
+	std::cout << "fname:" << fname.c_str() << "\n\n";
 	if(!CLI_MessageBox_YESNO_Show( "watershedの前計算ファイルが利用できます。利用しますか？", "Use precompute file?") )
 	{
 		fclose( fp); 
 		return false;
 	}
 
-	//label 
-	map_vox2wsd.resize( volumeN );
+	//read label 
+	map_vox2wsd.resize( num_voxel );
 	for( int i=0; i<WHD; ++i) fread( &map_vox2wsd[i], sizeof(int), 1, fp );
 	fclose( fp );
 
@@ -398,16 +472,20 @@ static bool t_loadWsdLabel (
 }
 
 
-static bool t_saveWsdLabel( const string fname, const EVec3i &reso, const vector<int> &map_vox2wsd )
+static bool t_saveWsdLabel
+( 
+    const string fname, 
+    const EVec3i &reso, 
+    const vector<int> &map_vox2wsd 
+)
 {
-	const int WHD = reso[0] * reso[1] * reso[2];
+	const int num_voxel = reso[0] * reso[1] * reso[2];
 	
 	FILE *fp = fopen( fname.c_str(), "wb" );
 	if( fp == 0 ) return false;
 
-	int arraySize = WHD ; 
-	fwrite( &arraySize, sizeof(int),1, fp );
-	for( int i=0; i<WHD; ++i) fwrite( &map_vox2wsd[i], sizeof(int), 1, fp );
+	fwrite( &num_voxel, sizeof(int),1, fp );
+	for ( int i=0; i < num_voxel; ++i) fwrite( &map_vox2wsd[i], sizeof(int), 1, fp );
 	fclose( fp );
 	return true;
 }
@@ -418,101 +496,102 @@ void t_constructWsdNodesFromLabel
 	const int W,
 	const int H, 
 	const int D,
-	const vector<int> &vLabel   ,
+	const vector<int> &vol_label,
 	const short       *vol      ,
 
-	vector< WsdNode> &wsdNodes  ,
-	vector<set<int>> &wsdNodeNei
+	vector<GCWsdNode> &wsdNodes  ,
+	vector<set<int> > &wsdNodeNei
 )
 {
-	fprintf( stderr, "t_constructWsdNodesFromLabel start......");
-
 	time_t t0 = clock();
+	std::cout << "t_constructWsdNodesFromLabel start......";
 
 	const int WH = W*H;
 	const int WHD =W*H*D;
 
-	int maxLabel = 0;
-	for( int i= 0; i < WHD; ++i ) maxLabel = max( maxLabel, vLabel[i] );
-
+	int max_label = 0;
+	for( int i= 0; i < WHD; ++i ) max_label = max( max_label, vol_label[i] );
 
 	wsdNodes  .clear(); 
 	wsdNodeNei.clear(); 
-	wsdNodes  .resize( maxLabel + 1 );
-	wsdNodeNei.resize( maxLabel + 1 );
+	wsdNodes  .resize( max_label + 1 );
+	wsdNodeNei.resize( max_label + 1 );
 	
-
 	for( int z = 0; z < D ; ++z)
-	for( int y = 0; y < H ; ++y)
-	for( int x = 0; x < W ; ++x)
-	{
-		const int I = x + y*W + z*WH;
-		wsdNodes[ vLabel[I] ].addVoxel( I, (float)vol[I] );
+  {
+	  for( int y = 0; y < H ; ++y)
+    {
+	    for( int x = 0; x < W ; ++x)
+	    {
+		    const int I = x + y*W + z*WH;
+		    wsdNodes[ vol_label[I] ].addVoxel( I, (float)vol[I] );
 
-		if( x < W-1 && vLabel[I] != vLabel[ I+1 ]) 
-		{
-			if( vLabel[I] < vLabel[I+1] ) wsdNodeNei[ vLabel[ I   ] ].insert( vLabel[ I+1 ] );
-			else                          wsdNodeNei[ vLabel[ I+1 ] ].insert( vLabel[ I   ] );
-		}
-		if( y < H-1 && vLabel[I] != vLabel[ I+W ] )
-		{
-			if( vLabel[I] < vLabel[I+W] ) wsdNodeNei[ vLabel[ I   ] ].insert( vLabel[ I+W ] );
-			else                          wsdNodeNei[ vLabel[ I+W ] ].insert( vLabel[ I   ] );
-		}
-		if( z < D-1 && vLabel[I] != vLabel[ I+WH ] )
-		{
-			if( vLabel[I] < vLabel[I+WH]) wsdNodeNei[ vLabel[ I   ] ].insert( vLabel[ I+WH ] );
-			else                          wsdNodeNei[ vLabel[ I+WH] ].insert( vLabel[ I    ] );
-		}
-	}
+		    if( x < W-1 && vol_label[I] != vol_label[ I+1 ]) 
+		    {
+          int labelsmall = min(vol_label[I], vol_label[I+1] );
+          int labellarge = max(vol_label[I], vol_label[I+1] );
+          wsdNodeNei[ labelsmall ].insert( labellarge );
+		    }
+		    if( y < H-1 && vol_label[I] != vol_label[ I+W ] )
+		    {
+          int labelsmall = min(vol_label[I], vol_label[I+W] );
+          int labellarge = max(vol_label[I], vol_label[I+W] );
+          wsdNodeNei[ labelsmall ].insert( labellarge );		
+        }
+		    if( z < D-1 && vol_label[I] != vol_label[ I+WH ] )
+		    {
+          int labelsmall = min(vol_label[I], vol_label[I+WH] );
+          int labellarge = max(vol_label[I], vol_label[I+WH] );
+          wsdNodeNei[ labelsmall ].insert( labellarge );
+        }
+	    }
+    }
+  }
+
 	time_t t1 = clock();
-	printf( "t_constructWsdNodesFromLabel : %d %d %d time %f\n", W,H,D, (t1-t0)/(double)CLOCKS_PER_SEC);
+	std::cout << "t_constructWsdNodesFromLabel : " << W << " " << H << " " << D 
+            << " time " << (t1-t0)/(double)CLOCKS_PER_SEC << "\n";
 
 }
 
 
 
 
-
-
-
-
 //threadとして起動される
-void ModeSegGCut::initWsdNodes_thread(void *pParam)
+void ModeSegGCut::InitializeWsdNodes_thread(void *pParam)
 {
-	fprintf( stderr, "initWsdNodes_thread start!!\n");
+	std::cout << "initWsdNodes_thread start!!\n";
 
-	ModeSegGCut *P  = (ModeSegGCut*)pParam;
+	ModeSegGCut *p_modeseggcut  = (ModeSegGCut*)pParam;
 
-	const EVec3i  reso  = ImageCore::GetInst()->GetResolution();
-	const short  *vol   = ImageCore::GetInst()->m_vol_orig   ;
-	const float  *volGM = ImageCore::GetInst()->m_vol_origgm ;
+	const EVec3i  reso   = ImageCore::GetInst()->GetResolution();
+	const short  *vol    = ImageCore::GetInst()->m_vol_orig   ;
+	const float  *vol_gm = ImageCore::GetInst()->m_vol_origgm ;
 	
   const int W = reso[0];
 	const int H = reso[1];
 	const int D = reso[2], WHD = W*H*D, WH = W*H;
 
 	//calc WsdLabel 0:境界画素, >0:ラベル値
-	vector<int> &vLabel = P->m_map_vox2wsd;
+	vector<int> &vox_wsdlabel = p_modeseggcut->m_map_vox2wsd;
 
-	t_wsd_CalcLabelFromGMag   ( W,H,D, volGM, 1000, vLabel); 
-	t_wsd_RemoveOneVoxWsdLabel( vLabel ); 
-	t_wsd_CollapseWsdPixels3D ( W,H,D, vol  ,       vLabel ); 
+	t_wsd_CalcLabelFromGMag( W, H, D, vol_gm, 1000, vox_wsdlabel); 
+	t_wsd_RemoveOneVoxWsdLabel( vox_wsdlabel ); 
+	t_wsd_CollapseWsdPixels3D( W, H, D, vol, vox_wsdlabel ); 
 
-	for( int i= 0; i < WHD; ++i ) vLabel[i] -= 1; 
+	for( int i= 0; i < WHD; ++i ) vox_wsdlabel[i] -= 1; 
 
 	//calc Node & neighbors
-	t_constructWsdNodesFromLabel(W,H,D, vLabel, vol, P->m_wsdNodes, P->m_wsdNodeNei );
+	t_constructWsdNodesFromLabel( W, H, D, vox_wsdlabel, vol, p_modeseggcut->m_wsdnodes, p_modeseggcut->m_wsdnode_neibor );
 
 	//save backup file
-	string backUpFilePath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
-	t_saveWsdLabel( backUpFilePath, reso, vLabel);
+	string backup_fpath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
+	t_saveWsdLabel( backup_fpath, reso, vox_wsdlabel);
 
-	P->m_bWsdInitialized = true;
-	P->m_bWsdComputing   = false;
+	p_modeseggcut->m_b_wsdnode_initialized = true;
+	p_modeseggcut->m_b_wsdnode_computing   = false;
 	
-
-	fprintf( stderr, "initWsdNodes_thread DONE!!\n");
+	std::cout << "initWsdNodes_thread DONE!!\n";
 }
 
 
@@ -542,7 +621,8 @@ void t_wsd_DivideOneLabel(
 	const int bI,
 	vector<int > &vLabel)
 {
-	printf( "divide conflict wsd area %d %d   lbl(%d %d)......",fI,bI,vLabel[ fI ],vLabel[ bI ] );
+	std::cout << "divide conflict wsd area " << fI << " " << bI 
+            << "(" << vLabel[ fI ] << " " << vLabel[ bI ] << ")\n";
 
 	if( vLabel[ fI ] != vLabel[ bI ] ) return;
 
@@ -590,7 +670,7 @@ void t_wsd_DivideOneLabel(
 	//fore label の値を元に戻す
 	for( auto &it: vLabel) if( it == F_LABEL ) it = TRGT;
 
-	printf( "done!!\n");
+	std::cout << "done!!\n";
 
 }
 
@@ -600,31 +680,30 @@ void t_wsd_DivideOneLabel(
 //when the bothe pos and neg CPs exist in the region
 bool t_wsd_CheckAndSolveConflictCP( 
 	const EVec3i         &reso,
-	const vector<GCutCp> &fCPs ,
-	const vector<GCutCp> &bCPs ,
+	const vector<GCutCp> &cps_fore ,
+	const vector<GCutCp> &cps_back ,
 
-	vector<int> &vLabel)
+	vector<int> &vol_label)
 {
+	set<int> fore_ids, back_ids; 
+	for(const auto& cp : cps_fore ) fore_ids.insert( cp.m_vidx[3] );
+	for(const auto& cp : cps_back ) back_ids.insert( cp.m_vidx[3] );
 
-	set<int> fIdx,bIdx; 
-	for(const auto& cp : fCPs ) fIdx.insert( cp.m_vidx[3] );
-	for(const auto& cp : bCPs ) bIdx.insert( cp.m_vidx[3] );
-
-	int maxL = 0;
-	for( const auto& i: vLabel) maxL = max( maxL, i);
+	int max_label = 0;
+	for( const auto& i: vol_label) max_label = max( max_label, i);
 
 	bool modified = false;
 
-	for ( const auto &f : fIdx)
+	for ( const auto &f : fore_ids)
 	{
-		for ( const auto &b : bIdx)
+		for ( const auto &b : back_ids)
 		{
-			if (vLabel[f] == vLabel[b])
+			if (vol_label[f] == vol_label[b])
 			{
-				t_wsd_DivideOneLabel( reso[0], reso[1], reso[2], maxL, f, b, vLabel);
+				t_wsd_DivideOneLabel( reso[0], reso[1], reso[2], max_label, f, b, vol_label);
 
 				modified = true;
-				maxL++;
+				max_label++;
 			}
 		}
 	}
@@ -664,41 +743,43 @@ bool t_wsd_CheckAndSolveConflictCP(
 ////////////////////////////////////////////////////////////////////////////////////////
 //Graph cut segmentation////////////////////////////////////////////////////////////////
 
-static inline float t_distSq(const float &f1, const float &f2)
+static inline float t_DistSq(const float &f1, const float &f2)
 {
 	return (f1-f2)*(f1-f2);
 }
 
-inline static void t_calcE1(
-	const vector<WsdNode> &nodes,
-	const vector<int    > &fNodeIDs,
-	const vector<int    > &bNodeIDs,
-	const int             &pivNodeID,
+//use data energy introduced by lazy snapping paper
+//see Lazy snapping papaer for detail
+inline static void t_CalcE1(
+	const vector<GCWsdNode> &nodes,
+	const vector<int> &forenode_ids,
+	const vector<int> &backnode_ids,
+	const int         &pivnode_id,
 	EVec2f &e
 )
 {
 	float df = FLT_MAX;
 	float db = FLT_MAX;
-	float pivV = nodes[pivNodeID].m_mean_val;
-	for( const auto& it: fNodeIDs)  df = min(df, t_distSq( nodes[it].m_mean_val, pivV) );
-	for( const auto& it: bNodeIDs)  db = min(db, t_distSq( nodes[it].m_mean_val, pivV) );
+	float piv_v = nodes[ pivnode_id ].m_mean_val;
+	for( const auto& it: forenode_ids)  df = min(df, t_DistSq( nodes[it].m_mean_val, piv_v) );
+	for( const auto& it: backnode_ids)  db = min(db, t_DistSq( nodes[it].m_mean_val, piv_v) );
 
 	df = sqrt( df );
 	db = sqrt( db );
 
 	if( df == 0 && db == 0 ) df = db =  0.5f;
 
-	//see Lazy snapping papaer for detail
 	e << db / ( df + db ), df / ( df + db ); 
 }
 
-inline static float t_calcE2( const float &v1, const float &v2, const float &lambda)
+//use smoothness energy introduced in lazy snapping
+inline static float t_CalcE2( const float &v1, const float &v2, const float &lambda)
 {	    
 	return  lambda / ( 1.0f + (v1-v2)*(v1-v2) ); 
 }
 
 //重複を削除 (sort --> unique --> erase)
-static void t_vectorUnique( vector<int> &vectInt)
+static void t_VectorUnique( vector<int> &vectInt)
 {
 	sort( vectInt.begin(), vectInt.end() ); 
 	auto fvIt = unique( vectInt.begin(), vectInt.end() ); 
@@ -710,23 +791,22 @@ static void t_vectorUnique( vector<int> &vectInt)
 //only extract region connect to foreground seeds 
 //vFlg = 0:not target, 1:back, 255:fore
 //
-void t_postGCut_extractJointForeRegion( 
+void t_RemoveIsolatedForeRegion( 
 	const int &W, 
 	const int &H, 
 	const int &D, 
-	const vector<GCutCp> &fCPs, 
-	OglImage3D  &vFlg)
+	const vector<GCutCp> &cps_fore,
+
+	OglImage3D  &vol_flg)
 {	
-
-
 	const int WH = W*H, WHD = W*H*D;
 
 	//新たな foregroundを254として領域拡張する
 	TQueue<EVec4i> Q;
-	for (const auto &cp : fCPs)
+	for (const auto &cp : cps_fore)
 	{
 		Q.push_back( cp.m_vidx );
-		vFlg[cp.m_vidx[3]] = 254;
+		vol_flg[ cp.m_vidx[3] ] = 254;
 	}
 
 	while( !Q.empty() )
@@ -737,19 +817,19 @@ void t_postGCut_extractJointForeRegion(
 		const int I = Q.front()[3];
 		Q.pop_front();
 
-		if( x != 0   && vFlg[ I - 1  ] == 255 ) { vFlg[ I - 1 ] = 254; Q.push_back( EVec4i(x-1,y  ,z  ,I-1 ) );}
-		if( y != 0   && vFlg[ I - W  ] == 255 ) { vFlg[ I - W ] = 254; Q.push_back( EVec4i(x  ,y-1,z  ,I-W ) );}
-		if( z != 0   && vFlg[ I - WH ] == 255 ) { vFlg[ I - WH] = 254; Q.push_back( EVec4i(x  ,y  ,z-1,I-WH) );}
-		if( x != W-1 && vFlg[ I + 1  ] == 255 ) { vFlg[ I + 1 ] = 254; Q.push_back( EVec4i(x+1,y  ,z  ,I+1 ) );}
-		if( y != H-1 && vFlg[ I + W  ] == 255 ) { vFlg[ I + W ] = 254; Q.push_back( EVec4i(x  ,y+1,z  ,I+W ) );}
-		if( z != D-1 && vFlg[ I + WH ] == 255 ) { vFlg[ I + WH] = 254; Q.push_back( EVec4i(x  ,y  ,z+1,I+WH) );}
+		if( x != 0   && vol_flg[ I - 1  ] == 255 ) { vol_flg[ I - 1 ] = 254; Q.push_back( EVec4i(x-1,y  ,z  ,I-1 ) );}
+		if( y != 0   && vol_flg[ I - W  ] == 255 ) { vol_flg[ I - W ] = 254; Q.push_back( EVec4i(x  ,y-1,z  ,I-W ) );}
+		if( z != 0   && vol_flg[ I - WH ] == 255 ) { vol_flg[ I - WH] = 254; Q.push_back( EVec4i(x  ,y  ,z-1,I-WH) );}
+		if( x != W-1 && vol_flg[ I + 1  ] == 255 ) { vol_flg[ I + 1 ] = 254; Q.push_back( EVec4i(x+1,y  ,z  ,I+1 ) );}
+		if( y != H-1 && vol_flg[ I + W  ] == 255 ) { vol_flg[ I + W ] = 254; Q.push_back( EVec4i(x  ,y+1,z  ,I+W ) );}
+		if( z != D-1 && vol_flg[ I + WH ] == 255 ) { vol_flg[ I + WH] = 254; Q.push_back( EVec4i(x  ,y  ,z+1,I+WH) );}
 	}
 
 #pragma omp parallel for
-	for( int idx = 0; idx<WHD; ++idx) 
+	for( int idx = 0; idx < WHD; ++idx) 
 	{
-		if(      vFlg[ idx ] == 254 ) vFlg[ idx ] = 255;
-		else if( vFlg[ idx ] == 255 ) vFlg[ idx ] = 1  ;	
+		if(      vol_flg[ idx ] == 254 ) vol_flg[ idx ] = 255;
+		else if( vol_flg[ idx ] == 255 ) vol_flg[ idx ] = 1  ;	
 	}
 		
 }
@@ -757,117 +837,119 @@ void t_postGCut_extractJointForeRegion(
 
 
 
-void ModeSegGCut::runGraphCutWsdLv(float lambda)
+void ModeSegGCut::RunGraphCutWsdLv(float lambda)
 {
-	if (m_bWsdComputing || !m_bWsdInitialized)
+	if (m_b_wsdnode_computing || !m_b_wsdnode_initialized)
 	{
 		CLI_MessageBox_OK_Show("現在前計算中です、少々お待ちください", "Message from Graph cut tool");
 		return;
 	}
 
 	time_t t1 = clock();
-	fprintf( stderr, "graphCut 1....\n");
+	std::cout << "graphCut 1....\n";
 
-	const EVec3i  reso  = ImageCore::GetInst()->GetResolution();
-	const short  *vol   = ImageCore::GetInst()->m_vol_orig  ;
-	const int    W      = reso[0];
-	const int    H      = reso[1];
-	const int    D      = reso[2];
-	const int    WHD    = W*H*D, WH = W*H;
+	const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+	const int W   = reso[0];
+	const int H   = reso[1];
+	const int D   = reso[2];
+	const int WHD = W*H*D, WH = W*H;
 	
-  OglImage3D  &vFlg    = ImageCore::GetInst()->m_vol_flag   ;
+  const short  *vol    = ImageCore::GetInst()->m_vol_orig;
+  OglImage3D  &vol_flg = ImageCore::GetInst()->m_vol_flag;
 
 
 	// ひとつのノードに二つ以上の前景・背景制御点が配置されていたら、分割する
-	if (t_wsd_CheckAndSolveConflictCP(reso, m_fCPs, m_bCPs, m_map_vox2wsd))
+	if ( t_wsd_CheckAndSolveConflictCP(reso, m_cps_fore, m_cps_back, m_map_vox2wsd) )
 	{
-		t_constructWsdNodesFromLabel( W,H,D, m_map_vox2wsd, vol, m_wsdNodes, m_wsdNodeNei );
+		t_constructWsdNodesFromLabel( W,H,D, m_map_vox2wsd, vol, m_wsdnodes, m_wsdnode_neibor );
 	}
 
 	// disable wsd nodes that exist in locked mask region
-	for( auto& n : m_wsdNodes)
+	for( auto& n : m_wsdnodes)
 	{
 		n.m_b_enable = false;
-		for (const auto& pI : n.m_voxel_ids) if (vFlg[pI] != 0)
+		for ( const auto& pi : n.m_voxel_ids ) if ( vol_flg[ pi ] != 0)
 		{
 			n.m_b_enable = true; 
 			break; 
 		}
 	}
 
-
 	// cps --> node ids
-	vector< int > fWsdId, bWsdId;
-	for (const auto& c : m_fCPs) fWsdId.push_back( m_map_vox2wsd[ c.m_vidx[3] ] );
-	for (const auto& c : m_bCPs) bWsdId.push_back( m_map_vox2wsd[ c.m_vidx[3] ] );
-	t_vectorUnique( fWsdId );
-	t_vectorUnique( bWsdId );
+	vector< int > fore_wsdnodeids, back_wsdnodeids;
+	for (const auto& c : m_cps_fore) fore_wsdnodeids.push_back( m_map_vox2wsd[ c.m_vidx[3] ] );
+	for (const auto& c : m_cps_back) back_wsdnodeids.push_back( m_map_vox2wsd[ c.m_vidx[3] ] );
+	t_VectorUnique( fore_wsdnodeids );
+	t_VectorUnique( back_wsdnodeids );
 
 
-	//flow network
-	int edgeNumGuess = 0 ; 
-	for( const auto& n: m_wsdNodeNei ) edgeNumGuess += (int) n.size(); 
+	//generate flow network
+	int estimate_numedge = 0 ; 
+	for( const auto& n: m_wsdnode_neibor ) estimate_numedge += (int) n.size(); 
 
-	const int nodeNum  = (int)m_wsdNodes.size(); 
-	const int edgeNum  = 2 * (nodeNum + edgeNumGuess)  ; //2 * tLink + nLinks
-	const int SourceID = nodeNum + 0 ;
-	const int SinkID   = nodeNum + 1 ;
+	const int num_node  = (int)m_wsdnodes.size(); 
+	const int num_edge  = 2 * (num_node + estimate_numedge)  ; //2 * tLink + nLinks
+	const int soucenode_id = num_node + 0 ;
+	const int sinknode_id  = num_node + 1 ;
 
-	TFlowNetwork_BK4 network( nodeNum + 2, edgeNum, SourceID, SinkID ); 
+	TFlowNetwork_BK4 network( num_node + 2, num_edge, soucenode_id, sinknode_id ); 
 
 
 	time_t t2 = clock();
-	printf( "graphCut %d %d   %zd %zd\n", nodeNum, edgeNum, fWsdId.size(), bWsdId.size() );
+  std::cout << "graphCut " << num_node << " " << num_edge 
+            << " " << fore_wsdnodeids.size() << " " << back_wsdnodeids.size() << "\n";
 
 	//t-link
-	vector<EVec2f> tLinkE(nodeNum);
+	vector<EVec2f> tLinkE( num_node );
 
 #pragma omp parallel for
-	for( int i = 0; i < nodeNum; ++i)
+	for( int i = 0; i < num_node; ++i)
 	{
 		tLinkE[i] << 0, FOREBACK_MAX; 
-		if( m_wsdNodes[i].m_b_enable ) t_calcE1( m_wsdNodes, fWsdId, bWsdId, i, tLinkE[i] ); 
+		if( m_wsdnodes[i].m_b_enable ) t_CalcE1( m_wsdnodes, fore_wsdnodeids, back_wsdnodeids, i, tLinkE[i] ); 
 	}
 
-	for( const auto &id : fWsdId ) if( m_wsdNodes[ id ].m_b_enable ) tLinkE[id] << FOREBACK_MAX, 0 ;  
-	for( const auto &id : bWsdId ) if( m_wsdNodes[ id ].m_b_enable ) tLinkE[id] << 0, FOREBACK_MAX ;  
+	for( const auto &id : fore_wsdnodeids ) if( m_wsdnodes[ id ].m_b_enable ) tLinkE[id] << FOREBACK_MAX, 0 ;  
+	for( const auto &id : back_wsdnodeids ) if( m_wsdnodes[ id ].m_b_enable ) tLinkE[id] << 0, FOREBACK_MAX ;  
 
-	for( int i = 0; i < nodeNum; ++i ) network.add_tLink( SourceID, SinkID, i, tLinkE[i][0], tLinkE[i][1]);
+	for( int i = 0; i < num_node; ++i ) network.add_tLink( soucenode_id, sinknode_id, i, tLinkE[i][0], tLinkE[i][1]);
 
 
-	//n-link 
-	for (int i = 0; i < nodeNum; ++i) if( m_wsdNodes[i].m_b_enable ) 
+	//n-link b_enableなノード間のみ
+	for (int i = 0; i < num_node; ++i) if( m_wsdnodes[i].m_b_enable ) 
 	{
-		for( const auto &neiI : m_wsdNodeNei[i] )
+		for( const auto &neiI : m_wsdnode_neibor[i] )
 		{
-			if( i < neiI && m_wsdNodes[ neiI ].m_b_enable )
+			if( i < neiI && m_wsdnodes[ neiI ].m_b_enable )
 			{
-				network.add_nLink( i, neiI, t_calcE2( m_wsdNodes[i].m_mean_val, m_wsdNodes[neiI].m_mean_val, lambda) );
+				network.add_nLink( i, neiI, t_CalcE2( m_wsdnodes[i].m_mean_val, m_wsdnodes[neiI].m_mean_val, lambda) );
 			}
 		}
 	}
 
 	time_t t3 = clock();
-	printf( "graphCut 2....\n");
+	std::cout << "graphCut 2....\n";
 
 	//Graph Cut
-	byte *minCut = new byte[ nodeNum + 2 ];
-	network.calcMaxFlow( SourceID, SinkID, minCut );
+	byte *minCut = new byte[ num_node + 2 ];
+	network.calcMaxFlow( soucenode_id, sinknode_id, minCut );
 
 
 #pragma omp parallel for
-	for(int i = 0; i < WHD; ++i ) if( vFlg[i] != 0 ) vFlg[i] = (minCut[ m_map_vox2wsd[i] ]) ? 255 : 1;
+	for(int i = 0; i < WHD; ++i ) if( vol_flg[i] != 0 ) 
+  {
+    vol_flg[i] = (minCut[ m_map_vox2wsd[i] ]) ? 255 : 1;
+  }
 
+	t_RemoveIsolatedForeRegion( W,H,D, m_cps_fore, vol_flg );
 
-	t_postGCut_extractJointForeRegion( W,H,D, m_fCPs, vFlg );
-
-	vFlg.SetUpdated();
+	vol_flg.SetUpdated();
 
 	time_t t4 = clock();
-	fprintf( stderr, "graphCut 3....%f %f %f\n", 
-			(t2-t1)/(double)CLOCKS_PER_SEC,
-			(t3-t2)/(double)CLOCKS_PER_SEC,
-			(t4-t3)/(double)CLOCKS_PER_SEC );
+	std::cout << "graphCut 3.... "
+			<< (t2-t1)/(double)CLOCKS_PER_SEC << " "
+			<< (t3-t2)/(double)CLOCKS_PER_SEC << " "
+			<< (t4-t3)/(double)CLOCKS_PER_SEC << "\n";
 
 	delete[] minCut ;
 
@@ -877,128 +959,134 @@ void ModeSegGCut::runGraphCutWsdLv(float lambda)
 
 
 
-
-
-
-
-
-
 //float lambda,        係数ラムダ
 //int bandWidth,　　   計算領域のwidth
 //bool genBundOnlyBack 計算領域を背景ボクセルのみから生成する
-void ModeSegGCut::runGraphCutVoxLv(float lambda, int bandWidth, bool genBundOnlyBack)
+void ModeSegGCut::RunGraphCutVoxLv(float lambda, int band_width, bool b_genband_onlybackground)
 {
-	if (m_bWsdComputing || !m_bWsdInitialized)
+	if (m_b_wsdnode_computing || !m_b_wsdnode_initialized)
 	{
 		CLI_MessageBox_OK_Show("現在前計算中です、少々お待ちください", "Message from Graph cut tool");
 		return;
 	}
 
-	const int    SEAM_W = bandWidth;
-	const EVec3i  reso  = ImageCore::GetInst()->GetResolution();
-	const short  *vol   = ImageCore::GetInst()->m_vol_orig  ;
-	const int    W      = reso[0];
-	const int    H      = reso[1];
-	const int    D      = reso[2];
-	const int    WHD    = W*H*D, WH = W*H;
-	OglImage3D &vFlg    = ImageCore::GetInst()->m_vol_flag   ;
+	const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+	const int W   = reso[0];
+	const int H   = reso[1];
+	const int D   = reso[2];
+	const int WHD = W*H*D, WH = W*H;
+	const int    SEAM_W = band_width;
 
+	const short  *vol    = ImageCore::GetInst()->m_vol_orig;
+	OglImage3D  &vol_flg = ImageCore::GetInst()->m_vol_flag;
 
 
 	// 前景-背景 境界帯状領域の生成
 
 	// v_mapNodeId --> -1:fore, -2:back, 0以上: nodeIdx
-	int  *v_mapNodeId = new int[ WHD ];  
+	int  *vol_nodeid = new int[ WHD ];  
 	
-	for( int i=0; i < WHD; ++i) v_mapNodeId[i] = (vFlg[i] == 255) ? -1 : -2;
+	for( int i=0; i < WHD; ++i) vol_nodeid[i] = (vol_flg[i] == 255) ? -1 : -2;
 	
 	for( int z = 1; z < D -1; ++z)
-	for( int y = 1; y < H -1; ++y)
-	for( int x = 1; x < W -1; ++x)
-	{
-		const int I = x + y*W + z*WH;
-		if( vFlg[ I ] != 255 ) continue;
+  {
+	  for( int y = 1; y < H -1; ++y)
+    {
+	    for( int x = 1; x < W -1; ++x)
+	    {
+		    const int I = x + y*W + z*WH;
+		    if( vol_flg[ I ] != 255 ) continue;
 
-		if( vFlg[I-1] <= 1 || vFlg[I-W] <= 1 || vFlg[I-WH] <= 1 || 
-			  vFlg[I+1] <= 1 || vFlg[I+W] <= 1 || vFlg[I+WH] <= 1 )
-		{
-			for( int zz = -SEAM_W; zz <= SEAM_W; ++zz) if( 0 <= z+zz && z+zz < D )
-			for( int yy = -SEAM_W; yy <= SEAM_W; ++yy) if( 0 <= y+yy && y+yy < H )
-			for( int xx = -SEAM_W; xx <= SEAM_W; ++xx) if( 0 <= x+xx && x+xx < W )
-			{
-				const int pivI = I + xx + yy*W + zz * WH;
-				if (genBundOnlyBack)
-				{
-					if( vFlg[ pivI ] != 255 ) v_mapNodeId[ pivI ] = 0;
-				}
-				else
-				{
-					v_mapNodeId[ pivI ] = 0;
-				}
-			}
-		}
+		    if( vol_flg[I-1] <= 1 || vol_flg[I-W] <= 1 || vol_flg[I-WH] <= 1 || 
+			      vol_flg[I+1] <= 1 || vol_flg[I+W] <= 1 || vol_flg[I+WH] <= 1 )
+		    {
+			    for( int zz = -SEAM_W; zz <= SEAM_W; ++zz) if( 0 <= z+zz && z+zz < D )
+			    for( int yy = -SEAM_W; yy <= SEAM_W; ++yy) if( 0 <= y+yy && y+yy < H )
+			    for( int xx = -SEAM_W; xx <= SEAM_W; ++xx) if( 0 <= x+xx && x+xx < W )
+			    {
+				    const int pivI = I + xx + yy*W + zz * WH;
+				    if (b_genband_onlybackground)
+				    {
+					    if( vol_flg[ pivI ] != 255 ) vol_nodeid[ pivI ] = 0;
+				    }
+				    else
+				    {
+					    vol_nodeid[ pivI ] = 0;
+				    }
+			    }
+		    }
+      }
+    }
 	}
-
 
 	//gen flow network
-	vector<GCVoxNode> voxNodes;
-	voxNodes.reserve(WHD);
-	for(int i = 0, k=0; i < WHD; ++i) if( v_mapNodeId[i] == 0 )
+	vector<GCVoxNode> vox_nodes;
+	vox_nodes.reserve(WHD);
+	for(int i = 0, k=0; i < WHD; ++i) if( vol_nodeid[i] == 0 )
 	{
-		v_mapNodeId[i] = (int) voxNodes.size();
-		voxNodes.push_back( GCVoxNode(i,vol[i]) );
+		vol_nodeid[i] = (int) vox_nodes.size();
+		vox_nodes.push_back( GCVoxNode(i,vol[i]) );
 	}
 
+	const int num_node  = (int) vox_nodes.size();
+	const int num_edge  = 2 * num_node + 6 * num_node ;
+	const int sourcenode_id = num_node + 0;
+	const int sinknode_id   = num_node + 1;
+	TFlowNetwork_BK4 network( num_node + 2, num_edge, sourcenode_id, sinknode_id );
 
-	const int nodeN    = (int) voxNodes.size();
-	const int edgeN    = 2 * nodeN + 6 * nodeN ;
-	const int SourceID = nodeN + 0;
-	const int SinkID   = nodeN + 1;
-	TFlowNetwork_BK4 network( nodeN + 2, edgeN, SourceID, SinkID );
-
-	for( int ni = 0; ni < nodeN; ++ni)
+	for( int ni = 0; ni < num_node; ++ni)
 	{	
-		EVec4i vI = t_voxIdx(W, WH, voxNodes[ni].m_idx);
-		const int I = vI[3];
+		const EVec4i vI = t_voxIdx(W, WH, vox_nodes[ni].m_idx);
+		const int     I = vI[3];
 
 		int state = 0; // -2 : 背景隣接   -1 :前景隣接   >=0:その他
-		if( vI[0] != 0  && v_mapNodeId[ I-1 ] < 0 ) state = v_mapNodeId[ I-1  ]; // = -1 or -2
-		if( vI[1] != 0  && v_mapNodeId[ I-W ] < 0 ) state = v_mapNodeId[ I-W  ]; 
-		if( vI[2] != 0  && v_mapNodeId[ I-WH] < 0 ) state = v_mapNodeId[ I-WH ]; 
-		if( vI[0] !=W-1 && v_mapNodeId[ I+1 ] < 0 ) state = v_mapNodeId[ I+1  ]; 
-		if( vI[1] !=H-1 && v_mapNodeId[ I+W ] < 0 ) state = v_mapNodeId[ I+W  ]; 
-		if( vI[2] !=D-1 && v_mapNodeId[ I+WH] < 0 ) state = v_mapNodeId[ I+WH ]; 
+		if( vI[0] != 0  && vol_nodeid[ I-1 ] < 0 ) state = vol_nodeid[ I-1  ]; // = -1 or -2
+		if( vI[1] != 0  && vol_nodeid[ I-W ] < 0 ) state = vol_nodeid[ I-W  ]; 
+		if( vI[2] != 0  && vol_nodeid[ I-WH] < 0 ) state = vol_nodeid[ I-WH ]; 
+		if( vI[0] !=W-1 && vol_nodeid[ I+1 ] < 0 ) state = vol_nodeid[ I+1  ]; 
+		if( vI[1] !=H-1 && vol_nodeid[ I+W ] < 0 ) state = vol_nodeid[ I+W  ]; 
+		if( vI[2] !=D-1 && vol_nodeid[ I+WH] < 0 ) state = vol_nodeid[ I+WH ]; 
 
 		//tlink
 		double e1_f = (state == -1) ? FOREBACK_MAX : (state ==-2 ) ? 0            : 1;
 		double e1_b = (state == -1) ?     0        : (state ==-2 ) ? FOREBACK_MAX : 1;
-		network.add_tLink( SourceID, SinkID,  ni, e1_f, e1_b );
+		network.add_tLink( sourcenode_id, sinknode_id,  ni, e1_f, e1_b );
 
 		//nlink
-		if( vI[0] != W-1 && v_mapNodeId[I+1 ] >= 0 ) { network.add_nLink( ni, v_mapNodeId[I+1 ], t_calcE2( voxNodes[ni].m_val, voxNodes[v_mapNodeId[I+1 ]].m_val, lambda) ); }
-		if( vI[1] != H-1 && v_mapNodeId[I+W ] >= 0 ) { network.add_nLink( ni, v_mapNodeId[I+W ], t_calcE2( voxNodes[ni].m_val, voxNodes[v_mapNodeId[I+W ]].m_val, lambda) ); }
-		if( vI[2] != D-1 && v_mapNodeId[I+WH] >= 0 ) { network.add_nLink( ni, v_mapNodeId[I+WH], t_calcE2( voxNodes[ni].m_val, voxNodes[v_mapNodeId[I+WH]].m_val, lambda) ); }
+		if( vI[0] != W-1 && vol_nodeid[I+1 ] >= 0 ) { network.add_nLink( ni, vol_nodeid[I+1 ], t_CalcE2( vox_nodes[ni].m_val, vox_nodes[vol_nodeid[I+1 ]].m_val, lambda) ); }
+		if( vI[1] != H-1 && vol_nodeid[I+W ] >= 0 ) { network.add_nLink( ni, vol_nodeid[I+W ], t_CalcE2( vox_nodes[ni].m_val, vox_nodes[vol_nodeid[I+W ]].m_val, lambda) ); }
+		if( vI[2] != D-1 && vol_nodeid[I+WH] >= 0 ) { network.add_nLink( ni, vol_nodeid[I+WH], t_CalcE2( vox_nodes[ni].m_val, vox_nodes[vol_nodeid[I+WH]].m_val, lambda) ); }
 	}
 
-	byte *minCut = new byte[ nodeN + 2 ];
-	network.calcMaxFlow( SourceID, SinkID, minCut );
-
+	byte *mincut = new byte[ num_node + 2 ];
+	network.calcMaxFlow( sourcenode_id, sinknode_id, mincut );
 
 #pragma omp parallel for
-	for( int i = 0; i < WHD; ++i) if( vFlg[i] != 0 )
+	for( int i = 0; i < WHD; ++i) if( vol_flg[i] != 0 )
 	{
-		vFlg[i] = ( v_mapNodeId[i] == -1    ) ?  255 :
-			        ( v_mapNodeId[i] == -2    ) ?  1   : 
-				      ( minCut[ v_mapNodeId[i] ]) ?  255 : 1;
+		vol_flg[i] = ( vol_nodeid[i] == -1    ) ?  255 :
+			           ( vol_nodeid[i] == -2    ) ?  1   : 
+				         ( mincut[ vol_nodeid[i] ]) ?  255 : 1;
 	}
 
-	delete[] minCut;
-	delete[] v_mapNodeId;
-	vFlg.SetUpdated();
+	delete[] mincut;
+	delete[] vol_nodeid;
+	vol_flg.SetUpdated();
   FormMain_RedrawMainPanel();
 }
 
 
+void ModeSegGCut::NewVolLoaded()
+{
+  //watershed 計算途中に新しい volume読み込みが行なわれる場合がある
+  //threadにメッセージを投げるべき
+  //現在は，messege boxによりユーザに警告を送るだけ
+  if ( m_b_wsdnode_computing )
+  {
+    CLI_MessageBox_OK_Show( "graph cut modeが watershedを\n計算している最中に新しいvolumeが読み込まれました．\n このソフトウエアを再起動することをお勧め得します．", "caution");
+  }
+  m_b_wsdnode_initialized = false; 
+}
 
 
 

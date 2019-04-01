@@ -74,11 +74,27 @@
    - UIの整理（詳細はdialog + ソースコードへ）
 + ModeSegLocalRGrow
    - rename 
++ ModeSegGCut
 
 + watershed
    - replace printf --> std::cout << 
 + GlslShader
    - replace printf --> std::cout << 
-TODO Mode*のリファクタリング
- + 
 
+
+
++ 機能のテスト 
++ input 
+ - 2D bmp slice OK 
+ - 2D dcm slice OK
+ - tiff slice データがないためテスト不可
+ - 3D traw3dss, pvm, sph OK
+ - 3D dcm OK	
+ - 3D pvm 
+ - 3D sph yet
+ - 3D fav yet
++ output 
+ - 
+ - 
+ -
+ - 

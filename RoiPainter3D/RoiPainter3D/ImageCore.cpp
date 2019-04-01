@@ -479,7 +479,7 @@ bool ImageCore::LoadVolume(vector<string> fnames, string fext)
 
 	UpdateGradMagnituteVolume();
 
-	ModeSegGCut::getInst()->newVolLoaded();
+	ModeSegGCut::getInst()->NewVolLoaded();
 
   return true;
 }
