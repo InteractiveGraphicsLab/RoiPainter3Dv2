@@ -317,7 +317,7 @@ void ModeSegVoxelPaint::LBtnDown( const EVec2i &p, OglForCLI *ogl)
 	{
 		if ( formSegVoxelPaint_bLassoMode() ) 
     {
-      m_b_lassomode  = true;
+      m_b_lassomode  = false;
       EVec3f rayP, rayD, pos;
       ogl->GetCursorRay(p, rayP, rayD);
       m_trgt_crssecid = PickCrssec(rayP, rayD, &pos);
