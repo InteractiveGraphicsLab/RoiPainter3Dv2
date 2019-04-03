@@ -475,6 +475,24 @@ public:
     m_image = new GLubyte[m_resolution * CH];
   }
 
+  
+  void Allocate( const char *fname)
+  {
+    if (m_image) delete[] m_image;
+    m_image = 0;
+    m_resolution = 0;
+
+    int W, H;
+    GLubyte* rgba;
+    if ( t_loadImage(fname, W,H, rgba) )
+    {
+      Allocate(W);
+      for( int i=0; i < W; ++i) memcpy( &m_image[CH*i], &rgba[CH*i], sizeof(byte) * CH );
+      delete[] rgba;
+    }
+  }
+
+
   void AllocateHeuImg(const int N)
   {
     Allocate(N);
@@ -540,7 +558,7 @@ public:
 
   inline void SetZero();
   void SetUpdated() { m_is_updated = true; }
-
+  int GetResolution() { return m_resolution; }
 private:
   void SendImageToGPU();
 };

@@ -22,7 +22,11 @@ FormVisParam::FormVisParam(void)
 
   //load transfer function image 
   m_imgPsu = new OglImage1D<CH_RGBA>();
-  m_imgPsu->AllocateHeuImg(TRANS_FUNC_SIZE);
+  m_imgPsu->Allocate("shader/psued_bar.bmp");
+  if ( m_imgPsu->GetResolution() == 0 )
+  {
+    m_imgPsu->AllocateHeuImg(TRANS_FUNC_SIZE);
+  }
 }
 
 

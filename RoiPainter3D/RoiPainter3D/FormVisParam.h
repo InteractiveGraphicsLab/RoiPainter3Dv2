@@ -78,7 +78,7 @@ namespace RoiPainter3D {
     static FormVisParam^ m_singleton;
     OglImage1D<CH_RGBA> *m_imgTf ; // 1st ch(intensity-->trans), 2nd (grad mag-->trans) 
   private: System::Windows::Forms::CheckBox^  doInterpolation;
-           OglImage1D<CH_RGBA> *m_imgPsu; // func: intensity --> psude color 
+    OglImage1D<CH_RGBA> *m_imgPsu; // func: intensity --> psude color 
 
     FormVisParam(void);
     void pitchTextBoxChanged();

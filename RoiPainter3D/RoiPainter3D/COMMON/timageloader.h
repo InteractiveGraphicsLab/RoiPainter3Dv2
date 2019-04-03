@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 
 #pragma managed
 
@@ -12,10 +13,20 @@ inline bool t_loadImage(
 {
 
   System::String ^s = gcnew System::String(fname);
-  System::Drawing::Image^  img = System::Drawing::Image::FromFile(s);
+  System::Drawing::Image^ img;
+
+  try
+  {
+    img = System::Drawing::Image::FromFile(s);
+  }
+  catch ( System::IO::FileNotFoundException ^e)
+  {
+    e->ToString();
+    return false;
+  }
+
   System::Drawing::Bitmap^ bmp = gcnew System::Drawing::Bitmap(img);
 
-  if (bmp->Width == 0 || bmp->Height == 0) return false;
 
   W = bmp->Width;
   H = bmp->Height;
