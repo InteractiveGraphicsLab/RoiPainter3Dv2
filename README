@@ -1,11 +1,14 @@
 
 ROI PAINTER 3D is a software for visualizing and segmenting 3D volumes.
 
-Authors 
+Licence :  GNU GENERAL PUBLIC LICENSE Version 3
+
+Author :
 + Takashi  Ijiri  (Shibaura institute of technology, Ritsumeikan University, Keio University)
+
+Contributers :
 + Tomofumi Narita (Shibaura institute of technology)
-
-
++ Shogo Tsuruoka (Ritsumeikan University)
 
 THRID PARTY MATERIAL: This software uses the following 3rd party libraries.
 (*) Eigen : 
