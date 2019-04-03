@@ -270,6 +270,7 @@ void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
 {
   //renderingに必用なパラメータを集めておく
   const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+  const bool image_interpolation = formVisParam_doInterpolation();
 
   if (m_b_drawingstroke && m_stroke3d.size() > 1)
 	{
@@ -278,9 +279,9 @@ void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
 	
 	//bind volumes ---------------------------------------
 	glActiveTextureARB(GL_TEXTURE0);
-	ImageCore::GetInst()->m_vol.BindOgl();
+	ImageCore::GetInst()->m_vol.BindOgl(image_interpolation);
 	glActiveTextureARB(GL_TEXTURE1);
-	ImageCore::GetInst()->m_vol_gm.BindOgl();
+	ImageCore::GetInst()->m_vol_gm.BindOgl(image_interpolation);
 	glActiveTextureARB(GL_TEXTURE2);
 	ImageCore::GetInst()->m_vol_flag.BindOgl(false);
 	glActiveTextureARB(GL_TEXTURE3);

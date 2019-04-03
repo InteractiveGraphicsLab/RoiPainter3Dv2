@@ -221,14 +221,15 @@ System::Void FormVisParam::winLevelMaxBar_MouseUp(System::Object^  sender, Syste
 
 
 
-System::Void FormVisParam::isRendFrame_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendVolume_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendPseudo_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendIndi_CheckedChanged(System::Object^  sender, System::EventArgs^  e)   {FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendPlaneXY_CheckedChanged(System::Object^  sender, System::EventArgs^  e){FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendPlaneYZ_CheckedChanged(System::Object^  sender, System::EventArgs^  e){FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendPlaneZX_CheckedChanged(System::Object^  sender, System::EventArgs^  e){FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendGradMag_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendFrame_CheckedChanged    (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendVolume_CheckedChanged   (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendPseudo_CheckedChanged   (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendIndi_CheckedChanged     (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendPlaneXY_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendPlaneYZ_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendPlaneZX_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendGradMag_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
+System::Void FormVisParam::doInterpolation_CheckedChanged(System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
 System::Void FormVisParam::transBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {FormMain_RedrawMainPanel();}
 System::Void FormVisParam::sliceBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {FormMain_RedrawMainPanel();}
 

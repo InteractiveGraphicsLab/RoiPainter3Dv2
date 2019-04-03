@@ -573,11 +573,14 @@ void ModeSegVoxelPaint::DrawScene
   const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
   const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
+  
+  const bool image_interpolation = formVisParam_doInterpolation();
+
   //bind volumes ---------------------------------------
   glActiveTextureARB(GL_TEXTURE0);
-  ImageCore::GetInst()->m_vol.BindOgl();
+  ImageCore::GetInst()->m_vol.BindOgl(image_interpolation);
   glActiveTextureARB(GL_TEXTURE1);
-  ImageCore::GetInst()->m_vol_gm.BindOgl();
+  ImageCore::GetInst()->m_vol_gm.BindOgl(image_interpolation);
   glActiveTextureARB(GL_TEXTURE2);
   ImageCore::GetInst()->m_vol_flag.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE3);

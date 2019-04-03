@@ -163,22 +163,13 @@ void ModeVizNormal::KeyUp(int nChar) {}
 
 void ModeVizNormal::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
 {
-  const bool   bXY      = formVisParam_bPlaneXY();
-  const bool   bYZ      = formVisParam_bPlaneYZ();
-  const bool   bZX      = formVisParam_bPlaneZX();
-  const bool   bDrawVol = formVisParam_bRendVol();
-  const bool   bGradMag = formVisParam_bGradMag();
-  const bool   bPsuedo  = formVisParam_bDoPsued();
-  const float  alpha    = formVisParam_getAlpha();
-  const EVec3i reso     = ImageCore::GetInst()->GetResolution();
-  const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-  const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
-
   //bind volumes ---------------------------------------
+  const bool image_interpolation = formVisParam_doInterpolation();
+
   glActiveTextureARB(GL_TEXTURE0);
-  ImageCore::GetInst()->m_vol.BindOgl();
+  ImageCore::GetInst()->m_vol.BindOgl(image_interpolation);
   glActiveTextureARB(GL_TEXTURE1);
-  ImageCore::GetInst()->m_vol_gm.BindOgl();
+  ImageCore::GetInst()->m_vol_gm.BindOgl(image_interpolation);
   glActiveTextureARB(GL_TEXTURE2);
   ImageCore::GetInst()->m_vol_flag.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE3);
@@ -193,17 +184,31 @@ void ModeVizNormal::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
 
   if (m_bDrawStr) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
 
+  const EVec3i reso = ImageCore::GetInst()->GetResolution();
+  const bool b_gm   = formVisParam_bGradMag();
+  const bool b_xy   = formVisParam_bPlaneXY();
+  const bool b_yz   = formVisParam_bPlaneYZ();
+  const bool b_zx   = formVisParam_bPlaneZX();
+
   glColor3d(1, 1, 1);
-  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, bGradMag, false);
-  CrssecCore::GetInst()->DrawCrssec(bXY, bYZ, bZX, cuboid);
+  m_crssecShader.Bind(0, 1, 2, 3, 6, reso, b_gm, false);
+  CrssecCore::GetInst()->DrawCrssec(b_xy, b_yz, b_zx, cuboid);
   m_crssecShader.Unbind();
 
-  if (bDrawVol)
+
+  const bool   b_rend_vol = formVisParam_bRendVol();
+
+  if (b_rend_vol)
   {
+    const bool   b_psuedo = formVisParam_bDoPsued();
+    const float alpha     = formVisParam_getAlpha();
+    const bool  b_onmanip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int   num_slice = (int)((b_onmanip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+
     glDisable(GL_DEPTH_TEST);
     glEnable (GL_BLEND);
-    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, false);
-    t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
+    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, b_psuedo, false);
+    t_DrawCuboidSlices(num_slice, camP, camF, cuboid);
     m_volumeShader.Unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);

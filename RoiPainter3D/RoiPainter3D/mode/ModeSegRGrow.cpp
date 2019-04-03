@@ -233,11 +233,13 @@ void ModeSegRGrow::KeyUp(int nChar)
 
 void ModeSegRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center)
 {
+  const bool image_interpolation = formVisParam_doInterpolation();
+  
   //bind volumes ---------------------------------------
   glActiveTextureARB(GL_TEXTURE0);
-  ImageCore::GetInst()->m_vol.BindOgl();
+  ImageCore::GetInst()->m_vol.BindOgl(image_interpolation);
   glActiveTextureARB(GL_TEXTURE1);
-  ImageCore::GetInst()->m_vol_gm.BindOgl();
+  ImageCore::GetInst()->m_vol_gm.BindOgl(image_interpolation);
   glActiveTextureARB(GL_TEXTURE2);
   ImageCore::GetInst()->m_vol_flag.BindOgl(false);
   glActiveTextureARB(GL_TEXTURE3);
