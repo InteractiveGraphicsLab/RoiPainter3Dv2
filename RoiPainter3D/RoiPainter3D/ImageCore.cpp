@@ -915,5 +915,27 @@ void ImageCore::SaveVolumeAsTraw3dss(const char *fname)
 
 
 
+// m_vol_flag‚ð‰Šú‰»
+// voxel at locked mask --> 0 
+// otherwise --> 1
+void ImageCore::InitializeVolFlgByLockedMask()
+{
+  const int num_voxels = GetNumVoxels();
+
+  byte masklocked[256] = {};
+  for( int i=0; i < (int)m_mask_data.size(); ++i ) 
+    masklocked[i] = m_mask_data[i].m_b_locked ? 255 : 0;
+
+#pragma omp parallel for
+  for (int i = 0; i < num_voxels; ++i) 
+    m_vol_flag[i] = ( masklocked[m_vol_mask[i]] ) ? 0 : 1;
+
+	m_vol_flag.SetUpdated();
+}
+
+
+
+
+
 
 #pragma managed

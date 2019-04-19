@@ -129,6 +129,12 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalIncludeDirectories>./;./3rdparty/glew/include;./3rdparty/Eigen;./3rdparty/dcmtk/include;./COMMON</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glew32.lib</AdditionalDependencies>
@@ -136,6 +142,7 @@
       <AdditionalLibraryDirectories>./3rdparty/dcmtk/staticlibMD;./3rdparty/glew/lib/Release/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -612,6 +612,7 @@ inline void t_Erode3D(
 {
   const int WH = W*H, WHD = W*H*D;
 
+#pragma omp parallel for 
   for (int z = 0; z < D; ++z)
   {
     for (int y = 0; y < H; ++y)
@@ -631,6 +632,7 @@ inline void t_Erode3D(
     }
   }
 
+#pragma omp parallel for 
   for (int i = 0; i < WHD; ++i) if (vol[i] == 2) vol[i] = 1;
 
 }
@@ -646,6 +648,7 @@ inline void t_Dilate3D(
 {
   const int WH = W*H, WHD = W*H*D;
 
+#pragma omp parallel for 
   for (int z = 0; z < D; ++z)
   {
     for (int y = 0; y < H; ++y)
@@ -662,6 +665,7 @@ inline void t_Dilate3D(
     }
   }
 
+#pragma omp parallel for 
   for (int i = 0; i < WHD; ++i) if (vol[i] == 2) vol[i] = 255;
 
 }

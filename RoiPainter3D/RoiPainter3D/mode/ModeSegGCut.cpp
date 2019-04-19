@@ -75,23 +75,14 @@ bool ModeSegGCut::CanLeaveMode()
 void ModeSegGCut::StartMode()
 {
   //initialize flg volume --------------
-  vector<MaskData> &mask    = ImageCore::GetInst()->m_mask_data;
-	OglImage3D      &vol_mask = ImageCore::GetInst()->m_vol_mask ;
-	OglImage3D      &vol_flg  = ImageCore::GetInst()->m_vol_flag ; 
+  ImageCore::GetInst()->InitializeVolFlgByLockedMask();
 
-	const EVec3i reso = ImageCore::GetInst()->GetResolution();
-	const int WHD = reso[0] * reso[1] * reso[2];
 	
-  for (int i = 0; i < WHD; ++i) 
-  {
-    vol_flg[i] = ( mask[vol_mask[i]].m_b_locked ) ? 0 : 1;
-  }
-	vol_flg.SetUpdated();
 
   //initialize control points ----------
 	m_cps_fore.clear();
 	m_cps_back.clear();
-	m_cp_radius = (float) ImageCore::GetInst()->GetPitchW() * 2;
+	m_cp_radius = (float) ImageCore::GetInst()->GetPitchW() * 3;
 	m_cp_mesh.initializeIcosaHedron( m_cp_radius );
 
   formSegGCut_Show();
@@ -99,6 +90,8 @@ void ModeSegGCut::StartMode()
 	//compute watershad ------------------
 	if( !m_b_wsdnode_initialized )
   {
+	  const EVec3i reso = ImageCore::GetInst()->GetResolution();
+
     //backup file‚Ì“Ç‚Ýž‚Ý‚ðŽŽ‚·
 	  string backUpFilePath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
 	  if( t_loadWsdLabel( backUpFilePath, reso, m_map_vox2wsd) )
@@ -403,23 +396,20 @@ void ModeSegGCut::DrawScene (
 	}
 
   //draw control points
-	const static float diffR[4] = {1   ,0,0,0}, diffB[4] = {0.3f,0.3f,1,1};
-	const static float ambiR[4] = {0.5f,0,0,0}, ambiB[4] = {0.3f,0.3f,0.8f,1};
-	const static float  spec[4] = {1   ,1,1,0};
-	const static float  shin[1] = {56.0f};
-
-	glEnable(GL_LIGHTING);
+	glDisable(GL_LIGHTING);
+  glColor3d(1,0,0);
 	for (const auto& it: m_cps_fore )
 	{
 		glTranslated( it.m_pos[0], it.m_pos[1], it.m_pos[2]);
-		m_cp_mesh.draw( diffR, ambiR, spec, shin);
+		m_cp_mesh.draw();
 		glTranslated(-it.m_pos[0],-it.m_pos[1],-it.m_pos[2]);
 	}
 
+  glColor3d(0,0,1);
 	for (const auto& it: m_cps_back )
 	{
 		glTranslated( it.m_pos[0], it.m_pos[1], it.m_pos[2]);
-		m_cp_mesh.draw(diffB, ambiB, spec, shin);
+		m_cp_mesh.draw();
 		glTranslated(-it.m_pos[0],-it.m_pos[1],-it.m_pos[2]);
 	}
 	glDisable(GL_LIGHTING);

@@ -125,6 +125,7 @@ public:
   }
 
 	EVec3i GetResolution() { return m_resolution; }
+  int GetNumVoxels(){ return m_resolution[0] * m_resolution[1] * m_resolution[2];}
 
   std::string GetFilePath(){ return m_filepath;}
 
@@ -180,6 +181,9 @@ public:
   void ActiveMask_Dilate   ( );
   void ActiveMask_FillHole ( );
   void ActiveMask_ExportObj(const std::string &fname);
+
+
+  void InitializeVolFlgByLockedMask();
 
 private:
 	void UpdateGradMagnituteVolume();

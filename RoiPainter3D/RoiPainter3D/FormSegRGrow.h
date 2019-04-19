@@ -36,6 +36,11 @@ namespace RoiPainter3D {
 
     void InitAllItems(short volMin, short volMax);
 
+    bool DoLimitIteration(){ return checkBox_limititeration->Checked; }
+    int  GetMaxIteration() { return trackBar_maxiteration->Value; } 
+
+
+
 	protected:
 		/// <summary>
 		/// 使用中のリソースをすべてクリーンアップします。
@@ -65,6 +70,10 @@ namespace RoiPainter3D {
     System::Windows::Forms::Button^  btn_fillhole;
     System::Windows::Forms::Button^  btn_dilate;
     System::Windows::Forms::Button^  btn_finish;
+    System::Windows::Forms::CheckBox^  checkBox_limititeration;
+    System::Windows::Forms::TrackBar^  trackBar_maxiteration;
+    System::Windows::Forms::TextBox^  textBox_maxiteration;
+
 
 
   protected:
@@ -98,9 +107,13 @@ namespace RoiPainter3D {
       this->btn_fillhole = (gcnew System::Windows::Forms::Button());
       this->btn_dilate = (gcnew System::Windows::Forms::Button());
       this->btn_finish = (gcnew System::Windows::Forms::Button());
+      this->checkBox_limititeration = (gcnew System::Windows::Forms::CheckBox());
+      this->trackBar_maxiteration = (gcnew System::Windows::Forms::TrackBar());
+      this->textBox_maxiteration = (gcnew System::Windows::Forms::TextBox());
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackbar_min))->BeginInit();
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackbar_max))->BeginInit();
       this->groupBox->SuspendLayout();
+      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar_maxiteration))->BeginInit();
       this->SuspendLayout();
       // 
       // label1
@@ -134,10 +147,10 @@ namespace RoiPainter3D {
       this->trackbar_min->TickStyle = System::Windows::Forms::TickStyle::None;
       this->trackbar_min->Scroll += gcnew System::EventHandler(this, &FormSegRGrow::trackbar_min_Scroll);
       // 
-      // trackBar_max
+      // trackbar_max
       // 
       this->trackbar_max->Location = System::Drawing::Point(12, 90);
-      this->trackbar_max->Name = L"trackBar_max";
+      this->trackbar_max->Name = L"trackbar_max";
       this->trackbar_max->Size = System::Drawing::Size(206, 45);
       this->trackbar_max->TabIndex = 3;
       this->trackbar_max->TickStyle = System::Windows::Forms::TickStyle::None;
@@ -240,7 +253,7 @@ namespace RoiPainter3D {
       // 
       this->btn_erode->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_erode->Location = System::Drawing::Point(6, 300);
+      this->btn_erode->Location = System::Drawing::Point(34, 343);
       this->btn_erode->Name = L"btn_erode";
       this->btn_erode->Size = System::Drawing::Size(69, 28);
       this->btn_erode->TabIndex = 11;
@@ -252,7 +265,7 @@ namespace RoiPainter3D {
       // 
       this->btn_fillhole->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_fillhole->Location = System::Drawing::Point(156, 300);
+      this->btn_fillhole->Location = System::Drawing::Point(184, 343);
       this->btn_fillhole->Name = L"btn_fillhole";
       this->btn_fillhole->Size = System::Drawing::Size(69, 28);
       this->btn_fillhole->TabIndex = 12;
@@ -264,7 +277,7 @@ namespace RoiPainter3D {
       // 
       this->btn_dilate->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_dilate->Location = System::Drawing::Point(81, 300);
+      this->btn_dilate->Location = System::Drawing::Point(109, 343);
       this->btn_dilate->Name = L"btn_dilate";
       this->btn_dilate->Size = System::Drawing::Size(69, 28);
       this->btn_dilate->TabIndex = 13;
@@ -276,7 +289,7 @@ namespace RoiPainter3D {
       // 
       this->btn_finish->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_finish->Location = System::Drawing::Point(93, 357);
+      this->btn_finish->Location = System::Drawing::Point(89, 380);
       this->btn_finish->Name = L"btn_finish";
       this->btn_finish->Size = System::Drawing::Size(162, 28);
       this->btn_finish->TabIndex = 14;
@@ -284,11 +297,41 @@ namespace RoiPainter3D {
       this->btn_finish->UseVisualStyleBackColor = true;
       this->btn_finish->Click += gcnew System::EventHandler(this, &FormSegRGrow::btn_finish_Click);
       // 
+      // checkBox_limititeration
+      // 
+      this->checkBox_limititeration->AutoSize = true;
+      this->checkBox_limititeration->Location = System::Drawing::Point(8, 297);
+      this->checkBox_limititeration->Name = L"checkBox_limititeration";
+      this->checkBox_limititeration->Size = System::Drawing::Size(133, 16);
+      this->checkBox_limititeration->TabIndex = 15;
+      this->checkBox_limititeration->Text = L"Limit growth iteration";
+      this->checkBox_limititeration->UseVisualStyleBackColor = true;
+      // 
+      // trackBar_maxiteration
+      // 
+      this->trackBar_maxiteration->Location = System::Drawing::Point(64, 314);
+      this->trackBar_maxiteration->Name = L"trackBar_maxiteration";
+      this->trackBar_maxiteration->Size = System::Drawing::Size(187, 45);
+      this->trackBar_maxiteration->TabIndex = 7;
+      this->trackBar_maxiteration->TickStyle = System::Windows::Forms::TickStyle::None;
+      this->trackBar_maxiteration->Scroll += gcnew System::EventHandler(this, &FormSegRGrow::trackBar_maxiteration_Scroll);
+      // 
+      // textBox_maxiteration
+      // 
+      this->textBox_maxiteration->Location = System::Drawing::Point(6, 315);
+      this->textBox_maxiteration->Name = L"textBox_maxiteration";
+      this->textBox_maxiteration->ReadOnly = true;
+      this->textBox_maxiteration->Size = System::Drawing::Size(54, 19);
+      this->textBox_maxiteration->TabIndex = 7;
+      // 
       // FormSegRGrow
       // 
       this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(263, 397);
+      this->ClientSize = System::Drawing::Size(263, 424);
+      this->Controls->Add(this->textBox_maxiteration);
+      this->Controls->Add(this->checkBox_limititeration);
+      this->Controls->Add(this->groupBox);
       this->Controls->Add(this->btn_finish);
       this->Controls->Add(this->btn_dilate);
       this->Controls->Add(this->btn_fillhole);
@@ -296,20 +339,20 @@ namespace RoiPainter3D {
       this->Controls->Add(this->btn_rgrow26);
       this->Controls->Add(this->btn_rgrow8);
       this->Controls->Add(this->btn_thresholding);
-      this->Controls->Add(this->groupBox);
       this->Controls->Add(this->label2);
       this->Controls->Add(this->label1);
+      this->Controls->Add(this->trackBar_maxiteration);
       this->Name = L"FormSegRGrow";
       this->Text = L"FormSegRGrow";
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackbar_min))->EndInit();
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackbar_max))->EndInit();
       this->groupBox->ResumeLayout(false);
       this->groupBox->PerformLayout();
+      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar_maxiteration))->EndInit();
       this->ResumeLayout(false);
       this->PerformLayout();
 
     }
-
 #pragma endregion
 private: 
   System::Void textBox_min_TextChanged(System::Object^  sender, System::EventArgs^  e) ;
@@ -323,9 +366,14 @@ private:
   System::Void btn_dilate_Click(System::Object^  sender, System::EventArgs^  e) ;
   System::Void btn_fillhole_Click(System::Object^  sender, System::EventArgs^  e); 
   System::Void btn_finish_Click(System::Object^  sender, System::EventArgs^  e) ;
-};
+  System::Void trackBar_maxiteration_Scroll(System::Object^  sender, System::EventArgs^  e) ;
+  };
 
   inline void formSegRGrow_Show() { FormSegRGrow::getInst()->Show(); }
   inline void formSegRGrow_Hide() { FormSegRGrow::getInst()->Hide(); }
   inline void formSegRGrow_InitAllItems(short volMin, short volMax) { FormSegRGrow::getInst()->InitAllItems(volMin, volMax); }
+
+  inline bool formSetRGrow_DoLimitIteration(){ return FormSegRGrow::getInst()->DoLimitIteration(); }
+  inline int  formSetRGrow_GetMaxIteration() { return FormSegRGrow::getInst()->GetMaxIteration(); } 
+
 }

@@ -278,5 +278,8 @@
     <EmbeddedResource Include="FormSegVoxelPaint.resx">
       <Filter>リソース ファイル</Filter>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormSegLocalRGrow.resx">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

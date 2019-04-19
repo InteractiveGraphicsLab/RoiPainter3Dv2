@@ -13,6 +13,10 @@ void FormSegRGrow::InitAllItems(short volMin, short volMax)
   trackbar_max->Value = volMax;
   textBox_min->Text = trackbar_min->Value.ToString();
   textBox_max->Text = trackbar_max->Value.ToString();
+
+  trackBar_maxiteration->SetRange(1,50000);
+  trackBar_maxiteration->Value = 10;
+  textBox_maxiteration->Text = trackBar_maxiteration->Value.ToString();
 }
 
 
@@ -62,4 +66,9 @@ System::Void FormSegRGrow::btn_fillhole_Click(System::Object^  sender, System::E
 System::Void FormSegRGrow::btn_finish_Click(System::Object^  sender, System::EventArgs^    e) {
   ModeSegRGrow::GetInst()->FinishSegmentation();
   FormMain_RedrawMainPanel();
+}
+
+System::Void FormSegRGrow::trackBar_maxiteration_Scroll(System::Object^  sender, System::EventArgs^  e) 
+{
+  textBox_maxiteration->Text = trackBar_maxiteration->Value.ToString();
 }

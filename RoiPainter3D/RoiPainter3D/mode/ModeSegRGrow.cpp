@@ -54,23 +54,15 @@ bool ModeSegRGrow::CanLeaveMode()
 
 void ModeSegRGrow::StartMode()
 {
-  //prepare flg volume (consider the Locked mask Ids)
-	vector<MaskData> &mask  = ImageCore::GetInst()->m_mask_data;
-	OglImage3D   &vol_mask  = ImageCore::GetInst()->m_vol_mask  ;
-	OglImage3D   &vol_flg   = ImageCore::GetInst()->m_vol_flag  ;
-	EVec3i       reso       = ImageCore::GetInst()->GetResolution();
-	EVec2i       vol_minmax = ImageCore::GetInst()->GetVolMinMax();
-
-	const int N = reso[0] * reso[1] * reso[2];
-	for (int i = 0; i < N; ++i) vol_flg[i] = ( mask[vol_mask[i]].m_b_locked ) ? 0 : 1;
-	vol_flg.SetUpdated();
+  ImageCore::GetInst()->InitializeVolFlgByLockedMask();
 
 	m_cp_centers.clear();
-	m_cp_size = ImageCore::GetInst()->GetPitchW() * 1;
+	m_cp_size = ImageCore::GetInst()->GetPitchW() * 3;
 	m_cp_sphere.initializeIcosaHedron( m_cp_size );
 
-  formSegRGrow_Show();
+	EVec2i vol_minmax = ImageCore::GetInst()->GetVolMinMax();
   formSegRGrow_InitAllItems(vol_minmax[0],vol_minmax[1]);
+  formSegRGrow_Show();
 }
 
 
@@ -284,15 +276,12 @@ void ModeSegRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const 
 
 
   //draw control points
-  const static float diff[4] = { 1   ,0,0,0 };
-  const static float ambi[4] = { 0.5f,0,0,0 };
-  const static float spec[4] = { 1   ,1,1,0 };
-  const static float shin[1] = { 56.0f };
-  glEnable(GL_LIGHTING);
+  glDisable(GL_LIGHTING);
+  glColor3d(1,0,0);
   for ( const auto& it : m_cp_centers ) 
   {
     glTranslated( it[0], it[1], it[2]);
-    m_cp_sphere.draw(diff, ambi, spec, shin);
+    m_cp_sphere.draw();
     glTranslated(-it[0], -it[1], -it[2]);
   }
   glDisable(GL_LIGHTING);
@@ -303,18 +292,17 @@ void ModeSegRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const 
 
 void ModeSegRGrow::RunThresholding(short min_v, short max_v)
 {
-	const EVec3i reso    = ImageCore::GetInst()->GetResolution();
-	const short  *vol    = ImageCore::GetInst()->m_vol_orig;
-	OglImage3D  &vol_flg = ImageCore::GetInst()->m_vol_flag ;
+  const int   num_voxels = ImageCore::GetInst()->GetNumVoxels();
+	const short       *vol = ImageCore::GetInst()->m_vol_orig;
+	byte *vol_flg = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
-	const int N = reso[0] * reso[1] * reso[2];
-
-	for (int i = 0; i < N; ++i) if ( vol_flg[i] != 0 )
+#pragma omp parallel for
+	for (int i = 0; i < num_voxels; ++i) if ( vol_flg[i] != 0 )
 	{
 		vol_flg[i] = (min_v <= vol[i] && vol[i] <= max_v) ? 255 : 1;
 	}
 
-	vol_flg.SetUpdated();
+	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
   FormMain_RedrawMainPanel();
 }
@@ -333,9 +321,11 @@ void ModeSegRGrow::RunRegionGrow6(short minv, short maxv)
   const int WHD = W*H*D;
 
 	const short  *vol   = ImageCore::GetInst()->m_vol_orig;
-	OglImage3D   &vflg   = ImageCore::GetInst()->m_vol_flag ; 
+	byte         *vflg  = ImageCore::GetInst()->m_vol_flag.GetVolumePtr(); 
 
 	for (int i = 0; i < WHD; ++i) vflg[i] = ( vflg[i] == 0) ? 0 : 1;
+
+  const int maxnum_iteration = formSetRGrow_DoLimitIteration() ? formSetRGrow_GetMaxIteration() : INT_MAX;
 
 	//CP --> pixel id
 	//volFlg : 0:never change, 1:back, 255:fore
@@ -354,6 +344,7 @@ void ModeSegRGrow::RunRegionGrow6(short minv, short maxv)
 		}
 	}
 
+  int num_iter = 0;
 	while (!Q.empty())
 	{
 		const int x = Q.front()[0];
@@ -370,9 +361,12 @@ void ModeSegRGrow::RunRegionGrow6(short minv, short maxv)
 		K = I+ 1; if ( x<W-1 && vflg[K]==1 && minv<=vol[K] && vol[K]<=maxv) { vflg[K]=255; Q.push_back(EVec4i(x+1, y , z , K)); }
 		K = I+ W; if ( y<H-1 && vflg[K]==1 && minv<=vol[K] && vol[K]<=maxv) { vflg[K]=255; Q.push_back(EVec4i( x ,y+1, z , K)); }
 		K = I+WH; if ( z<D-1 && vflg[K]==1 && minv<=vol[K] && vol[K]<=maxv) { vflg[K]=255; Q.push_back(EVec4i( x , y ,z+1, K)); }
+
+    ++num_iter;
+    if( num_iter >= maxnum_iteration ) break;
 	}
 	
-  vflg.SetUpdated();
+  ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
   FormMain_RedrawMainPanel();
 
@@ -392,8 +386,10 @@ void ModeSegRGrow::RunRegionGrow26(short minV, short maxV)
   const int WH = W*H;
   const int WHD = W*H*D;
 
+  const int maxnum_iteration = formSetRGrow_DoLimitIteration() ? formSetRGrow_GetMaxIteration() : INT_MAX;
+
 	const short  *vol  = ImageCore::GetInst()->m_vol_orig;
-	OglImage3D   &vflg = ImageCore::GetInst()->m_vol_flag ; 
+	byte         *vflg = ImageCore::GetInst()->m_vol_flag.GetVolumePtr(); 
 
 	for (int i = 0; i < WHD; ++i) vflg[i] = ( vflg[i] == 0) ? 0 : 1;
 
@@ -414,6 +410,7 @@ void ModeSegRGrow::RunRegionGrow26(short minV, short maxV)
 		}
 	}
 
+  int num_iter = 0;
 	while (!Q.empty())
 	{
 		const int x = Q.front()[0];
@@ -453,9 +450,12 @@ void ModeSegRGrow::RunRegionGrow26(short minV, short maxV)
     K = I-1+W+WH; if (x> 0 &&y<H-1&&z<D-1&& vflg[K] == 1 && minV<=vol[K] && vol[K]<=maxV) { vflg[K] = 255; Q.push_back(EVec4i(x-1, y+1, z+1, K)); }
     K = I  +W+WH; if (       y<H-1&&z<D-1&& vflg[K] == 1 && minV<=vol[K] && vol[K]<=maxV) { vflg[K] = 255; Q.push_back(EVec4i(x  , y+1, z+1, K)); }
     K = I+1+W+WH; if (x<W-1&&y<H-1&&z<D-1&& vflg[K] == 1 && minV<=vol[K] && vol[K]<=maxV) { vflg[K] = 255; Q.push_back(EVec4i(x+1, y+1, z+1, K)); }
+
+    ++num_iter;
+    if( num_iter >= maxnum_iteration ) break;
 	}
 	
-  vflg.SetUpdated();
+  ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
   FormMain_RedrawMainPanel();
 	std::cout << "runRegionGrow26...DONE\n\n";
