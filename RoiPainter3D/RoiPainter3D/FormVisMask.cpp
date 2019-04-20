@@ -15,8 +15,8 @@ void FormVisMask::updateList()
 {
   m_bListUpdating = true;
 
-  const vector<MaskData> &maskData       = ImageCore::GetInst()->m_mask_data;
-  const int              &maskSelectedId = ImageCore::GetInst()->m_active_mask_id;
+  const vector<MaskData> &maskData       = ImageCore::GetInst()->GetMaskData();
+  const int              &maskSelectedId = ImageCore::GetInst()->GetActiveMaskID();
 
 
   //èâä˙âª
@@ -60,14 +60,14 @@ System::Void FormVisMask::maskList_SelectionChanged(System::Object^  sender, Sys
   if (m_bListUpdating) return;
 
   std::cout << "selection changed " << maskList->CurrentCell->RowIndex << " " << maskList->CurrentCell->ColumnIndex << "\n";
-  ImageCore::GetInst()->m_active_mask_id = maskList->CurrentCell->RowIndex;
+  ImageCore::GetInst()->SetActiveMaskID( maskList->CurrentCell->RowIndex );
 
   //modify values
-  const int              &tgtMaskId = ImageCore::GetInst()->m_active_mask_id;
-  const vector<MaskData> &maskData  = ImageCore::GetInst()->m_mask_data;
+  const vector<MaskData> &maskData = ImageCore::GetInst()->GetMaskData();
+  const int              &selectid = ImageCore::GetInst()->GetActiveMaskID();
 
-  checkbox_lock->CheckState = maskData[tgtMaskId].m_b_locked ? CheckState::Checked : CheckState::Unchecked;
-  trackbar_alpha->Value = (int)(100 * maskData[tgtMaskId].m_alpha);
+  checkbox_lock->CheckState = maskData[selectid].m_b_locked ? CheckState::Checked : CheckState::Unchecked;
+  trackbar_alpha->Value = (int)(100 * maskData[selectid].m_alpha);
 
 }
 
@@ -81,43 +81,26 @@ System::Void FormVisMask::maskList_CellContentClick(System::Object^  sender, Sys
 
 System::Void FormVisMask::btnColorPallet_Click  (System::Object^  sender, System::EventArgs^  e) 
 {
-  const int         &tgtMaskId = ImageCore::GetInst()->m_active_mask_id;
-  vector<MaskData>  &maskData  = ImageCore::GetInst()->m_mask_data;
-
-  if (tgtMaskId < 0 || maskList->RowCount <= tgtMaskId) return;
-
   System::Windows::Forms::ColorDialog ^colorDialog = gcnew System::Windows::Forms::ColorDialog();  
   if (colorDialog->ShowDialog() != System::Windows::Forms::DialogResult::OK) return;
-
-  maskData[tgtMaskId].m_color = EVec3i(colorDialog->Color.R, colorDialog->Color.G, colorDialog->Color.B);
-
+  
+  ImageCore::GetInst()->ActiveMask_SetColor( EVec3i(colorDialog->Color.R, colorDialog->Color.G, colorDialog->Color.B) );
 
   updateList();
   FormMain_RedrawMainPanel();
 }
 
 
-
 System::Void FormVisMask::checkbox_lock_CheckedChanged(System::Object^  sender, System::EventArgs^  e)
 {
-  vector<MaskData> &maskData  = ImageCore::GetInst()->m_mask_data;
-  const int        &tgtMaskId = ImageCore::GetInst()->m_active_mask_id;
-  if (tgtMaskId < 0 || maskList->RowCount <= tgtMaskId) return;
-
-  maskData[tgtMaskId].m_b_locked = checkbox_lock->CheckState == CheckState::Checked ? true : false;
-  std::cout << "lock value = " << maskData[tgtMaskId].m_b_locked << "\n";
-
+  ImageCore::GetInst()->ActiveMask_SetLocked( checkbox_lock->CheckState == CheckState::Checked ? true : false );
   FormMain_RedrawMainPanel();
 }
 
 
 System::Void FormVisMask::trackbar_alpha_Scroll (System::Object^  sender, System::EventArgs^  e) 
 {
-  const int         &tgtMaskId = ImageCore::GetInst()->m_active_mask_id;
-  vector<MaskData>  &maskData  = ImageCore::GetInst()->m_mask_data;
-  if (tgtMaskId < 0 || maskList->RowCount <= tgtMaskId) return;
-
-  maskData[tgtMaskId].m_alpha = trackbar_alpha->Value / 100.0;
+  ImageCore::GetInst()->ActiveMask_SetAlpha( trackbar_alpha->Value / 100.0);
   FormMain_RedrawMainPanel();
 }
 
@@ -129,7 +112,7 @@ static void updateImageCoreVisVolumes()
 }
 
 
-System::Void FormVisMask::btnDelete_Click       (System::Object^  sender, System::EventArgs^  e) 
+System::Void FormVisMask::btnDelete_Click(System::Object^  sender, System::EventArgs^  e) 
 {
   ImageCore::GetInst()->ActiveMask_Delete();
   updateList();
@@ -140,7 +123,10 @@ System::Void FormVisMask::btnDelete_Click       (System::Object^  sender, System
 
 System::Void FormVisMask::btnMargeTo_Click( System::Object^  sender, System::EventArgs^  e) 
 {
-  int trgtId = formMaskIdSelection_showModalDialog();
+  const vector<MaskData> &maskdata = ImageCore::GetInst()->GetMaskData();
+  const int               selectid = ImageCore::GetInst()->GetActiveMaskID();
+
+  int trgtId = formMaskIdSelection_showModalDialog(maskdata, selectid);
   if( trgtId == -1) return;
 
   ImageCore::GetInst()->ActiveMask_Marge(trgtId);

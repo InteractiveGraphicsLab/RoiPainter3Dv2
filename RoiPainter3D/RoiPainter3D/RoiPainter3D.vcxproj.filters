@@ -141,6 +141,9 @@
     <ClInclude Include="FormSegVoxelPaint.h">
       <Filter>MODE</Filter>
     </ClInclude>
+    <ClInclude Include="MaskData.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">

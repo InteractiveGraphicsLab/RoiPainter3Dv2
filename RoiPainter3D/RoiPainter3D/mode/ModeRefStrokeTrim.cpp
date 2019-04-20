@@ -53,7 +53,11 @@ void ModeRefStrokeTrim::StartMode()
 {
 	m_b_modified = false;
 
-  m_trgt_maskid = formMaskIdSelection_showModalDialog();
+  
+  m_trgt_maskid = formMaskIdSelection_showModalDialog( 
+    ImageCore::GetInst()->GetMaskData(), 
+    ImageCore::GetInst()->GetActiveMaskID());
+
   if( m_trgt_maskid < 0 ){
     ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
     return;
@@ -68,19 +72,18 @@ void ModeRefStrokeTrim::StartMode()
   formRefStrokeTrim_Show();
   CrssecCore::GetInst()->ClearCurvedCrossec();
 
-  const vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
-  OglImage3D  &vMask = ImageCore::GetInst()->m_vol_mask  ;
-	OglImage3D  &vFlg  = ImageCore::GetInst()->m_vol_flag  ;
-	const EVec3i r     = ImageCore::GetInst()->GetResolution();
-	const int    N     = r[0] * r[1] * r[2];
+	const int  nun_voxels = ImageCore::GetInst()->GetNumVoxels();
+  const byte *msk3d     = ImageCore::GetInst()->m_vol_mask.GetVolumePtr()  ;
+	byte       *flg3d     = ImageCore::GetInst()->m_vol_flag.GetVolumePtr()  ;
 
-	for (int i = 0; i < N; ++i) vFlg[i] = ( vMask[i] == m_trgt_maskid) ? 255 : 0;
-	vFlg.SetUpdated();
+	for (int i = 0; i < nun_voxels; ++i) 
+    flg3d[i] = ( msk3d[i] == m_trgt_maskid) ? 255 : 0;
+	
+  ImageCore::GetInst()->m_vol_flag.SetUpdated();
 
 	if( m_vol_prev ) delete[] m_vol_prev;
-	m_vol_prev = new byte[N];
-	memcpy(m_vol_prev, &(vMask[0]), sizeof(byte)*N);
-	
+	m_vol_prev = new byte[nun_voxels];
+	memcpy(m_vol_prev, &(msk3d[0]), sizeof(byte)*nun_voxels);
 }
 
 
@@ -97,33 +100,31 @@ void ModeRefStrokeTrim::cancelSegmentation()
 
 void ModeRefStrokeTrim::finishSegmentation()
 {
-  vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
-	OglImage3D      &vMask = ImageCore::GetInst()->m_vol_mask;
-	OglImage3D      &vFlg  = ImageCore::GetInst()->m_vol_flag;
-	const EVec3i     r     = ImageCore::GetInst()->GetResolution();
-	const int        N     = r[0] * r[1] * r[2];
+	const int num_voxels = ImageCore::GetInst()->GetNumVoxels();
+	byte  *msk3d = ImageCore::GetInst()->m_vol_mask.GetVolumePtr();
+	byte  *flg3d = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
 
 	//ˆê’U ƒgƒŠƒ€‚³‚ê‚½‰æ‘f‚ÌID‚ğ0‚É
-	for( int i= 0; i < N; ++i)
+	for( int i= 0; i < num_voxels; ++i)
 	{
-		if( vMask[i] == m_trgt_maskid && vFlg[i] != 255 ) vMask[i] = 0;
+		if( msk3d[i] == m_trgt_maskid && flg3d[i] != 255 ) msk3d[i] = 0;
 	}
-	mask[m_trgt_maskid].m_surface.clear();
-	mask[m_trgt_maskid].m_b_drawsurface = false;
+  ImageCore::GetInst()->ClearMaskSurface(m_trgt_maskid);
 
 	//ƒgƒŠƒ€‚³‚ê‚½—Ìˆæ‚ğV‚µ‚¢—Ìˆæ‚Æ‚µ‚Ä’Ç‰Á
   bool bTrimRegionExist = false;
-	for( int i= 0; i < N; ++i) 
+	for( int i= 0; i < num_voxels; ++i) 
   {
-    if( vFlg[i] == 1 ) bTrimRegionExist  = true;
-    vFlg[i] = ( vFlg[i] == 1 ) ? 255 : 0;
+    if( flg3d[i] == 1 ) bTrimRegionExist  = true;
+    flg3d[i] = ( flg3d[i] == 1 ) ? 255 : 0;
   }
   if(bTrimRegionExist)
 	  ImageCore::GetInst()->StoreForegroundAsNewMask();
 
-	vFlg .SetUpdated();
-	vMask.SetUpdated();
+	ImageCore::GetInst()->m_vol_mask.SetUpdated();
+	ImageCore::GetInst()->m_vol_flag.SetUpdated();
+
 	m_b_modified = false;
 
   if( m_vol_prev ) delete[] m_vol_prev;

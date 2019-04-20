@@ -42,20 +42,13 @@ ModeSegLocalRGrow::ModeSegLocalRGrow() :
 
 void ModeSegLocalRGrow::StartMode()
 {
-	const vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data  ;
-	const OglImage3D  &vol_mask  = ImageCore::GetInst()->m_vol_mask;
-	OglImage3D        &vol_flg   = ImageCore::GetInst()->m_vol_flag ;
-	const EVec3i      &reso      = ImageCore::GetInst()->GetResolution();
-	const int N = reso[0] * reso[1] * reso[2];
-
-  //init vol_flg
-	for (int i = 0; i < N; ++i) vol_flg[i] = ( mask[ vol_mask[i] ].m_b_locked ) ? 0 : 1;
-	vol_flg.SetUpdated();
+  //init vol_flg 0:locked, 1:others
+  ImageCore::GetInst()->InitializeVolFlgByLockedMask();
 
   //init field & control point
 	m_b_drawstroke = false;
 	m_stroke.clear();
-  m_seeds.clear();
+  m_seeds .clear();
   LRGSeed::SetCpRadius( ImageCore::GetInst()->GetPitchW() * 2.0f );
 
   //show dialog

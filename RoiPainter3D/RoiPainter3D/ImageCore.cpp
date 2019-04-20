@@ -517,9 +517,51 @@ void ImageCore::UpdateOGLVolume(short windowlv_min,  short windowlv_max)
   m_vol.SetValue( m_vol_orig, (short)windowlv_min, (short)windowlv_max);
 }
 
+void ImageCore::UpdateOGLMaskColorImg()
+{
+  //gen mask color id
+  m_img_maskcolor.SetZero();
+  for (int i = 0; i < (int)m_mask_data.size(); ++i)
+  {
+    m_img_maskcolor[4 * i + 0] = m_mask_data[i].m_color[0];
+    m_img_maskcolor[4 * i + 1] = m_mask_data[i].m_color[1];
+    m_img_maskcolor[4 * i + 2] = m_mask_data[i].m_color[2];
+    m_img_maskcolor[4 * i + 3] = (int)(m_mask_data[i].m_alpha * 255);
 
+    if (m_mask_data[i].m_b_drawsurface) ImageCore::GetInst()->m_img_maskcolor[4 * i + 3] = 0;
+  }
+  m_img_maskcolor.SetUpdated();
+}
 
+void  ImageCore::DrawMaskSurfaces()
+{
 
+  for (int i = 0; i < (int)ImageCore::GetInst()->m_mask_data.size(); ++i)
+  {
+    glEnable( GL_LIGHTING );
+    glEnable( GL_LIGHT0 );
+    glEnable( GL_LIGHT1 );
+    glEnable( GL_LIGHT2 );
+    glDisable(GL_CULL_FACE);
+    glEnable( GL_BLEND );
+
+    if( ImageCore::GetInst()->m_mask_data[i].m_b_drawsurface )
+    {
+      float  a  = (float)ImageCore::GetInst()->m_mask_data[i].m_alpha;
+      EVec3i cd = ImageCore::GetInst()->m_mask_data[i].m_color;
+      EVec4f c( cd[0]/500.0f, cd[1]/500.0f, cd[2]/500.0f, a);
+      static float spec[4] = {0.5f,0.5f,0.5f, 1};
+      static float s[1]    = {64.0f};
+
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT  , c.data() );
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE  , c.data() );
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR , spec     );
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, s        );
+      ImageCore::GetInst()->m_mask_data[i].m_surface.draw();
+    }
+    glDisable( GL_BLEND );
+  }
+}
 
 
 
@@ -847,6 +889,16 @@ void ImageCore::ActiveMask_SetRendSurf(const bool tf)
 	}
 }
 
+void  ImageCore::ClearMaskSurface(int trgtid) 
+{
+  if( trgtid < 0 || m_mask_data.size() <= trgtid ) return;
+  MaskData &trgtMsk = m_mask_data[trgtid];
+
+  trgtMsk.m_b_drawsurface = false;
+  trgtMsk.m_surface.clear();
+}
+
+
 
 
 
@@ -918,7 +970,7 @@ void ImageCore::SaveVolumeAsTraw3dss(const char *fname)
 // m_vol_flag‚ð‰Šú‰»
 // voxel at locked mask --> 0 
 // otherwise --> 1
-void ImageCore::InitializeVolFlgByLockedMask()
+void ImageCore::InitializeVolFlgByLockedMask(int fore_maskid )
 {
   const int num_voxels = GetNumVoxels();
 
@@ -928,7 +980,8 @@ void ImageCore::InitializeVolFlgByLockedMask()
 
 #pragma omp parallel for
   for (int i = 0; i < num_voxels; ++i) 
-    m_vol_flag[i] = ( masklocked[m_vol_mask[i]] ) ? 0 : 1;
+    m_vol_flag[i] = ( m_vol_mask[i]==fore_maskid ) ? 255 :
+                    ( masklocked[m_vol_mask[i]]  ) ? 0   : 1;
 
 	m_vol_flag.SetUpdated();
 }

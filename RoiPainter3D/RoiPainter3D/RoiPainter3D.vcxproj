@@ -205,6 +205,7 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="ImageCore.h" />
+    <ClInclude Include="MaskData.h" />
     <ClInclude Include="ModeCore.h" />
     <ClInclude Include="ModeInterface.h" />
     <ClInclude Include="mode\GlslShader.h" />

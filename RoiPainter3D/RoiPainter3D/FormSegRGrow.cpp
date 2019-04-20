@@ -14,7 +14,7 @@ void FormSegRGrow::InitAllItems(short volMin, short volMax)
   textBox_min->Text = trackbar_min->Value.ToString();
   textBox_max->Text = trackbar_max->Value.ToString();
 
-  trackBar_maxiteration->SetRange(1,50000);
+  trackBar_maxiteration->SetRange(1,512*512*512);
   trackBar_maxiteration->Value = 10;
   textBox_maxiteration->Text = trackBar_maxiteration->Value.ToString();
 }

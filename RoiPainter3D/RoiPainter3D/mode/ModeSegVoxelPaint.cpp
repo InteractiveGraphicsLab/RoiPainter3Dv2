@@ -55,45 +55,32 @@ void ModeSegVoxelPaint::StartMode()
 	m_b_lassomode = false;
   m_b_paintmode = false;
 
-	const vector<MaskData> &mask = ImageCore::GetInst()->m_mask_data;
-	const OglImage3D &vol_mask = ImageCore::GetInst()->m_vol_mask;
-	OglImage3D       &vol_flg  = ImageCore::GetInst()->m_vol_flag;
-	const EVec3i      reso     = ImageCore::GetInst()->GetResolution();
-	const int N = reso[0] * reso[1] * reso[2];
-
 
   if( ModeCore::GetInst()->GetCurrentModeId() == MODE_SEG_VOXPAINT)
   {
-    //SEGMENTATION mode
-    for (int i = 0; i < N; ++i) 
-    {
-      vol_flg[i] = (mask[vol_mask[i]].m_b_locked) ? 0 : 1;
-    }
+    ImageCore::GetInst()->InitializeVolFlgByLockedMask();
   }
   else if( ModeCore::GetInst()->GetCurrentModeId() == MODE_REF_VOXPAINT )
   {
     //REFINEMENT mode
     m_b_refinementmode = true;
-    m_refine_maskid = formMaskIdSelection_showModalDialog();
+    m_refine_maskid = formMaskIdSelection_showModalDialog(
+      ImageCore::GetInst()->GetMaskData(), 
+      ImageCore::GetInst()->GetActiveMaskID());
 
     if( m_refine_maskid  == -1)
     {
       ModeCore::GetInst()->ModeSwitch(MODE_VIS_MASK);
       return;
     }
-    if( m_refine_maskid  == 0)
+    if( m_refine_maskid  == 0 )
     {
       CLI_MessageBox_OK_Show("MASK_id = 0 is not editable here ", "message");
       ModeCore::GetInst()->ModeSwitch(MODE_VIS_MASK);
       return;
     }
 
-    for (int i = 0; i < N; ++i) 
-    {
-      vol_flg[i] = (vol_mask[i] == m_refine_maskid ) ? 255 : 
-                   (mask[vol_mask[i]].m_b_locked   ) ?  0  : 1;
-    
-    }
+    ImageCore::GetInst()->InitializeVolFlgByLockedMask( m_refine_maskid );
   }
   else
   {
@@ -102,7 +89,6 @@ void ModeSegVoxelPaint::StartMode()
     return;
   }
 
-	vol_flg.SetUpdated();
   CrssecCore::GetInst()->ClearCurvedCrossec();
 }
 

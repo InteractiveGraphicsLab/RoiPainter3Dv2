@@ -77,8 +77,6 @@ void ModeSegGCut::StartMode()
   //initialize flg volume --------------
   ImageCore::GetInst()->InitializeVolFlgByLockedMask();
 
-	
-
   //initialize control points ----------
 	m_cps_fore.clear();
 	m_cps_back.clear();

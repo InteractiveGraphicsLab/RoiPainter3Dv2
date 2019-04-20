@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+#include "MaskData.h"
+
+
 namespace RoiPainter3D {
 
 	using namespace System;
@@ -17,17 +21,17 @@ namespace RoiPainter3D {
   private:
     int  m_bListInit;
     int  m_activeId;
-    void initList();
+    void initList(const std::vector<MaskData> &mask_set, const int default_mask_id);
 
 	public:
-		FormMaskIDselection(void)
+		FormMaskIDselection(const std::vector<MaskData> &mask_set, const int default_mask_id)
 		{
 			InitializeComponent();
 			//
 			//TODO: ここにコンストラクター コードを追加します
 			//
       m_bListInit = false;
-      initList();
+      initList(mask_set,default_mask_id);
 		}
 
     int  getTrgtID() { return m_activeId; } //should be called after the OK btn presssed
@@ -43,13 +47,14 @@ namespace RoiPainter3D {
 				delete components;
 			}
 		}
-  private: System::Windows::Forms::Button^  btnCancel;
-  protected:
-  private: System::Windows::Forms::Button^  btnOk;
-  private: System::Windows::Forms::DataGridView^  maskIdList;
 
-  private: System::Windows::Forms::DataGridViewTextBoxColumn^  maskIDColumn;
-  private: System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
+  private: 
+    System::Windows::Forms::Button^  btnCancel;
+    System::Windows::Forms::Button^  btnOk;
+    System::Windows::Forms::DataGridView^  maskIdList;
+
+    System::Windows::Forms::DataGridViewTextBoxColumn^  maskIDColumn;
+System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
 
 	private:
 		/// <summary>
@@ -152,9 +157,9 @@ namespace RoiPainter3D {
 };
 
   //選択されなかった場合は-1が返る
-  inline int formMaskIdSelection_showModalDialog()
+  inline int formMaskIdSelection_showModalDialog(const std::vector<MaskData> &mask_set, const int default_mask_id)
   {
-    FormMaskIDselection ^modal = gcnew FormMaskIDselection();
+    FormMaskIDselection ^modal = gcnew FormMaskIDselection(mask_set, default_mask_id);
     if (modal->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return -1;
 
     int trgtId = modal->getTrgtID();

@@ -144,9 +144,10 @@ class ModeSegGCut : public ModeInterface
 	std::vector<EVec3f> m_stroke;
 
 	//control points
-	std::vector<GCutCp> m_cps_fore, m_cps_back;
 	TMesh  m_cp_mesh;
 	float  m_cp_radius;
+	std::vector<GCutCp> m_cps_fore;
+  std::vector<GCutCp> m_cps_back;
 
 	//watershad super pixel 
 	bool   m_b_wsdnode_initialized;
