@@ -81,21 +81,28 @@ public:
                    (float)(m_resolution[2] * m_pitch[2])); 
   }
 
+
 	EVec3i GetResolution() { return m_resolution; }
+  
+  //return tapple {width, height, depth, num_voxel}
+  std::tuple<int, int, int> GetResolution3() {
+    return std::forward_as_tuple( m_resolution[0], m_resolution[1], m_resolution[2] ) ;
+  }
+
+  //return tapple {width, height, depth, width*height, width*height*depth}
+  std::tuple<int, int, int, int, int> GetResolution5() {
+    int WH  = m_resolution[0]*m_resolution[1];
+    int WHD = m_resolution[0]*m_resolution[1]*m_resolution[2];
+    return std::forward_as_tuple( m_resolution[0], m_resolution[1], m_resolution[2], WH, WHD) ;
+  }
+
   int GetNumVoxels(){ return m_resolution[0] * m_resolution[1] * m_resolution[2];}
 
   std::string GetFilePath(){ return m_filepath;}
 
 	//getter/setter for pitch 
 	EVec3f GetPitch()  { return m_pitch; }
-	float  GetPitchW() { return m_pitch[0]; }
-	float  GetPitchH() { return m_pitch[1]; }
-	float  GetPitchD() { return m_pitch[2]; }
-
   void   SetPitch (const EVec3f pitch){ m_pitch = pitch;}
-  void   SetPitchW(const float &pW) { m_pitch[0] = pW; }
-	void   SetPitchH(const float &pH) { m_pitch[1] = pH; }
-	void   SetPitchD(const float &pD) { m_pitch[2] = pD; }
 
 	//volume min/mac
 	EVec2i GetVolMinMax() { return m_vol_minmax; }

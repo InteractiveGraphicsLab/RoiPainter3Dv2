@@ -57,7 +57,7 @@ void ModeSegRGrow::StartMode()
   ImageCore::GetInst()->InitializeVolFlgByLockedMask();
 
 	m_cp_centers.clear();
-	m_cp_size = ImageCore::GetInst()->GetPitchW() * 3;
+	m_cp_size = ImageCore::GetInst()->GetPitch()[0] * 3;
 	m_cp_sphere.initializeIcosaHedron( m_cp_size );
 
 	EVec2i vol_minmax = ImageCore::GetInst()->GetVolMinMax();
@@ -185,16 +185,10 @@ void ModeSegRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegRGrow::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
-  EVec3f ray_pos, ray_dir, pos;
-  ogl->GetCursorRay(p, ray_pos, ray_dir);
-  EVec3i reso  = ImageCore::GetInst()->GetResolution();
-  EVec3f pitch = ImageCore::GetInst()->GetPitch();
-
-
-  CRSSEC_ID id = PickCrssec(ray_pos, ray_dir, &pos);
-  if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(reso, pitch, id, z_delta);
-  else ogl->ZoomCam(z_delta * 0.1f);
-
+  if( !PickToMoveCrossSecByWheeling(p, ogl, z_delta ) )
+  {
+    ogl->ZoomCam(z_delta * 0.1f);
+  }
   FormMain_RedrawMainPanel();
 }
 
@@ -314,11 +308,9 @@ void ModeSegRGrow::RunRegionGrow6(short minv, short maxv)
   std::cout << "runRegionGrow6...";
 
   //サイズ関連を準備  
-	const EVec3i reso = ImageCore::GetInst()->GetResolution();
+  int W,H,D,WH,WHD;
+  std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
   const EVec3f pitch= ImageCore::GetInst()->GetPitch();
-	const int W = reso[0], H = reso[1], D = reso[2];
-  const int WH = W*H;
-  const int WHD = W*H*D;
 
 	const short  *vol   = ImageCore::GetInst()->m_vol_orig;
 	byte         *vflg  = ImageCore::GetInst()->m_vol_flag.GetVolumePtr(); 
@@ -380,18 +372,16 @@ void ModeSegRGrow::RunRegionGrow26(short minV, short maxV)
   std::cout << "runRegionGrow26...";
 
   //サイズ関連を準備  
-	const EVec3i reso = ImageCore::GetInst()->GetResolution();
+  int W,H,D,WH,WHD;
+  std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
   const EVec3f pitch= ImageCore::GetInst()->GetPitch();
-	const int W = reso[0], H = reso[1], D = reso[2];
-  const int WH = W*H;
-  const int WHD = W*H*D;
-
-  const int maxnum_iteration = formSetRGrow_DoLimitIteration() ? formSetRGrow_GetMaxIteration() : INT_MAX;
 
 	const short  *vol  = ImageCore::GetInst()->m_vol_orig;
 	byte         *vflg = ImageCore::GetInst()->m_vol_flag.GetVolumePtr(); 
 
 	for (int i = 0; i < WHD; ++i) vflg[i] = ( vflg[i] == 0) ? 0 : 1;
+
+  const int maxnum_iteration = formSetRGrow_DoLimitIteration() ? formSetRGrow_GetMaxIteration() : INT_MAX;
 
 	//CP --> pixel id
 	//vflg : 0:never change, 1:back, 255:fore
@@ -504,13 +494,13 @@ void ModeSegRGrow::RunFillHole()
 
 void ModeSegRGrow::FinishSegmentation()
 {
-	const EVec3i res = ImageCore::GetInst()->GetResolution();
-	const int    N   = res[0] * res[1] * res[2];
+	const int num_voxels = ImageCore::GetInst()->GetNumVoxels();
+  const byte *flg3d    = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
 	bool b_forevoxel_exist = false;
-	for ( int i = 0; i < N; ++i)
+	for ( int i = 0; i < num_voxels; ++i)
 	{
-		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
+		if ( flg3d[i] == 255)
 		{
 			b_forevoxel_exist = true;
 			break;

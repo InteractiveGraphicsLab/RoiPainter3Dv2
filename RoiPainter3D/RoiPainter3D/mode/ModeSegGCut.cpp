@@ -80,7 +80,7 @@ void ModeSegGCut::StartMode()
   //initialize control points ----------
 	m_cps_fore.clear();
 	m_cps_back.clear();
-	m_cp_radius = (float) ImageCore::GetInst()->GetPitchW() * 3;
+	m_cp_radius = (float) ImageCore::GetInst()->GetPitch()[0] * 3;
 	m_cp_mesh.initializeIcosaHedron( m_cp_radius );
 
   formSegGCut_Show();
@@ -118,11 +118,10 @@ void ModeSegGCut::StartMode()
 
 void ModeSegGCut::FinishSegmemntation ()
 {
-  const EVec3i reso = ImageCore::GetInst()->GetResolution();
-	const int    N    = reso[0] * reso[1] * reso[2];
+	const int num_voxels = ImageCore::GetInst()->GetNumVoxels();
 
 	bool bForeExist = false;
-	for (int i = 0; i < N; ++i)
+	for (int i = 0; i < num_voxels; ++i)
 	{
 		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
 		{
@@ -309,17 +308,8 @@ void ModeSegGCut::MouseMove(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegGCut::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
-  EVec3f ray_pos, ray_dir, pos;
-	ogl->GetCursorRay(p, ray_pos, ray_dir);
-
-  CRSSEC_ID id = PickCrssec(ray_pos, ray_dir, &pos);
-  if( id != CRSSEC_NON ) 
-  {
-    CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
-                                      ImageCore::GetInst()->GetPitch(), id, z_delta);
-  }
-  else
-  {
+  if( !PickToMoveCrossSecByWheeling(p, ogl, z_delta ) )
+  { 
     ogl->ZoomCam(z_delta * 0.1f);
   }
 
@@ -472,17 +462,15 @@ static bool t_loadWsdLabel
 static bool t_saveWsdLabel
 ( 
     const string fname, 
-    const EVec3i &reso, 
+    const int    num_voxels,
     const vector<int> &map_vox2wsd 
 )
 {
-	const int num_voxel = reso[0] * reso[1] * reso[2];
-	
 	FILE *fp = fopen( fname.c_str(), "wb" );
 	if( fp == 0 ) return false;
 
-	fwrite( &num_voxel, sizeof(int),1, fp );
-	for ( int i=0; i < num_voxel; ++i) fwrite( &map_vox2wsd[i], sizeof(int), 1, fp );
+	fwrite( &num_voxels, sizeof(int), 1, fp );
+	for ( int i=0; i < num_voxels; ++i) fwrite( &map_vox2wsd[i], sizeof(int), 1, fp );
 	fclose( fp );
 	return true;
 }
@@ -560,15 +548,12 @@ void ModeSegGCut::InitializeWsdNodes_thread(void *pParam)
 	std::cout << "initWsdNodes_thread start!!\n";
 
 	ModeSegGCut *p_modeseggcut  = (ModeSegGCut*)pParam;
-
-	const EVec3i  reso   = ImageCore::GetInst()->GetResolution();
-	const short  *vol    = ImageCore::GetInst()->m_vol_orig   ;
-	const float  *vol_gm = ImageCore::GetInst()->m_vol_origgm ;
+  
+  int W,H,D,WH,WHD;
+  std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
+	const short  *vol      = ImageCore::GetInst()->m_vol_orig   ;
+	const float  *vol_gm   = ImageCore::GetInst()->m_vol_origgm ;
 	
-  const int W = reso[0];
-	const int H = reso[1];
-	const int D = reso[2], WHD = W*H*D, WH = W*H;
-
 	//calc WsdLabel 0:‹«ŠE‰æ‘f, >0:ƒ‰ƒxƒ‹’l
 	vector<int> &vox_wsdlabel = p_modeseggcut->m_map_vox2wsd;
 
@@ -583,7 +568,7 @@ void ModeSegGCut::InitializeWsdNodes_thread(void *pParam)
 
 	//save backup file
 	string backup_fpath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
-	t_saveWsdLabel( backup_fpath, reso, vox_wsdlabel);
+	t_saveWsdLabel( backup_fpath, WHD, vox_wsdlabel);
 
 	p_modeseggcut->m_b_wsdnode_initialized = true;
 	p_modeseggcut->m_b_wsdnode_computing   = false;
@@ -676,7 +661,7 @@ void t_wsd_DivideOneLabel(
 //divide the wsd labeled region 
 //when the bothe pos and neg CPs exist in the region
 bool t_wsd_CheckAndSolveConflictCP( 
-	const EVec3i         &reso,
+  const int W, const int H, const int D,
 	const vector<GCutCp> &cps_fore ,
 	const vector<GCutCp> &cps_back ,
 
@@ -697,7 +682,7 @@ bool t_wsd_CheckAndSolveConflictCP(
 		{
 			if (vol_label[f] == vol_label[b])
 			{
-				t_wsd_DivideOneLabel( reso[0], reso[1], reso[2], max_label, f, b, vol_label);
+				t_wsd_DivideOneLabel( W,H,D, max_label, f, b, vol_label);
 
 				modified = true;
 				max_label++;
@@ -794,7 +779,7 @@ void t_RemoveIsolatedForeRegion(
 	const int &D, 
 	const vector<GCutCp> &cps_fore,
 
-	OglImage3D  &vol_flg)
+	byte* vol_flg)
 {	
 	const int WH = W*H, WHD = W*H*D;
 
@@ -845,18 +830,15 @@ void ModeSegGCut::RunGraphCutWsdLv(float lambda)
 	time_t t1 = clock();
 	std::cout << "graphCut 1....\n";
 
-	const EVec3i reso  = ImageCore::GetInst()->GetResolution();
-	const int W   = reso[0];
-	const int H   = reso[1];
-	const int D   = reso[2];
-	const int WHD = W*H*D, WH = W*H;
-	
-  const short  *vol    = ImageCore::GetInst()->m_vol_orig;
-  OglImage3D  &vol_flg = ImageCore::GetInst()->m_vol_flag;
+
+  int W,H,D,WH,WHD;
+  std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
+  const short  *vol      = ImageCore::GetInst()->m_vol_orig;
+  byte *vol_flg          = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
 
 	// ‚Ð‚Æ‚Â‚Ìƒm[ƒh‚É“ñ‚ÂˆÈã‚Ì‘OŒiE”wŒi§Œä“_‚ª”z’u‚³‚ê‚Ä‚¢‚½‚çA•ªŠ„‚·‚é
-	if ( t_wsd_CheckAndSolveConflictCP(reso, m_cps_fore, m_cps_back, m_map_vox2wsd) )
+	if ( t_wsd_CheckAndSolveConflictCP(W,H,D, m_cps_fore, m_cps_back, m_map_vox2wsd) )
 	{
 		t_constructWsdNodesFromLabel( W,H,D, m_map_vox2wsd, vol, m_wsdnodes, m_wsdnode_neibor );
 	}
@@ -940,7 +922,7 @@ void ModeSegGCut::RunGraphCutWsdLv(float lambda)
 
 	t_RemoveIsolatedForeRegion( W,H,D, m_cps_fore, vol_flg );
 
-	vol_flg.SetUpdated();
+	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 
 	time_t t4 = clock();
 	std::cout << "graphCut 3.... "
@@ -966,16 +948,12 @@ void ModeSegGCut::RunGraphCutVoxLv(float lambda, int band_width, bool b_genband_
 		CLI_MessageBox_OK_Show("Œ»Ý‘OŒvŽZ’†‚Å‚·A­X‚¨‘Ò‚¿‚­‚¾‚³‚¢", "Message from Graph cut tool");
 		return;
 	}
-
-	const EVec3i reso  = ImageCore::GetInst()->GetResolution();
-	const int W   = reso[0];
-	const int H   = reso[1];
-	const int D   = reso[2];
-	const int WHD = W*H*D, WH = W*H;
-	const int    SEAM_W = band_width;
-
+    
+  int W,H,D,WH,WHD;
+  std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
+  const int    SEAM_W  = band_width;
 	const short  *vol    = ImageCore::GetInst()->m_vol_orig;
-	OglImage3D  &vol_flg = ImageCore::GetInst()->m_vol_flag;
+	byte  *vol_flg       = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
 
 	// ‘OŒi-”wŒi ‹«ŠE‘Ñó—Ìˆæ‚Ì¶¬
@@ -1068,7 +1046,7 @@ void ModeSegGCut::RunGraphCutVoxLv(float lambda, int band_width, bool b_genband_
 
 	delete[] mincut;
 	delete[] vol_nodeid;
-	vol_flg.SetUpdated();
+	ImageCore::GetInst()->m_vol_flag.SetUpdated();
   FormMain_RedrawMainPanel();
 }
 

@@ -99,33 +99,32 @@ void ModeSegVoxelPaint::StartMode()
 
 void ModeSegVoxelPaint::FinishSegmentation()
 {
-  const EVec3i res = ImageCore::GetInst()->GetResolution();
-  const int    N   = res[0] * res[1] * res[2];
- 
-  const OglImage3D &vFlg  = ImageCore::GetInst()->m_vol_flag;
-  OglImage3D &vMask = ImageCore::GetInst()->m_vol_mask;
+  const int   num_voxels = ImageCore::GetInst()->GetNumVoxels();
+  const byte *vFlg       = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
 
   if ( m_b_refinementmode )
   {
     //refinement mode
-    for (int i = 0; i < N; ++i) 
+    byte* mask3d = ImageCore::GetInst()->m_vol_mask.GetVolumePtr();
+
+    for (int i = 0; i < num_voxels; ++i) 
     {
       if ( vFlg[i] == 255 ){
-        vMask[i] = m_refine_maskid ;
+        mask3d[i] = m_refine_maskid ;
       }
-      else if( vFlg[i] == 1 && vMask[i] == m_refine_maskid ) {
-        vMask[i] = 0 ;
+      else if( vFlg[i] == 1 && mask3d[i] == m_refine_maskid ) {
+        mask3d[i] = 0 ;
       }
     }
-    vMask.SetUpdated();
+    ImageCore::GetInst()->m_vol_mask.SetUpdated();
     ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
   }
   else 
   {
     //segmentation mode
     bool bForeExist = false;
-    for (int i = 0; i < N; ++i) if ( vFlg[i] == 255)
+    for (int i = 0; i < num_voxels; ++i) if ( vFlg[i] == 255)
     {
       bForeExist = true;
       break;
@@ -455,16 +454,7 @@ void ModeSegVoxelPaint::MouseMove(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegVoxelPaint::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
-  EVec3f ray_pos, ray_dir, pos;
-	ogl->GetCursorRay(p, ray_pos, ray_dir);
-  
-  CRSSEC_ID id = PickCrssec(ray_pos, ray_dir, &pos);
-  if( id != CRSSEC_NON ) 
-  {
-    CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
-                                      ImageCore::GetInst()->GetPitch(), id, z_delta);
-  }
-  else
+  if( !PickToMoveCrossSecByWheeling(p, ogl, z_delta) )
   {
     ogl->ZoomCam(z_delta * 0.1f);
   }

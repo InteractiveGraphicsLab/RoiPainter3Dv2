@@ -123,17 +123,12 @@ void ModeVizMask::MouseMove(const EVec2i &p, OglForCLI *ogl)
 }
 
 
-void ModeVizMask::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
+void ModeVizMask::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
-  EVec3f rayP, rayD, pos;
-  ogl->GetCursorRay(p, rayP, rayD);
-  CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
-
-  EVec3i reso  = ImageCore::GetInst()->GetResolution();
-  EVec3f pitch = ImageCore::GetInst()->GetPitch();
-
-  if (id != CRSSEC_NON) CrssecCore::GetInst()->MoveCrssec(reso, pitch, id, zDelta);
-  else ogl->ZoomCam(zDelta * 0.1f);
+  if( !PickToMoveCrossSecByWheeling(p, ogl, z_delta ) )
+  {
+    ogl->ZoomCam(z_delta * 0.1f);
+  }
 
   FormMain_RedrawMainPanel();
 }

@@ -237,13 +237,10 @@ void ModeRefStrokeTrim::MouseMove(const EVec2i &p, OglForCLI *ogl)
 
 void ModeRefStrokeTrim::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
-  EVec3f rayP, rayD, pos;
-	ogl->GetCursorRay(p, rayP, rayD);
-  
-  CRSSEC_ID id = PickCrssec(rayP, rayD, &pos);
-  if( id != CRSSEC_NON ) CrssecCore::GetInst()->MoveCrssec(ImageCore::GetInst()->GetResolution(), 
-                                                           ImageCore::GetInst()->GetPitch(), id, zDelta);
-  else ogl->ZoomCam(zDelta * 0.1f);
+  if( !PickToMoveCrossSecByWheeling(p, ogl, zDelta ) )
+  {
+    ogl->ZoomCam(zDelta * 0.1f);
+  }
   FormMain_RedrawMainPanel();
 }
 
@@ -254,10 +251,10 @@ void ModeRefStrokeTrim::KeyDown(int nChar)
     // 変更前の状態を一個だけ持っておく実装（今後複数回のundoに対応したい）
     std::cout<< "undo!!\n";
 
-		OglImage3D &vFlg  = ImageCore::GetInst()->m_vol_flag ;
-		EVec3i r = ImageCore::GetInst()->GetResolution();
-		memcpy(&vFlg[0], m_vol_prev, sizeof( byte ) * r[0] * r[1] * r[2] );
-		vFlg.SetUpdated();
+		byte* flg3d    = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
+		int num_voxels = ImageCore::GetInst()->GetNumVoxels();
+		memcpy( flg3d, m_vol_prev, sizeof( byte ) * num_voxels );
+		ImageCore::GetInst()->m_vol_flag.SetUpdated();
 
     FormMain_RedrawMainPanel();
 	}
@@ -270,8 +267,6 @@ void ModeRefStrokeTrim::KeyUp(int nChar) {}
 void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center)
 {
   //renderingに必用なパラメータを集めておく
-  const EVec3i reso  = ImageCore::GetInst()->GetResolution();
-  const bool image_interpolation = formVisParam_doInterpolation();
 
   if (m_b_drawingstroke && m_stroke3d.size() > 1)
 	{
@@ -279,6 +274,7 @@ void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
 	}
 	
 	//bind volumes ---------------------------------------
+  const bool image_interpolation = formVisParam_doInterpolation();
 	glActiveTextureARB(GL_TEXTURE0);
 	ImageCore::GetInst()->m_vol.BindOgl(image_interpolation);
 	glActiveTextureARB(GL_TEXTURE1);
@@ -295,6 +291,7 @@ void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
 	ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 		
  //render cross sections ----------------------------------
+  const EVec3i reso  = ImageCore::GetInst()->GetResolution();
   glColor3d(1, 1, 1);
   m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, false, !IsSpaceKeyOn());
   const bool b_xy  = formVisParam_bPlaneXY();
@@ -351,12 +348,13 @@ void ModeRefStrokeTrim::UpdateVolFlgByStroke( OglForCLI *ogl)
 {
 	if( m_stroke2d.size() < 3 ) return;
 
-	OglImage3D  &vol_flg = ImageCore::GetInst()->m_vol_flag ;
-	const EVec3i reso    = ImageCore::GetInst()->GetResolution();
-	const EVec3f pitch   = ImageCore::GetInst()->GetPitch();
-	const int    WH      = reso[0] * reso[1];
+  int W,H,D,WH,WHD;
+  std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
 
-	memcpy( m_vol_prev, &vol_flg[0], sizeof( byte ) * reso[0] * reso[1] * reso[2] );
+	byte *flg3d = ImageCore::GetInst()->m_vol_flag.GetVolumePtr() ;
+
+  memcpy( m_vol_prev, &flg3d[0], sizeof( byte ) * WHD );
+
 
   //get projection information
 	if( !ogl->IsDrawing() ) ogl->oglMakeCurrent();
@@ -396,16 +394,17 @@ void ModeRefStrokeTrim::UpdateVolFlgByStroke( OglForCLI *ogl)
 
   //compute projection of all foreground voxels
   std::cout << "compute projection of all voxels\n";
+	const EVec3f pitch = ImageCore::GetInst()->GetPitch();
 
 #pragma omp parallel for
-	for ( int z = 0; z < reso[2]; ++z)
+	for ( int z = 0; z < D; ++z)
 	{
-		for( int y = 0 ; y < reso[1]; ++y)
+		for( int y = 0 ; y < H; ++y)
 		{
-			for ( int x = 0; x < reso[0]; ++x)
+			for ( int x = 0; x < W; ++x)
 			{
-				const int I = x + y * reso[0] + z * WH;
-				if( vol_flg[I] != 255 ) continue;
+				const int I = x + y * W + z * WH;
+				if( flg3d[I] != 255 ) continue;
 
         double posx = (x + 0.5) * pitch[0];
         double posy = (y + 0.5) * pitch[1];
@@ -414,17 +413,16 @@ void ModeRefStrokeTrim::UpdateVolFlgByStroke( OglForCLI *ogl)
 				gluProject(	posx,  posy, posz,  model_mat, projection_mat, viewport, &px, &py, &pz);
 
 				if( 0<= px && px <= viewport[2]-1 && 
-					  0<= py && py <= viewport[3]-1 && screen_img[ (int)px + (int)py*viewport[2] ] == 255 ) vol_flg[I] = 1;
+					  0<= py && py <= viewport[3]-1 && screen_img[ (int)px + (int)py*viewport[2] ] == 255 ) flg3d[I] = 1;
 			}	
 		}
 	}
-
 
 	delete[] screen_img;
 
 	if( !ogl->IsDrawing() ) wglMakeCurrent(NULL,NULL);
 
-	vol_flg.SetUpdated();
+	ImageCore::GetInst()->m_vol_flag.SetUpdated();
   m_b_modified = true;
 	
   std::cout << "...done\n";

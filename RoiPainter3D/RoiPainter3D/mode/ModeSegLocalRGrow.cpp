@@ -49,7 +49,7 @@ void ModeSegLocalRGrow::StartMode()
 	m_b_drawstroke = false;
 	m_stroke.clear();
   m_seeds .clear();
-  LRGSeed::SetCpRadius( ImageCore::GetInst()->GetPitchW() * 2.0f );
+  LRGSeed::SetCpRadius( ImageCore::GetInst()->GetPitch()[0] * 2.0f );
 
   //show dialog
   formSegLocalRGrow_Show();
@@ -75,11 +75,10 @@ bool ModeSegLocalRGrow::CanLeaveMode()
 
 void ModeSegLocalRGrow::FinishSegmentation()
 {
-	const EVec3i reso = ImageCore::GetInst()->GetResolution();
-	const int    N    = reso[0] * reso[1] * reso[2];
+	const int num_voxels = ImageCore::GetInst()->GetNumVoxels();
 
 	bool bForeExist = false;
-	for (int i = 0; i < N; ++i)
+	for (int i = 0; i < num_voxels; ++i)
 	{
 		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
 		{
@@ -384,16 +383,7 @@ void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *og
 	}
 	else
 	{
-    EVec3f ray_pos, ray_dir, pos;
-    ogl->GetCursorRay(p, ray_pos, ray_dir);	
-
-    CRSSEC_ID id = PickCrssec(ray_pos, ray_dir, &pos);
-    if( id != CRSSEC_NON ) 
-    {
-      CrssecCore::GetInst()->MoveCrssec( ImageCore::GetInst()->GetResolution(), 
-                                         ImageCore::GetInst()->GetPitch(), id, 
-                                         (IsAltKeyOn()) ? 3 * z_delta : z_delta);
-    }
+    PickToMoveCrossSecByWheeling(p, ogl, z_delta );
 	}
   FormMain_RedrawMainPanel();
 }
@@ -521,19 +511,16 @@ static void s_LocalRegionGrow
 // 255 : pogitive region
 void ModeSegLocalRGrow::RunLocalRegionGrow()
 {
-	const short *vol   = ImageCore::GetInst()->m_vol_orig      ;
+  int W,H,D,WH,WHD;
+  std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
+  const short *vol   = ImageCore::GetInst()->m_vol_orig     ;
 	const EVec3f pitch = ImageCore::GetInst()->GetPitch()     ;
-	const EVec3i reso  = ImageCore::GetInst()->GetResolution();
-	const int W  = reso[0];
-	const int H  = reso[1];
-	const int D  = reso[2];
-  const int WH = W*H, WHD = W * H * D;
 
-	OglImage3D &vol_flg = ImageCore::GetInst()->m_vol_flag;
+  byte *flg3d = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
-	for (int i = 0; i < WHD; ++i ) vol_flg[i] = (vol_flg[i] == 0) ? 0 : 1;
+	for (int i = 0; i < WHD; ++i ) flg3d[i] = (flg3d[i] == 0) ? 0 : 1;
 
-	byte *flg = new byte[ W * H * D ];
+	byte *flg = new byte[ WHD ];
 
   //seed–ˆ‚ÉRegion growing‚ðŒvŽZ
 	for( int j = 0; j < (int) m_seeds.size(); ++j)
@@ -544,7 +531,7 @@ void ModeSegLocalRGrow::RunLocalRegionGrow()
 		if ( m_seeds[j].m_flg_fore)
     {
       for ( int i = 0; i < WHD; ++i) 
-        flg[i] = (vol_flg[i] == 255) ? 1 : vol_flg[i];
+        flg[i] = (flg3d[i] == 255) ? 1 : flg3d[i];
     }
 		else
     {
@@ -557,12 +544,12 @@ void ModeSegLocalRGrow::RunLocalRegionGrow()
 		
 		for (int i = 0; i < WHD; ++i ) 
       if(flg[i] != 1) 
-        vol_flg[i] = flg[i];
+        flg3d[i] = flg[i];
 	}
 
 	delete[] flg;
 
-  vol_flg.SetUpdated();
+  ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	std::cout << "Local Region Grow done\n";
 }
 
@@ -687,11 +674,9 @@ static void s_calcDistTrans
 	std::cout << "start Distance Transform...\n";
 	const EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
 	const EVec3f pitch  = ImageCore::GetInst()->GetPitch ();
-	const EVec3i reso   = ImageCore::GetInst()->GetResolution();
-  const int W = reso[0];
-  const int H = reso[1];
-  const int D = reso[2];
-	const int WHD = reso[0] * reso[1] * reso[2];
+
+  int W,H,D,WH,WHD;
+  std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
 	
   //vol_flg -- 0:yet, 1:visited. 
 	byte *vol_flg = new byte[WHD];

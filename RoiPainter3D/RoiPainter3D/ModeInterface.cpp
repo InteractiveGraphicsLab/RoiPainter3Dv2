@@ -43,5 +43,20 @@ CRSSEC_ID PickCrsSec(const EVec3f &ray_pos, const EVec3f &ray_dir, EVec3f *pos, 
   return CrssecCore::GetInst()->PickCrssec(b_xy, b_yz, b_zx, true, cuboid, ray_pos, ray_dir, *pos);
 }
 
+
+//picking‚É¬Œ÷‚µ‚½‚ç ‚»‚Ìcross section‚ð“®‚©‚µ‚Ä true‚ð•Ô‚·
+//Ž¸”s‚µ‚½‚çfalse‚ð•Ô‚·
+bool PickToMoveCrossSecByWheeling(const EVec2i &p, OglForCLI *ogl, short z_delta)
+{
+  EVec3f ray_pos, ray_dir, pos;
+  ogl->GetCursorRay( p, ray_pos, ray_dir);
+  CRSSEC_ID id = PickCrssec( ray_pos, ray_dir, &pos);
+
+  EVec3i reso   = ImageCore::GetInst()->GetResolution();
+  EVec3f pitch  = ImageCore::GetInst()->GetPitch();
+
+  if (id != CRSSEC_NON) CrssecCore::GetInst()->MoveCrssec(reso, pitch, id, (IsAltKeyOn()) ? 3 * z_delta : z_delta);
+  return id != CRSSEC_NON;
+}
 #pragma managed
 
