@@ -455,7 +455,6 @@ void ModeSegRGrow::RunRegionGrow26(short minV, short maxV)
 void ModeSegRGrow::RunDilation()
 {
 	t_Dilate3D( ImageCore::GetInst()->m_vol_flag );
-	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
   FormMain_RedrawMainPanel();
 }
@@ -464,7 +463,6 @@ void ModeSegRGrow::RunDilation()
 void ModeSegRGrow::RunErosion()
 {
 	t_Erode3D( ImageCore::GetInst()->m_vol_flag );
-	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
   FormMain_RedrawMainPanel();
 }
@@ -479,14 +477,14 @@ void ModeSegRGrow::RunFillHole()
 	t_FillHole3D(flg);
 
   // update flg volume (never change voxel with vflg[i]==0)
-	OglImage3D &trgt = ImageCore::GetInst()->m_vol_flag;
+	byte *flg3d = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
-	for (int i = 0; i < N; ++i) if (trgt[i] == 1)
+	for (int i = 0; i < N; ++i) if (flg3d[i] == 1)
 	{
-		trgt[i] = (flg[i] == 255) ? 255 : 1;
+		flg3d[i] = (flg[i] == 255) ? 255 : 1;
 	}
 
-	trgt.SetUpdated();
+	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
   FormMain_RedrawMainPanel();
 }

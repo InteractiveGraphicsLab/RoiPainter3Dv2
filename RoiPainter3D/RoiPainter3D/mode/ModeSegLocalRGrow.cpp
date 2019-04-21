@@ -76,11 +76,12 @@ bool ModeSegLocalRGrow::CanLeaveMode()
 void ModeSegLocalRGrow::FinishSegmentation()
 {
 	const int num_voxels = ImageCore::GetInst()->GetNumVoxels();
-
+  const byte* flg3d = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 	bool bForeExist = false;
+
 	for (int i = 0; i < num_voxels; ++i)
 	{
-		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
+		if ( flg3d[i] == 255)
 		{
 			bForeExist = true;
 			break;

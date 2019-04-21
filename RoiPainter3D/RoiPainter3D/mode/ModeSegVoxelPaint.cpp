@@ -192,7 +192,7 @@ static void t_addPixsInsideLasso
 	const vector<EVec3f> &lasso_stroke,
 	const bool            b_fore,
 
-   		  OglImage3D     &vFlg
+   		  byte*  vFlg
 )
 {
 	const int W = reso[0];
@@ -359,12 +359,12 @@ void ModeSegVoxelPaint::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-  OglImage3D  &vol_flg = ImageCore::GetInst()->m_vol_flag;
+  byte* vol_flg = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
 	if (m_b_paintmode) 
 	{
 		for (auto itr : m_paint_voxels) if( vol_flg[itr[3]] == 1 ) vol_flg[itr[3]] = 255;
-		vol_flg.SetUpdated();
+		ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	}
 	if (m_b_lassomode)
 	{
@@ -373,7 +373,7 @@ void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
     const EVec3f cube  = ImageCore::GetInst()->GetCuboid();
 
 		t_addPixsInsideLasso( m_trgt_crssecid, reso, pitch, m_lasso, m_bL, vol_flg);
-		vol_flg.SetUpdated();
+		ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	}
 
 	m_lasso.clear();
@@ -386,12 +386,12 @@ void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegVoxelPaint::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-  OglImage3D  &vol_flg = ImageCore::GetInst()->m_vol_flag;
+  byte* vol_flg = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
 
 	if (m_b_paintmode) 
 	{
 		for (auto itr : m_paint_voxels) if( vol_flg[itr[3]] == 255) vol_flg[itr[3]] = 1;
-		vol_flg.SetUpdated();
+		ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	}
 	if (m_b_lassomode)
 	{
@@ -400,7 +400,7 @@ void ModeSegVoxelPaint::RBtnUp(const EVec2i &p, OglForCLI *ogl)
     const EVec3f cube  = ImageCore::GetInst()->GetCuboid();
 
 		t_addPixsInsideLasso(m_trgt_crssecid, reso, pitch, m_lasso, m_bL, vol_flg);
-		vol_flg.SetUpdated();
+		ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	}
 
 	m_lasso.clear();
