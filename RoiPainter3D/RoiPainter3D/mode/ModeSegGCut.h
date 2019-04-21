@@ -8,7 +8,6 @@
 
 #include "ModeInterface.h"
 #include "GlslShader.h"
-#include <vector>
 
 #pragma unmanaged
 
@@ -45,14 +44,11 @@ public:
 class GCWsdNode
 {
 public:
-	
-  //pixel indices
-  std::vector<int> m_voxel_ids ;	
-	
   //total/average intensity
   float m_total_val;
   float m_mean_val ;
-	
+	int   m_num_voxel;
+
   //target for segmentation?
   bool   m_b_enable ;
 	
@@ -60,6 +56,7 @@ public:
   
   GCWsdNode ()
   {
+    m_num_voxel = 0;
     m_total_val = m_mean_val = 0;
     m_b_enable  =  false;
   }
@@ -79,14 +76,14 @@ public:
     m_total_val = src.m_total_val;   
     m_mean_val  = src.m_mean_val;  
     m_b_enable  = src.m_b_enable;
-    m_voxel_ids = src.m_voxel_ids;
+    m_num_voxel = src.m_num_voxel;
   }
 
   inline void addVoxel(int voxel_idx, float intensity)
   {
-    m_voxel_ids.push_back( voxel_idx );
+    m_num_voxel++;
     m_total_val += intensity;
-    m_mean_val  = m_total_val / (float) m_voxel_ids.size();
+    m_mean_val  = m_total_val / (float) m_num_voxel;
   }
 };
 
@@ -154,10 +151,17 @@ class ModeSegGCut : public ModeInterface
 	bool   m_b_wsdnode_computing  ;
 
 
-	int           *m_vol_wsdid     ; // map voxel idx --> wsdNode idx 
-	int            m_num_wsdnodes  ;
-  GCWsdNode     *m_wsdnodes      ; // wsd nodes
-	std::set<int> *m_wsdnode_neibor; // 1 ring neighbors of wsdNode[i] (片方向, 小さいラベル値Nodeに大きいラベル値Nodeを追加 --)
+  //wsd node id (voxel id --> node id)
+	int  *m_vol_wsdid  ; 
+  
+  //num of wsd node
+	int  m_num_wsdnodes  ;
+
+  // wsd nodes (array)
+  GCWsdNode  *m_wsdnodes ;
+
+  //1 ring neighbors of each wsd node wsdNode[i] (片方向, 小さいラベル値Nodeに大きいラベル値Nodeを追加 --)
+	std::set<int> *m_wsdnode_neibor; 
 
   ModeSegGCut();
 public:
