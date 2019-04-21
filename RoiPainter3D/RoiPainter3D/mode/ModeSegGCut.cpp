@@ -46,7 +46,9 @@ static void t_constructWsdNodesFromLabel
 
 ModeSegGCut::~ModeSegGCut()
 {
-
+  delete[] m_vol_wsdid;
+  delete[] m_wsdnodes ;
+  delete[] m_wsdnode_neibor;
 }
 
 
@@ -94,20 +96,20 @@ void ModeSegGCut::StartMode()
 
   formSegGCut_Show();
 
-  int W,H,D,WH,WHD;
-  std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
-
-  if( m_vol_wsdid != 0 ) delete[] m_vol_wsdid;
-  m_vol_wsdid = new int[WHD];
-
 	//compute watershad ------------------
 	if( !m_b_wsdnode_initialized )
   {
+    int W,H,D,WH,WHD;
+    std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
+
+    if( m_vol_wsdid != 0 ) delete[] m_vol_wsdid;
+    m_vol_wsdid = new int[WHD];
 
     //backup file‚Ì“Ç‚İ‚İ‚ğ‚·
 	  string backUpFilePath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
 	  if( t_loadWsdLabel( backUpFilePath, WHD, m_vol_wsdid) )
 	  {
+      cout << "aaa";
 		  const short *vol = ImageCore::GetInst()->m_vol_orig;
 		  t_constructWsdNodesFromLabel( W,H,D, m_vol_wsdid, vol, m_num_wsdnodes, m_wsdnodes, m_wsdnode_neibor);
 		  m_b_wsdnode_initialized = true;
@@ -463,7 +465,7 @@ static bool t_loadWsdLabel
 	}
 
 	//read label 
-	for( int i=0; i<num_voxels; ++i) fread( map_vox2wsd, sizeof(int), num_voxels, fp );
+	fread( map_vox2wsd, sizeof(int), num_voxels, fp );
 	fclose( fp );
 
 	return true;
@@ -495,9 +497,9 @@ void t_constructWsdNodesFromLabel
 	const int   *vol_label,
 	const short *vol      ,
   
-  int        &num_wsdnodes, //‚±‚ÌŠÖ”“à‚ÅŒvZ‚³‚ê‚é
-	GCWsdNode* &wsdNodes    , //‚±‚ÌŠÖ”“à‚Åallocate‚³‚ê‚é
-	set<int>*  &wsdNodeNei    // ‚±‚ÌŠÖ”“à‚Åallocate‚³‚ê‚é
+  int         &num_wsdnodes, //‚±‚ÌŠÖ”“à‚ÅŒvZ‚³‚ê‚é
+	GCWsdNode*  &wsdNodes    , //‚±‚ÌŠÖ”“à‚Åallocate‚³‚ê‚é
+	set <int>*  &wsdNodeNei    // ‚±‚ÌŠÖ”“à‚Åallocate‚³‚ê‚é
 )
 {
 	time_t t0 = clock();
@@ -514,7 +516,7 @@ void t_constructWsdNodesFromLabel
   num_wsdnodes = max_label + 1;
   wsdNodes   = new GCWsdNode[ num_wsdnodes ];
 	wsdNodeNei = new set<int> [ num_wsdnodes ];
-	
+
 	for( int z = 0; z < D ; ++z)
   {
 	  for( int y = 0; y < H ; ++y)
@@ -879,15 +881,12 @@ void ModeSegGCut::RunGraphCutWsdLv(float lambda)
 	// disable wsd nodes that exist in locked mask region
 	for( int i=0; i < m_num_wsdnodes; ++i)
 	{
-    GCWsdNode &n = m_wsdnodes[i];
-
-		n.m_b_enable = false;
-		for ( const auto& pi : n.m_voxel_ids ) if ( vol_flg[ pi ] != 0)
-		{
-			n.m_b_enable = true; 
-			break; 
-		}
-	}
+    m_wsdnodes[i].m_b_enable = false;
+  }
+  for( int i=0; i < WHD; ++i)
+  {
+    if( vol_flg[i] != 0) m_wsdnodes[ m_vol_wsdid[i] ].m_b_enable = true;
+  }
 
 	// cps --> node ids
 	vector< int > fore_wsdnodeids, back_wsdnodeids;
