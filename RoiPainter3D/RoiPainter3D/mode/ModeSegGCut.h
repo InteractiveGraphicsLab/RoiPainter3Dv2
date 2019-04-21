@@ -152,9 +152,12 @@ class ModeSegGCut : public ModeInterface
 	//watershad super pixel 
 	bool   m_b_wsdnode_initialized;
 	bool   m_b_wsdnode_computing  ;
-	std::vector<int       >    m_map_vox2wsd   ; // map voxel idx --> wsdNode idx 
-	std::vector<GCWsdNode >    m_wsdnodes      ; // wsd nodes
-	std::vector<std::set<int>> m_wsdnode_neibor; // 1 ring neighbors of wsdNode[i] (片方向, 小さいラベル値Nodeに大きいラベル値Nodeを追加 --)
+
+
+	int           *m_vol_wsdid     ; // map voxel idx --> wsdNode idx 
+	int            m_num_wsdnodes  ;
+  GCWsdNode     *m_wsdnodes      ; // wsd nodes
+	std::set<int> *m_wsdnode_neibor; // 1 ring neighbors of wsdNode[i] (片方向, 小さいラベル値Nodeに大きいラベル値Nodeを追加 --)
 
   ModeSegGCut();
 public:

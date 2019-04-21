@@ -349,7 +349,8 @@ void t_wsd_CalcLabelFromGMag
 	const int D, 
 	const float* gMagVol, 
 	const float  volCoef, 
-	      std::vector<int> &labels
+
+	      int* labels //should be allocated
 )
 {
 	if( W * H > 1024*1024*4 ) 
@@ -358,7 +359,8 @@ void t_wsd_CalcLabelFromGMag
 		return;
 	}
 
-	const int stepZ = 2 * 1024 * 1024 / ( W * H) ;
+	//calc layer size 
+  const int stepZ = 2 * 1024 * 1024 / ( W * H) ;
 	const int iterN = ( D % stepZ == 0 ) ? D / stepZ  :  D / stepZ + 1;
 	std::cout <<"watershed (" 
             << W << " " << H << " " << D << " " 
@@ -366,16 +368,18 @@ void t_wsd_CalcLabelFromGMag
 
 	std::vector< std::vector<int> > tmpLabels( iterN, std::vector<int>() );
 	
+
+	//calc water shed for each layers (メモリに乗らない場合を考慮して複数レイヤに分割して処理)
 	for( int i = 0; i < iterN; ++i)
 	{
-    std::cout << "was " << i << "/" << iterN << "\n";
+    std::cout << "wsd " << i << "/" << iterN << "\n";
 		int z0 = i * stepZ;
 		int tmpD = ( z0 + stepZ <= D ) ? stepZ : D - z0;
 		TWatershed3DEx( W, H, tmpD, &gMagVol[ W * H * z0 ], volCoef, tmpLabels[i], 0 );
 	}
 
+
 	//assemble  multiple label ID lists  into one
-	labels.resize( W*H*D, 0);
 	int labelOffset = 0;
 	int idxOffset   = 0;
 
@@ -404,7 +408,8 @@ void t_wsd_CollapseWsdPixels3D(
 	const int H, 
 	const int D, 
 	const short* vol, 
-	std::vector<int> &labels)
+	
+  int* labels)
 {
 	const int WH = W*H, WHD = W*H*D;
 
@@ -463,35 +468,48 @@ void t_wsd_CollapseWsdPixels3D(
 
 
 
-//　1 voxel regionをwatershed境界領域にする（高効率化のため）
+//　要素数が１の領域 (labelID) をwatershed境界領域にする（高効率化のため）
 // labelの振りなおしの必要が生じる
-void t_wsd_RemoveOneVoxWsdLabel( std::vector<int> &v_labels)
+void t_wsd_RemoveOneVoxWsdLabel( const int num_voxels, int *labels)
 {
-
 	//max label 
-	int maxLabel = 0;
-	for( const auto& vL: v_labels) maxLabel = std::max( maxLabel, vL);
-	
-	std::vector<int> label_voxN( maxLabel + 1, 0);
-	for( const auto& vL: v_labels) ++label_voxN[ vL ];
-	
-	//1 voxel 領域を境界要素へ
-	for(       auto& vL: v_labels) if( label_voxN[ vL ] == 1 )
+	int label_max = 0;
+  for( int i=0; i < num_voxels; ++i) 
+  {
+    label_max = std::max( label_max, labels[i]);
+  }
+
+  //各領域のvoxel数をカウント
+  int *label_num_voxel = new int[label_max + 1];
+  memset( label_num_voxel, 0, sizeof(int) * (label_max + 1) );
+
+  for ( int i=0; i < num_voxels; ++i) 
+  {
+    ++label_num_voxel[ labels[i] ];
+  }
+
+	//1 voxelしか含まない領域を 境界要素へ
+	for ( int i=0; i < num_voxels; ++i) if( label_num_voxel[ labels[i] ] == 1 )
 	{
-		label_voxN[vL] = -1;
-		vL = 0;
+		label_num_voxel[ labels[i] ] = -1;
+		labels[i] = 0;
 	}
 
 	//labelを連続に振り直す
 	int offset = 0;
-	std::vector<int> newLabel( label_voxN.size() );
-	for( int i = 0, s = (int) label_voxN.size(); i < s; ++i)
+	int *new_label = new int[label_max + 1];
+
+	for( int i = 0; i < label_max + 1; ++i)
 	{
-		if( label_voxN[i] == -1 ) offset++;
-		else newLabel[i] = i-offset;
+		if( label_num_voxel[i] == -1 ) offset++;
+		else new_label[i] = i - offset;
 	}
 
-	for( auto& vL: v_labels) vL = newLabel[ vL ];
+  for ( int i=0; i < num_voxels; ++i)  labels[i] = new_label[ labels[i] ];
+
+
+  delete[] label_num_voxel;
+  delete[] new_label;
 }
 
 
