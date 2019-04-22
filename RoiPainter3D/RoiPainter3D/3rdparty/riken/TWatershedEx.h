@@ -127,19 +127,17 @@ preprocess (1 - 13)
 
 flooding process (15 - 70)
   
-  maskとfifoキュー初期化(17 - 24)
-     値hを持つpixelにmaskフラグを立てる
-     現在のbasinとwatershed pixelに接しているものをfifoキューに入れる
+maskとfifoキュー初期化(17 - 24)
+    値hを持つpixelにmaskフラグを立てる
+    現在のbasinとwatershed pixelに接しているものをfifoキューに入れる
   
-  mask領域内のpixelのラベルを確定する(25 - 52)
-     キューをうまいこと使うことで、既存のbasinからの離散距離に応じて，labeling領域を広げていく
+mask領域内のpixelのラベルを確定する(25 - 52)
+    キューをうまいこと使うことで、既存のbasinからの離散距離に応じて，labeling領域を広げていく
 
-  local minima detection(53 - 68)
-     local minimaを見つけて,各local minima内のpixelに一貫したlabelを打つ
-
+local minima detection(53 - 68)
+    local minimaを見つけて,各local minima内のpixelに一貫したlabelを打つ
 
 *注意* flatな領域があるため、上のような大変なalgorithmになったっぽいですね。
-
 
 25-52では、maskフラグが立った各ピクセルを,　既存のbasin pixelやwatershed　pixelからの距離順に
 ラべリングしていく.
@@ -147,7 +145,7 @@ flooding process (15 - 70)
 あるpixel p (dist = d) のすべての近傍 qを見たときに、qの状態としてあり得るものは
 A) basin、watershed、maskフラグのいずれでもない  dist = 0       && label = INIT
 B) basin内部のpixel                              dist = 0 / d-1 && label = LABEL 
-　　C) watershed pixel                           dist = 0 / d-1 && label = WATERSHED
+C) watershed pixel                               dist = 0 / d-1 && label = WATERSHED
 D) maskフラグ かつ dist = 0 まだキューに入っていない　　　　　　　 label = MASK
 E) maskフラグ かつ dist = d pixel pと同列に扱われている            label = MASK                        
 
@@ -191,7 +189,7 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 		} 
 
 		queue.fifo_add( new TWsPixelEx() );//add fictitious pixel
-	    //今のキューの中身 -->  mark pix pix pix ... pix でmarkはfictitiousで、pixは、既存のbasin/watershedに隣接した領域
+	  //今のキューの中身 -->  mark pix pix pix ... pix でmarkはfictitiousで、pixは、既存のbasin/watershedに隣接した領域
 
 		int curdist = 1;
 	  while(true) //extend basins 
@@ -217,14 +215,18 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 			{
 				TWsPixelEx &q = *p->GetNeighbor(i);
 
-				if( q.isLabelMASK() && (q.getDistance() == 0) ){
+				if( q.isLabelMASK() && (q.getDistance() == 0) )
+        {
 					q.setDistance( curdist+1 );
 					queue.fifo_add( &q       );
 				}	    
-
-				else if( (q.getDistance() <= curdist) && q.isLabelWSHED() )  hasNeighboringWsPix = true;
-				else if( (q.getDistance() <= curdist) && q.getLabel() > 0 )  //qは既存のbasinに入っている
+				else if( (q.getDistance() <= curdist) && q.isLabelWSHED() )
+        {
+          hasNeighboringWsPix = true;
+        }
+				else if( (q.getDistance() <= curdist) && q.getLabel() > 0 ) 
 				{ 
+          //qは既存のbasinに入っている
 					if     ( p->isLabelMASK()                  ) p->setLabel(q.getLabel());
 					else if( p->getLabel()    != q.getLabel()  ) p->setLabelToWSHED();
 				}

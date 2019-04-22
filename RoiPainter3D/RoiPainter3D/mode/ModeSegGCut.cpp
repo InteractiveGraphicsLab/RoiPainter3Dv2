@@ -109,7 +109,6 @@ void ModeSegGCut::StartMode()
 	  string backUpFilePath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
 	  if( t_loadWsdLabel( backUpFilePath, WHD, m_vol_wsdid) )
 	  {
-      cout << "aaa";
 		  const short *vol = ImageCore::GetInst()->m_vol_orig;
 		  t_constructWsdNodesFromLabel( W,H,D, m_vol_wsdid, vol, m_num_wsdnodes, m_wsdnodes, m_wsdnode_neibor);
 		  m_b_wsdnode_initialized = true;
@@ -129,6 +128,7 @@ void ModeSegGCut::StartMode()
   }
 
 }
+
 
 
 
@@ -162,6 +162,7 @@ void ModeSegGCut::FinishSegmemntation ()
 }
 
 
+
 void ModeSegGCut::CancelSegmentation ()
 {
   //CPを削除（しないと、canEndModeでダイアログが表示される)
@@ -170,6 +171,8 @@ void ModeSegGCut::CancelSegmentation ()
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
 	FormMain_RedrawMainPanel();	
 }
+
+
 
 void ModeSegGCut::ClearAllCPs()
 {
@@ -203,6 +206,7 @@ void ModeSegGCut::LBtnDown(const EVec2i &p, OglForCLI *ogl)
     ogl->BtnDown_Trans(p);
   }
 }
+
 
 
 void ModeSegGCut::LBtnUp(const EVec2i &p, OglForCLI *ogl)
@@ -738,25 +742,6 @@ bool t_wsd_CheckAndSolveConflictCP(
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////
 //Graph cut segmentation////////////////////////////////////////////////////////////////
 
@@ -1034,7 +1019,7 @@ void ModeSegGCut::RunGraphCutVoxLv(float lambda, int band_width, bool b_genband_
 	//gen flow network
 	vector<GCVoxNode> vox_nodes;
 	vox_nodes.reserve(WHD);
-	for(int i = 0, k=0; i < WHD; ++i) if( vol_nodeid[i] == 0 )
+	for ( int i = 0; i < WHD; ++i) if( vol_nodeid[i] == 0 )
 	{
 		vol_nodeid[i] = (int) vox_nodes.size();
 		vox_nodes.push_back( GCVoxNode(i,vol[i]) );
