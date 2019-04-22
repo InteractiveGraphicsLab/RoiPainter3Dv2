@@ -27,21 +27,28 @@ using namespace std;
 
 static bool t_loadWsdLabel ( 
     const string fname,  
-    const EVec3i &reso, 
-    vector<int> &map_vox2wsd 
+    const int    num_voxels, 
+    int*         map_vox2wsd 
 );
 
-static void t_constructWsdNodesFromLabel( 
-    const int W, const int H, const int D, 
-    const vector<int> &vLabel, const short *vol, 
-    vector< GCWsdNode> &wsdNodes, 
-    vector< set<int> > &wsdNodeNei
+static void t_constructWsdNodesFromLabel
+(
+	const int W, const int H, const int D,
+	const int   *vol_label,
+	const short *vol      ,
+
+  int        &num_wsdnodes,
+	GCWsdNode* &wsdNodes  ,// この関数内でallocateされる
+	set<int> * &wsdNodeNei // この関数内でallocateされる
 );
+
 
 
 ModeSegGCut::~ModeSegGCut()
 {
-
+  delete[] m_vol_wsdid;
+  delete[] m_wsdnodes ;
+  delete[] m_wsdnode_neibor;
 }
 
 
@@ -52,6 +59,10 @@ ModeSegGCut::ModeSegGCut() :
   std::cout << "ModeSegGCutModeSegGCut constructor! \n";
   m_b_wsdnode_initialized = false;
   m_b_wsdnode_computing   = false;
+  m_vol_wsdid = 0;
+  m_num_wsdnodes   = 0;
+  m_wsdnodes       = 0;
+  m_wsdnode_neibor = 0;
   std::cout << "ModeSegGCutModeSegGCut constructor! DONE \n";
 }
 
@@ -88,14 +99,18 @@ void ModeSegGCut::StartMode()
 	//compute watershad ------------------
 	if( !m_b_wsdnode_initialized )
   {
-	  const EVec3i reso = ImageCore::GetInst()->GetResolution();
+    int W,H,D,WH,WHD;
+    std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
+
+    if( m_vol_wsdid != 0 ) delete[] m_vol_wsdid;
+    m_vol_wsdid = new int[WHD];
 
     //backup fileの読み込みを試す
 	  string backUpFilePath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
-	  if( t_loadWsdLabel( backUpFilePath, reso, m_map_vox2wsd) )
+	  if( t_loadWsdLabel( backUpFilePath, WHD, m_vol_wsdid) )
 	  {
 		  const short *vol = ImageCore::GetInst()->m_vol_orig;
-		  t_constructWsdNodesFromLabel( reso[0], reso[1], reso[2], m_map_vox2wsd, vol, m_wsdnodes, m_wsdnode_neibor);
+		  t_constructWsdNodesFromLabel( W,H,D, m_vol_wsdid, vol, m_num_wsdnodes, m_wsdnodes, m_wsdnode_neibor);
 		  m_b_wsdnode_initialized = true;
 		  return;
 	  }
@@ -113,6 +128,7 @@ void ModeSegGCut::StartMode()
   }
 
 }
+
 
 
 
@@ -146,6 +162,7 @@ void ModeSegGCut::FinishSegmemntation ()
 }
 
 
+
 void ModeSegGCut::CancelSegmentation ()
 {
   //CPを削除（しないと、canEndModeでダイアログが表示される)
@@ -154,6 +171,8 @@ void ModeSegGCut::CancelSegmentation ()
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
 	FormMain_RedrawMainPanel();	
 }
+
+
 
 void ModeSegGCut::ClearAllCPs()
 {
@@ -187,6 +206,7 @@ void ModeSegGCut::LBtnDown(const EVec2i &p, OglForCLI *ogl)
     ogl->BtnDown_Trans(p);
   }
 }
+
 
 
 void ModeSegGCut::LBtnUp(const EVec2i &p, OglForCLI *ogl)
@@ -422,21 +442,19 @@ void ModeSegGCut::DrawScene (
 static bool t_loadWsdLabel 
 (
   const string  fname,  
-  const EVec3i &reso , 
-
-  vector<int>  &map_vox2wsd 
+  const int     num_voxels,
+  int          *map_vox2wsd 
 )
 {
 	if( fname.length() <= 9 ) return false;
-	const int WHD = reso[0] * reso[1] * reso[2];
 
 	FILE *fp = fopen( fname.c_str(), "rb" );
 	if( fp == 0 ) return false;
 
 	//check volume size	
-	int num_voxel; 
-	fread( &num_voxel, sizeof(int),1, fp );
-	if( num_voxel != WHD ) 
+	int num_voxel_fromfile; 
+	fread( &num_voxel_fromfile, sizeof(int),1, fp );
+	if( num_voxel_fromfile != num_voxels ) 
 	{ 
 		fclose( fp); 
 		return false;
@@ -451,8 +469,7 @@ static bool t_loadWsdLabel
 	}
 
 	//read label 
-	map_vox2wsd.resize( num_voxel );
-	for( int i=0; i<WHD; ++i) fread( &map_vox2wsd[i], sizeof(int), 1, fp );
+	fread( map_vox2wsd, sizeof(int), num_voxels, fp );
 	fclose( fp );
 
 	return true;
@@ -463,14 +480,14 @@ static bool t_saveWsdLabel
 ( 
     const string fname, 
     const int    num_voxels,
-    const vector<int> &map_vox2wsd 
+    const int   *map_vox2wsd 
 )
 {
 	FILE *fp = fopen( fname.c_str(), "wb" );
 	if( fp == 0 ) return false;
 
 	fwrite( &num_voxels, sizeof(int), 1, fp );
-	for ( int i=0; i < num_voxels; ++i) fwrite( &map_vox2wsd[i], sizeof(int), 1, fp );
+  fwrite( map_vox2wsd, sizeof(int), num_voxels, fp );
 	fclose( fp );
 	return true;
 }
@@ -481,11 +498,12 @@ void t_constructWsdNodesFromLabel
 	const int W,
 	const int H, 
 	const int D,
-	const vector<int> &vol_label,
-	const short       *vol      ,
-
-	vector<GCWsdNode> &wsdNodes  ,
-	vector<set<int> > &wsdNodeNei
+	const int   *vol_label,
+	const short *vol      ,
+  
+  int         &num_wsdnodes, //この関数内で計算される
+	GCWsdNode*  &wsdNodes    , //この関数内でallocateされる
+	set <int>*  &wsdNodeNei    // この関数内でallocateされる
 )
 {
 	time_t t0 = clock();
@@ -497,11 +515,12 @@ void t_constructWsdNodesFromLabel
 	int max_label = 0;
 	for( int i= 0; i < WHD; ++i ) max_label = max( max_label, vol_label[i] );
 
-	wsdNodes  .clear(); 
-	wsdNodeNei.clear(); 
-	wsdNodes  .resize( max_label + 1 );
-	wsdNodeNei.resize( max_label + 1 );
-	
+  if( wsdNodes   != 0 ) delete[] wsdNodes;
+  if( wsdNodeNei != 0 ) delete[] wsdNodeNei;
+  num_wsdnodes = max_label + 1;
+  wsdNodes   = new GCWsdNode[ num_wsdnodes ];
+	wsdNodeNei = new set<int> [ num_wsdnodes ];
+
 	for( int z = 0; z < D ; ++z)
   {
 	  for( int y = 0; y < H ; ++y)
@@ -546,6 +565,7 @@ void t_constructWsdNodesFromLabel
 void ModeSegGCut::InitializeWsdNodes_thread(void *pParam)
 {
 	std::cout << "initWsdNodes_thread start!!\n";
+  time_t t0 = clock();
 
 	ModeSegGCut *p_modeseggcut  = (ModeSegGCut*)pParam;
   
@@ -555,29 +575,40 @@ void ModeSegGCut::InitializeWsdNodes_thread(void *pParam)
 	const float  *vol_gm   = ImageCore::GetInst()->m_vol_origgm ;
 	
 	//calc WsdLabel 0:境界画素, >0:ラベル値
-	vector<int> &vox_wsdlabel = p_modeseggcut->m_map_vox2wsd;
+	int *vox_wsdid = p_modeseggcut->m_vol_wsdid;
 
-	t_wsd_CalcLabelFromGMag( W, H, D, vol_gm, 1000, vox_wsdlabel); 
-	t_wsd_RemoveOneVoxWsdLabel( vox_wsdlabel ); 
-	t_wsd_CollapseWsdPixels3D( W, H, D, vol, vox_wsdlabel ); 
+  time_t t1 = clock();
+	t_wsd_CalcLabelFromGMag( W, H, D, vol_gm, 1000, vox_wsdid); 
+  time_t t2 = clock();
+	t_wsd_RemoveOneVoxWsdLabel( WHD, vox_wsdid ); 
+  time_t t3 = clock();
+	t_wsd_CollapseWsdPixels3D( W, H, D, vol, vox_wsdid ); 
+  time_t t4 = clock();
 
-	for( int i= 0; i < WHD; ++i ) vox_wsdlabel[i] -= 1; 
+	for( int i= 0; i < WHD; ++i ) vox_wsdid[i] -= 1; 
 
 	//calc Node & neighbors
-	t_constructWsdNodesFromLabel( W, H, D, vox_wsdlabel, vol, p_modeseggcut->m_wsdnodes, p_modeseggcut->m_wsdnode_neibor );
+	t_constructWsdNodesFromLabel( W, H, D, vox_wsdid, vol, p_modeseggcut->m_num_wsdnodes, p_modeseggcut->m_wsdnodes, p_modeseggcut->m_wsdnode_neibor );
 
 	//save backup file
 	string backup_fpath = ImageCore::GetInst()->GetFilePath() + ".RpWsdPre";
-	t_saveWsdLabel( backup_fpath, WHD, vox_wsdlabel);
+	t_saveWsdLabel( backup_fpath, WHD, vox_wsdid);
 
 	p_modeseggcut->m_b_wsdnode_initialized = true;
 	p_modeseggcut->m_b_wsdnode_computing   = false;
 	
+  time_t t5 = clock();
+	std::cout << "TIME: " << (t1-t0) / (double)CLOCKS_PER_SEC << " " 
+                        << (t2-t1) / (double)CLOCKS_PER_SEC << " " 
+                        << (t3-t2) / (double)CLOCKS_PER_SEC << " " 
+                        << (t4-t3) / (double)CLOCKS_PER_SEC << " "
+                        << (t5-t4) / (double)CLOCKS_PER_SEC << "\n" ;
 	std::cout << "initWsdNodes_thread DONE!!\n";
 }
 
-
-
+//original 
+//TIME: 0.001 228.363 1.58 4.394 16.986
+//TIME: 0.001 227.302 1.577 4.305 17.171
 
 inline static EVec4i t_voxIdx(const int &W, const int &WH, const int &vI)
 {
@@ -601,7 +632,7 @@ void t_wsd_DivideOneLabel(
 	const int maxLabel,
 	const int fI, 
 	const int bI,
-	vector<int > &vLabel)
+  int* vLabel)
 {
 	std::cout << "divide conflict wsd area " << fI << " " << bI 
             << "(" << vLabel[ fI ] << " " << vLabel[ bI ] << ")\n";
@@ -650,7 +681,10 @@ void t_wsd_DivideOneLabel(
 		}
 	}
 	//fore label の値を元に戻す
-	for( auto &it: vLabel) if( it == F_LABEL ) it = TRGT;
+  for ( int i=0, s = W*H*D; i < s; ++i)
+  {
+    if( vLabel[i] == F_LABEL ) vLabel[i] = TRGT;
+  }
 
 	std::cout << "done!!\n";
 
@@ -665,14 +699,19 @@ bool t_wsd_CheckAndSolveConflictCP(
 	const vector<GCutCp> &cps_fore ,
 	const vector<GCutCp> &cps_back ,
 
-	vector<int> &vol_label)
+	int* vol_label)
 {
 	set<int> fore_ids, back_ids; 
 	for(const auto& cp : cps_fore ) fore_ids.insert( cp.m_vidx[3] );
 	for(const auto& cp : cps_back ) back_ids.insert( cp.m_vidx[3] );
 
+  const int num_voxel = W*H*D;
+
 	int max_label = 0;
-	for( const auto& i: vol_label) max_label = max( max_label, i);
+  for( int i=0; i < num_voxel; ++i) 
+  {
+    max_label = std::max( max_label, vol_label[i]);
+  }
 
 	bool modified = false;
 
@@ -703,25 +742,6 @@ bool t_wsd_CheckAndSolveConflictCP(
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////
 //Graph cut segmentation////////////////////////////////////////////////////////////////
 
@@ -733,7 +753,7 @@ static inline float t_DistSq(const float &f1, const float &f2)
 //use data energy introduced by lazy snapping paper
 //see Lazy snapping papaer for detail
 inline static void t_CalcE1(
-	const vector<GCWsdNode> &nodes,
+	const GCWsdNode   *nodes,
 	const vector<int> &forenode_ids,
 	const vector<int> &backnode_ids,
 	const int         &pivnode_id,
@@ -838,51 +858,50 @@ void ModeSegGCut::RunGraphCutWsdLv(float lambda)
 
 
 	// ひとつのノードに二つ以上の前景・背景制御点が配置されていたら、分割する
-	if ( t_wsd_CheckAndSolveConflictCP(W,H,D, m_cps_fore, m_cps_back, m_map_vox2wsd) )
+	if ( t_wsd_CheckAndSolveConflictCP(W,H,D, m_cps_fore, m_cps_back, m_vol_wsdid) )
 	{
-		t_constructWsdNodesFromLabel( W,H,D, m_map_vox2wsd, vol, m_wsdnodes, m_wsdnode_neibor );
+		t_constructWsdNodesFromLabel( W,H,D, m_vol_wsdid, vol, m_num_wsdnodes, m_wsdnodes, m_wsdnode_neibor );
 	}
 
 	// disable wsd nodes that exist in locked mask region
-	for( auto& n : m_wsdnodes)
+	for( int i=0; i < m_num_wsdnodes; ++i)
 	{
-		n.m_b_enable = false;
-		for ( const auto& pi : n.m_voxel_ids ) if ( vol_flg[ pi ] != 0)
-		{
-			n.m_b_enable = true; 
-			break; 
-		}
-	}
+    m_wsdnodes[i].m_b_enable = false;
+  }
+  for( int i=0; i < WHD; ++i)
+  {
+    if( vol_flg[i] != 0) m_wsdnodes[ m_vol_wsdid[i] ].m_b_enable = true;
+  }
 
 	// cps --> node ids
 	vector< int > fore_wsdnodeids, back_wsdnodeids;
-	for (const auto& c : m_cps_fore) fore_wsdnodeids.push_back( m_map_vox2wsd[ c.m_vidx[3] ] );
-	for (const auto& c : m_cps_back) back_wsdnodeids.push_back( m_map_vox2wsd[ c.m_vidx[3] ] );
+	for (const auto& c : m_cps_fore) fore_wsdnodeids.push_back( m_vol_wsdid[ c.m_vidx[3] ] );
+	for (const auto& c : m_cps_back) back_wsdnodeids.push_back( m_vol_wsdid[ c.m_vidx[3] ] );
 	t_VectorUnique( fore_wsdnodeids );
 	t_VectorUnique( back_wsdnodeids );
 
 
 	//generate flow network
 	int estimate_numedge = 0 ; 
-	for( const auto& n: m_wsdnode_neibor ) estimate_numedge += (int) n.size(); 
+  for ( int i=0; i < m_num_wsdnodes; ++i)
+    estimate_numedge += (int) m_wsdnode_neibor[i].size();
 
-	const int num_node  = (int)m_wsdnodes.size(); 
-	const int num_edge  = 2 * (num_node + estimate_numedge)  ; //2 * tLink + nLinks
-	const int soucenode_id = num_node + 0 ;
-	const int sinknode_id  = num_node + 1 ;
+	const int num_edge  = 2 * (m_num_wsdnodes + estimate_numedge)  ; //2 * tLink + nLinks
+	const int soucenode_id = m_num_wsdnodes + 0 ;
+	const int sinknode_id  = m_num_wsdnodes + 1 ;
 
-	TFlowNetwork_BK4 network( num_node + 2, num_edge, soucenode_id, sinknode_id ); 
+	TFlowNetwork_BK4 network( m_num_wsdnodes + 2, num_edge, soucenode_id, sinknode_id ); 
 
 
 	time_t t2 = clock();
-  std::cout << "graphCut " << num_node << " " << num_edge 
+  std::cout << "graphCut " << m_num_wsdnodes << " " << num_edge 
             << " " << fore_wsdnodeids.size() << " " << back_wsdnodeids.size() << "\n";
 
 	//t-link
-	vector<EVec2f> tLinkE( num_node );
+	vector<EVec2f> tLinkE( m_num_wsdnodes );
 
 #pragma omp parallel for
-	for( int i = 0; i < num_node; ++i)
+	for( int i = 0; i < m_num_wsdnodes; ++i)
 	{
 		tLinkE[i] << 0, FOREBACK_MAX; 
 		if( m_wsdnodes[i].m_b_enable ) t_CalcE1( m_wsdnodes, fore_wsdnodeids, back_wsdnodeids, i, tLinkE[i] ); 
@@ -891,11 +910,14 @@ void ModeSegGCut::RunGraphCutWsdLv(float lambda)
 	for( const auto &id : fore_wsdnodeids ) if( m_wsdnodes[ id ].m_b_enable ) tLinkE[id] << FOREBACK_MAX, 0 ;  
 	for( const auto &id : back_wsdnodeids ) if( m_wsdnodes[ id ].m_b_enable ) tLinkE[id] << 0, FOREBACK_MAX ;  
 
-	for( int i = 0; i < num_node; ++i ) network.add_tLink( soucenode_id, sinknode_id, i, tLinkE[i][0], tLinkE[i][1]);
+	for( int i = 0; i < m_num_wsdnodes; ++i ) 
+  {
+    network.add_tLink( soucenode_id, sinknode_id, i, tLinkE[i][0], tLinkE[i][1]);
+  }
 
 
 	//n-link b_enableなノード間のみ
-	for (int i = 0; i < num_node; ++i) if( m_wsdnodes[i].m_b_enable ) 
+	for (int i = 0; i < m_num_wsdnodes; ++i) if( m_wsdnodes[i].m_b_enable ) 
 	{
 		for( const auto &neiI : m_wsdnode_neibor[i] )
 		{
@@ -910,14 +932,14 @@ void ModeSegGCut::RunGraphCutWsdLv(float lambda)
 	std::cout << "graphCut 2....\n";
 
 	//Graph Cut
-	byte *minCut = new byte[ num_node + 2 ];
+	byte *minCut = new byte[ m_num_wsdnodes + 2 ];
 	network.calcMaxFlow( soucenode_id, sinknode_id, minCut );
 
 
 #pragma omp parallel for
 	for(int i = 0; i < WHD; ++i ) if( vol_flg[i] != 0 ) 
   {
-    vol_flg[i] = (minCut[ m_map_vox2wsd[i] ]) ? 255 : 1;
+    vol_flg[i] = (minCut[ m_vol_wsdid[i] ]) ? 255 : 1;
   }
 
 	t_RemoveIsolatedForeRegion( W,H,D, m_cps_fore, vol_flg );
@@ -997,7 +1019,7 @@ void ModeSegGCut::RunGraphCutVoxLv(float lambda, int band_width, bool b_genband_
 	//gen flow network
 	vector<GCVoxNode> vox_nodes;
 	vox_nodes.reserve(WHD);
-	for(int i = 0, k=0; i < WHD; ++i) if( vol_nodeid[i] == 0 )
+	for ( int i = 0; i < WHD; ++i) if( vol_nodeid[i] == 0 )
 	{
 		vol_nodeid[i] = (int) vox_nodes.size();
 		vox_nodes.push_back( GCVoxNode(i,vol[i]) );

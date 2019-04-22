@@ -30,50 +30,62 @@ class TWsPixelEx
   unsigned short m_val   ;//pixel intensity 
   int            m_label ;//pixel label INIT
   int            m_dist  ;//mask時のbasin/watershed pixelからの距離
-  std::vector<TWsPixelEx*> m_neighbours;//reference to neighboring pixels
+
+  TWsPixelEx    *m_neighborPtr[26];
+  int            m_num_neighbors  ;
+  //std::vector<TWsPixelEx*> m_neighbours;//reference to neighboring pixels
 
 public:
 	~TWsPixelEx(){}
-    TWsPixelEx(){
+  
+  TWsPixelEx(){
+    m_num_neighbors = 0;
 		//m_value = 0 ;
 		//m_dist  = 0;
 		m_label = TWS_FICTITIOUS;
 	}
+
 	TWsPixelEx( const TWsPixelEx &p)
 	{
 		m_val   = p.m_val  ;//pixelの輝度値
 		m_label = p.m_label;//pixelにつくラベル INIT
 		m_dist  = p.m_dist ;//mask時のbasin/watershed pixelからの距離
-		for(int i= 0;i<(int)p.m_neighbours.size(); ++i) m_neighbours.push_back( p.m_neighbours[i] );
+    m_num_neighbors = p.m_num_neighbors;
+		for(int i=0; i < m_num_neighbors; ++i) m_neighborPtr[i] = p.m_neighborPtr[i] ;
 	}
 
 	//setter//
-	inline void Set(unsigned short val){
+	inline void Set(unsigned short val)
+  {
 		m_val   = std::min( (unsigned short)WSD_HMAX, std::max( val, (unsigned short)WSD_HMIN) );
 		m_dist  = 0       ;
 		m_label = TWS_INIT;
-		m_neighbours.reserve( 26 );
-    }
+  }
 	inline void setLabel(int label){ m_label = label;     }
 	inline void setLabelToINIT()   { m_label = TWS_INIT ; }
 	inline void setLabelToMASK()   { m_label = TWS_MASK ; }
 	inline void setLabelToWSHED()  { m_label = TWS_WSHED; }
 	inline void setDistance(int d) { m_dist  = d    ; }
 
-	inline void addNeighbour(TWsPixelEx *n){ m_neighbours.push_back( n ); }
+	inline void addNeighbour(TWsPixelEx *n)
+  {
+    m_neighborPtr[m_num_neighbors] = n;
+    ++m_num_neighbors;
+  }
 
-	//getter
- //   inline byte getValue   () const { return m_value      ; }
-    inline unsigned short getIntValue() const { return (int) m_val; } 
-	inline int            getLabel   () const { return m_label; }
-	inline int            getDistance() const { return m_dist ; }
+  //getter
+  //   inline byte getValue   () const { return m_value      ; }
+  inline unsigned short getIntValue() const { return (int) m_val; } 
+  inline int            getLabel   () const { return m_label; }
+  inline int            getDistance() const { return m_dist ; }
 
 	inline bool isLabelINIT()  const {return m_label == TWS_INIT ;      }
 	inline bool isLabelMASK()  const {return m_label == TWS_MASK ;      } 
 	inline bool isLabelWSHED() const {return m_label == TWS_WSHED;      }
 	inline bool isFICTITIOUS() const {return m_label == TWS_FICTITIOUS; }
 
-	inline std::vector<TWsPixelEx*> &getNeighbours(){ return m_neighbours; }
+  inline int         GetNumNeighbor(){ return m_num_neighbors; }
+  inline TWsPixelEx* GetNeighbor(int idx){ return m_neighborPtr[idx];}
 };
 
 
@@ -115,29 +127,27 @@ preprocess (1 - 13)
 
 flooding process (15 - 70)
   
-  maskとfifoキュー初期化(17 - 24)
-     値hを持つpixelにmaskフラグを立てる
-     現在のbasinとwatershed pixelに接しているものをfifoキューに入れる
+maskとfifoキュー初期化(17 - 24)
+    値hを持つpixelにmaskフラグを立てる
+    現在のbasinとwatershed pixelに接しているものをfifoキューに入れる
   
-  mask領域内のpixelのラベルを確定する(25 - 52)
-     キューをうまいこと使うことで、既存のbasinからの離散距離に応じて，labeling領域を広げていく
+mask領域内のpixelのラベルを確定する(25 - 52)
+    キューをうまいこと使うことで、既存のbasinからの離散距離に応じて，labeling領域を広げていく
 
-  local minima detection(53 - 68)
-     local minimaを見つけて,各local minima内のpixelに一貫したlabelを打つ
-
+local minima detection(53 - 68)
+    local minimaを見つけて,各local minima内のpixelに一貫したlabelを打つ
 
 *注意* flatな領域があるため、上のような大変なalgorithmになったっぽいですね。
-
 
 25-52では、maskフラグが立った各ピクセルを,　既存のbasin pixelやwatershed　pixelからの距離順に
 ラべリングしていく.
 
 あるpixel p (dist = d) のすべての近傍 qを見たときに、qの状態としてあり得るものは
-    A) basin、watershed、maskフラグのいずれでもない  dist = 0       && label = INIT
-	B) basin内部のpixel                              dist = 0 / d-1 && label = LABEL 
-　　C) watershed pixel                               dist = 0 / d-1 && label = WATERSHED
-    D) maskフラグ かつ dist = 0 まだキューに入っていない　　　　　　　 label = MASK
-	E) maskフラグ かつ dist = d pixel pと同列に扱われている            label = MASK                        
+A) basin、watershed、maskフラグのいずれでもない  dist = 0       && label = INIT
+B) basin内部のpixel                              dist = 0 / d-1 && label = LABEL 
+C) watershed pixel                               dist = 0 / d-1 && label = WATERSHED
+D) maskフラグ かつ dist = 0 まだキューに入っていない　　　　　　　 label = MASK
+E) maskフラグ かつ dist = d pixel pと同列に扱われている            label = MASK                        
 
 pixel pのすべての近傍 qをloopして、
 　　1, 状態Dのqをキューに入れる　q.dist = d + 1とする
@@ -161,11 +171,16 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 		for(int pIdx = heightIndex1 ; pIdx < size; ++pIdx) 
 		{
 			TWsPixelEx &p = *sortedPixPtr[pIdx];
-			if( p.getIntValue() != h){ heightIndex1 = pIdx; break; }
+			if( p.getIntValue() != h)
+      { 
+        heightIndex1 = pIdx; 
+        break; 
+      }
 
 			p.setLabelToMASK();
-			std::vector<TWsPixelEx*> &neighbours = p.getNeighbours();
-			for(int i=0 ; i< (int) neighbours.size() ; i++) if( neighbours[i]->getLabel() >= 0 ) //basin or watershed
+
+      const int num_neighbors = p.GetNumNeighbor();
+			for(int i=0 ; i< num_neighbors; ++i) if( p.GetNeighbor(i)->getLabel() >= 0 ) //basin or watershed
 			{		    
 				p.setDistance(1);
 				queue.fifo_add(&p);
@@ -174,10 +189,10 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 		} 
 
 		queue.fifo_add( new TWsPixelEx() );//add fictitious pixel
-	    //今のキューの中身 -->  mark pix pix pix ... pix でmarkはfictitiousで、pixは、既存のbasin/watershedに隣接した領域
+	  //今のキューの中身 -->  mark pix pix pix ... pix でmarkはfictitiousで、pixは、既存のbasin/watershedに隣接した領域
 
 		int curdist = 1;
-	    while(true) //extend basins 
+	  while(true) //extend basins 
 		{
 			TWsPixelEx *p = queue.fifo_remove();
 
@@ -194,19 +209,24 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 
 			//neighborsの状況によりpをラべリング * 以下に説明あり
 			bool hasNeighboringWsPix = false;
-			std::vector<TWsPixelEx*> &neighbours = p->getNeighbours();	
-			for(int i = 0; i < (int)neighbours.size(); ++i) 
-			{
-				TWsPixelEx &q = *neighbours[i];
+      const int num_neighbors  = p->GetNumNeighbor();
 
-				if( q.isLabelMASK() && (q.getDistance() == 0) ){
+			for(int i = 0; i < num_neighbors; ++i) 
+			{
+				TWsPixelEx &q = *p->GetNeighbor(i);
+
+				if( q.isLabelMASK() && (q.getDistance() == 0) )
+        {
 					q.setDistance( curdist+1 );
 					queue.fifo_add( &q       );
 				}	    
-
-				else if( (q.getDistance() <= curdist) && q.isLabelWSHED() )  hasNeighboringWsPix = true;
-				else if( (q.getDistance() <= curdist) && q.getLabel() > 0 )  //qは既存のbasinに入っている
+				else if( (q.getDistance() <= curdist) && q.isLabelWSHED() )
+        {
+          hasNeighboringWsPix = true;
+        }
+				else if( (q.getDistance() <= curdist) && q.getLabel() > 0 ) 
 				{ 
+          //qは既存のbasinに入っている
 					if     ( p->isLabelMASK()                  ) p->setLabel(q.getLabel());
 					else if( p->getLabel()    != q.getLabel()  ) p->setLabelToWSHED();
 				}
@@ -214,8 +234,8 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 			if( p->isLabelMASK() && hasNeighboringWsPix ) p->setLabelToWSHED();//ここが突出したwspixelを作っているができる
 		}
 
-	    //Detect and process new minima at level h 
-	    for(int pIdx = heightIndex2 ; pIdx < size; pIdx++) 
+	  //Detect and process new minima at level h 
+	  for(int pIdx = heightIndex2 ; pIdx < size; pIdx++) 
 		{
 			TWsPixelEx &p = *sortedPixPtr[ pIdx ];
 			if(p.getIntValue() != h) { heightIndex2 = pIdx; break; } // This pixel is at level h+1	
@@ -227,20 +247,21 @@ inline void runWatershedAlgorithmEx(int size, TWsPixelEx **sortedPixPtr, void (*
 				p.setLabel(curlab);		    
 				queue.fifo_add(&p);
 			    
-			    //pから同じ値(MASKラベル)のpixelにfloodfill
+			  //pから同じ値(MASKラベル)のpixelにfloodfill
 				while(!queue.fifo_empty()) 
 				{
 					TWsPixelEx &q = *queue.fifo_remove();
-					std::vector<TWsPixelEx*> &neighbours = q.getNeighbours();
 
-					for(int i=0 ; i < (int)neighbours.size() ; ++i) if( neighbours[i]->isLabelMASK() ) 
+          const int num_neighbors = q.GetNumNeighbor();
+
+					for(int i=0 ; i < num_neighbors; ++i) if( q.GetNeighbor(i)->isLabelMASK() ) 
 					{
-						neighbours[i]->setLabel(curlab);
-						queue.fifo_add( neighbours[i] );
+						q.GetNeighbor(i)->setLabel(curlab);
+						queue.fifo_add( q.GetNeighbor(i) );
 					}
 				}
 			} 
-	    } 
+	  } 
 		if( h%30==0 && progressFunc != 0) progressFunc( h / (double)WSD_HMAX);
 	} 
 }
@@ -290,40 +311,91 @@ inline void TWatershed2DEx(int W, int H, const byte *img, int *pixel_labels)
 
 
 
-inline void TWatershed3DEx( int W,  int H,  int D, const float* gMagImg, const float gMagCoef, std::vector<int> &labels, void (*progressFunc)(double) = 0 )
+inline void TWatershed3DEx
+( 
+  int W,  int H,  int D, 
+  const float* gMagImg, 
+  const float gMagCoef, 
+  std::vector<int> &labels, 
+  void (*progressFunc)(double) = 0 
+)
 {
+  time_t t0 = clock();
+
+  const int WH  = W * H;
+  const int WHD = W*H*D;
+
 	//construct pixels and sort it///////////////////////////////////////////////
-	const int size = W * H * D;
-	TWsPixelEx *pixels        = new TWsPixelEx [size];//
-	TWsPixelEx **sortedPixPtr = new TWsPixelEx*[size];//sortしたもの
-	for(int i = 0; i < size; ++i) sortedPixPtr[i] = &pixels[i];
+	TWsPixelEx *pixels        = new TWsPixelEx [WHD];//
+	TWsPixelEx **sortedPixPtr = new TWsPixelEx*[WHD];//sortしたもの
+	for(int i = 0; i < WHD; ++i) sortedPixPtr[i] = &pixels[i];
 
 	// 9 + 8 + 9近傍
-	int idx = 0;
-	for(int z = 0; z < D; ++z) 
-	for(int y = 0; y < H; ++y) 
-	for(int x = 0; x < W; ++x, ++idx) 
-	{
-		pixels[ idx ].Set( (unsigned short)( gMagCoef * gMagImg[idx] ) );
-		for( int dz = -1; dz <=1 ; ++dz )
-		for( int dy = -1; dy <=1 ; ++dy )  
-		for( int dx = -1; dx <=1 ; ++dx )
-		{
-            if( dx == 0 && dy == 0 && dz == 0 ) continue;
-			
-			if( z + dz >= 0 && z + dz < D && 
-				y + dy >= 0 && y + dy < H && 
-				x + dx >= 0 && x + dx < W ) 
-				pixels[idx].addNeighbour( &pixels[idx + dx + dy * W + dz * W * H ] );
-		}
-	}
+#pragma omp parallel for 
+	for ( int z = 0; z < D; ++z)
+  {
+	  for ( int y = 0; y < H; ++y)
+    {
+	    for ( int x = 0; x < W; ++x)
+      {
+        const int idx = x + y * W + z * WH;
+        pixels[ idx ].Set( (unsigned short)( gMagCoef * gMagImg[idx] ) );
+        
+        //add 26 近傍
+        if ( x>0  &&  y>0 && z>0  ) pixels[idx].addNeighbour( &pixels[ idx-1-W-WH] );
+        if (          y>0 && z>0  ) pixels[idx].addNeighbour( &pixels[ idx  -W-WH] );
+        if ( x<W-1&&  y>0 && z>0  ) pixels[idx].addNeighbour( &pixels[ idx+1-W-WH] );
+        if ( x>0          && z>0  ) pixels[idx].addNeighbour( &pixels[ idx-1  -WH] );
+        if (                 z>0  ) pixels[idx].addNeighbour( &pixels[ idx    -WH] );
+        if ( x<W-1        && z>0  ) pixels[idx].addNeighbour( &pixels[ idx+1  -WH] );
+        if ( x>0  && y<H-1&& z>0  ) pixels[idx].addNeighbour( &pixels[ idx-1+W-WH] );
+        if (         y<H-1&& z>0  ) pixels[idx].addNeighbour( &pixels[ idx  +W-WH] );
+        if ( x<W-1&& y<H-1&& z>0  ) pixels[idx].addNeighbour( &pixels[ idx+1+W-WH] );
 
-	qsort( sortedPixPtr, size, sizeof(TWsPixelEx*), wsd_cmpindexEx );
+        if ( x>0  &&  y>0         ) pixels[idx].addNeighbour( &pixels[ idx-1-W   ] );
+        if (          y>0         ) pixels[idx].addNeighbour( &pixels[ idx  -W   ] );
+        if ( x<W-1&&  y>0         ) pixels[idx].addNeighbour( &pixels[ idx+1-W   ] );
+        if ( x>0                  ) pixels[idx].addNeighbour( &pixels[ idx-1     ] );
+        //if (                    ) pixels[idx].addNeighbour( &pixels[ idx       ] );
+        if ( x<W-1                ) pixels[idx].addNeighbour( &pixels[ idx+1     ] );
+        if ( x>0  && y<H-1        ) pixels[idx].addNeighbour( &pixels[ idx-1+W   ] );
+        if (         y<H-1        ) pixels[idx].addNeighbour( &pixels[ idx  +W   ] );
+        if ( x<W-1&& y<H-1        ) pixels[idx].addNeighbour( &pixels[ idx+1+W   ] );
+
+        if ( x>0  &&  y>0 && z<D-1) pixels[idx].addNeighbour( &pixels[ idx-1-W+WH] );
+        if (          y>0 && z<D-1) pixels[idx].addNeighbour( &pixels[ idx  -W+WH] );
+        if ( x<W-1&&  y>0 && z<D-1) pixels[idx].addNeighbour( &pixels[ idx+1-W+WH] );
+        if ( x>0          && z<D-1) pixels[idx].addNeighbour( &pixels[ idx-1  +WH] );
+        if (                 z<D-1) pixels[idx].addNeighbour( &pixels[ idx    +WH] );
+        if ( x<W-1        && z<D-1) pixels[idx].addNeighbour( &pixels[ idx+1  +WH] );
+        if ( x>0  && y<H-1&& z<D-1) pixels[idx].addNeighbour( &pixels[ idx-1+W+WH] );
+        if (         y<H-1&& z<D-1) pixels[idx].addNeighbour( &pixels[ idx  +W+WH] );
+        if ( x<W-1&& y<H-1&& z<D-1) pixels[idx].addNeighbour( &pixels[ idx+1+W+WH] );
+	    }
+    }
+  }
+
+  time_t t1 = clock();
+
+	qsort( sortedPixPtr, WHD, sizeof(TWsPixelEx*), wsd_cmpindexEx );
+  
+  time_t t2 = clock();
 
 	//run watershed algorithm////////////////////////////////////////////////////
-	runWatershedAlgorithmEx( size, sortedPixPtr, progressFunc );
-	labels.resize( size);
-	for(int pIdx = 0 ; pIdx < size ; ++pIdx)  labels[pIdx] = pixels[pIdx].getLabel();
+	runWatershedAlgorithmEx( WHD, sortedPixPtr, progressFunc );
+	
+  time_t t3 = clock();
+
+  labels.resize( WHD);
+	for(int pIdx = 0 ; pIdx < WHD ; ++pIdx)  labels[pIdx] = pixels[pIdx].getLabel();
+
+  time_t t4 = clock();
+
+  std::cout << "TIME WSD  " 
+    << (t1-t0)/(float)CLOCKS_PER_SEC << " " 
+    << (t2-t1)/(float)CLOCKS_PER_SEC << " " 
+    << (t3-t2)/(float)CLOCKS_PER_SEC << " " 
+    << (t4-t3)/(float)CLOCKS_PER_SEC << "\n"; 
 
 	delete[] sortedPixPtr;
 	delete[] pixels; 
@@ -349,7 +421,8 @@ void t_wsd_CalcLabelFromGMag
 	const int D, 
 	const float* gMagVol, 
 	const float  volCoef, 
-	      std::vector<int> &labels
+
+	      int* labels //should be allocated
 )
 {
 	if( W * H > 1024*1024*4 ) 
@@ -358,7 +431,8 @@ void t_wsd_CalcLabelFromGMag
 		return;
 	}
 
-	const int stepZ = 2 * 1024 * 1024 / ( W * H) ;
+	//calc layer size 
+  const int stepZ = 2 * 1024 * 1024 / ( W * H) ;
 	const int iterN = ( D % stepZ == 0 ) ? D / stepZ  :  D / stepZ + 1;
 	std::cout <<"watershed (" 
             << W << " " << H << " " << D << " " 
@@ -366,16 +440,18 @@ void t_wsd_CalcLabelFromGMag
 
 	std::vector< std::vector<int> > tmpLabels( iterN, std::vector<int>() );
 	
+
+	//calc water shed for each layers (メモリに乗らない場合を考慮して複数レイヤに分割して処理)
 	for( int i = 0; i < iterN; ++i)
 	{
-    std::cout << "was " << i << "/" << iterN << "\n";
+    std::cout << "wsd " << i << "/" << iterN << "\n";
 		int z0 = i * stepZ;
 		int tmpD = ( z0 + stepZ <= D ) ? stepZ : D - z0;
 		TWatershed3DEx( W, H, tmpD, &gMagVol[ W * H * z0 ], volCoef, tmpLabels[i], 0 );
 	}
 
+
 	//assemble  multiple label ID lists  into one
-	labels.resize( W*H*D, 0);
 	int labelOffset = 0;
 	int idxOffset   = 0;
 
@@ -404,7 +480,8 @@ void t_wsd_CollapseWsdPixels3D(
 	const int H, 
 	const int D, 
 	const short* vol, 
-	std::vector<int> &labels)
+	
+  int* labels)
 {
 	const int WH = W*H, WHD = W*H*D;
 
@@ -463,35 +540,48 @@ void t_wsd_CollapseWsdPixels3D(
 
 
 
-//　1 voxel regionをwatershed境界領域にする（高効率化のため）
+//　要素数が１の領域 (labelID) をwatershed境界領域にする（高効率化のため）
 // labelの振りなおしの必要が生じる
-void t_wsd_RemoveOneVoxWsdLabel( std::vector<int> &v_labels)
+void t_wsd_RemoveOneVoxWsdLabel( const int num_voxels, int *labels)
 {
-
 	//max label 
-	int maxLabel = 0;
-	for( const auto& vL: v_labels) maxLabel = std::max( maxLabel, vL);
-	
-	std::vector<int> label_voxN( maxLabel + 1, 0);
-	for( const auto& vL: v_labels) ++label_voxN[ vL ];
-	
-	//1 voxel 領域を境界要素へ
-	for(       auto& vL: v_labels) if( label_voxN[ vL ] == 1 )
+	int label_max = 0;
+  for( int i=0; i < num_voxels; ++i) 
+  {
+    label_max = std::max( label_max, labels[i]);
+  }
+
+  //各領域のvoxel数をカウント
+  int *label_num_voxel = new int[label_max + 1];
+  memset( label_num_voxel, 0, sizeof(int) * (label_max + 1) );
+
+  for ( int i=0; i < num_voxels; ++i) 
+  {
+    ++label_num_voxel[ labels[i] ];
+  }
+
+	//1 voxelしか含まない領域を 境界要素へ
+	for ( int i=0; i < num_voxels; ++i) if( label_num_voxel[ labels[i] ] == 1 )
 	{
-		label_voxN[vL] = -1;
-		vL = 0;
+		label_num_voxel[ labels[i] ] = -1;
+		labels[i] = 0;
 	}
 
 	//labelを連続に振り直す
 	int offset = 0;
-	std::vector<int> newLabel( label_voxN.size() );
-	for( int i = 0, s = (int) label_voxN.size(); i < s; ++i)
+	int *new_label = new int[label_max + 1];
+
+	for( int i = 0; i < label_max + 1; ++i)
 	{
-		if( label_voxN[i] == -1 ) offset++;
-		else newLabel[i] = i-offset;
+		if( label_num_voxel[i] == -1 ) offset++;
+		else new_label[i] = i - offset;
 	}
 
-	for( auto& vL: v_labels) vL = newLabel[ vL ];
+  for ( int i=0; i < num_voxels; ++i)  labels[i] = new_label[ labels[i] ];
+
+
+  delete[] label_num_voxel;
+  delete[] new_label;
 }
 
 
