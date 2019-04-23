@@ -680,10 +680,12 @@ void ImageCore::ActiveMask_Delete  ()
 
   const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
 
+  byte* mask3d = m_vol_mask.GetVolumePtr();
+#pragma omp parallel for
   for (int i = 0; i < N; ++i)
   {
-    if (     m_vol_mask[i] >  m_active_mask_id) m_vol_mask[i]--;
-    else if (m_vol_mask[i] == m_active_mask_id) m_vol_mask[i] = 0;
+    if (     mask3d[i] >  m_active_mask_id) mask3d[i]--;
+    else if (mask3d[i] == m_active_mask_id) mask3d[i] = 0;
   }
 
   m_mask_data.erase( m_mask_data.begin() + m_active_mask_id );
