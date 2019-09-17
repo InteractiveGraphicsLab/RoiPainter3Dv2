@@ -168,6 +168,9 @@
     <ClInclude Include="COMMON\tmesh.h" />
     <ClInclude Include="COMMON\tqueue.h" />
     <ClInclude Include="CrsSecCore.h" />
+    <ClInclude Include="FormIntegerSelection.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="FormMain.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -229,6 +232,7 @@
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="COMMON\tmarchingcubes.cpp" />
     <ClCompile Include="CrsSecCore.cpp" />
+    <ClCompile Include="FormIntegerSelection.cpp" />
     <ClCompile Include="FormMain.cpp" />
     <ClCompile Include="FormMaskIDselection.cpp" />
     <ClCompile Include="FormRefStrokeTrim.cpp" />
@@ -260,6 +264,9 @@
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="FormIntegerSelection.resx">
+      <DependentUpon>FormIntegerSelection.h</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.h</DependentUpon>
     </EmbeddedResource>

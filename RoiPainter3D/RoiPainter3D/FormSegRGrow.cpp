@@ -21,8 +21,40 @@ void FormSegRGrow::InitAllItems(short volMin, short volMax)
 }
 
 
-System::Void FormSegRGrow::textBox_max_TextChanged(System::Object^  sender, System::EventArgs^ e) {} 
-System::Void FormSegRGrow::textBox_min_TextChanged(System::Object^  sender, System::EventArgs^ e) {}
+System::Void FormSegRGrow::textBox_max_TextChanged(System::Object^ sender, System::EventArgs^ e) 
+{
+  int x;
+  if (Int32::TryParse(textBox_max->Text, x)) 
+  {
+    t_crop( trackbar_max->Minimum, trackbar_max->Maximum, x);
+    textBox_max->Text = (x).ToString();
+    trackbar_max->Value = x;
+  }
+  else 
+  {
+    textBox_max->Text = "0";
+    trackbar_max->Value = 0;
+  }
+
+}
+
+System::Void FormSegRGrow::textBox_min_TextChanged(System::Object^ sender, System::EventArgs^ e) 
+{
+  int x;
+  if (Int32::TryParse(textBox_min->Text, x)) 
+  {
+    t_crop( trackbar_min->Minimum, trackbar_min->Maximum, x);
+    textBox_min->Text = (x).ToString();
+    trackbar_min->Value = x;
+  }
+  else 
+  {
+    textBox_min->Text = "0";
+    trackbar_min->Value = 0;
+  }
+}
+
+
 
 System::Void FormSegRGrow::trackbar_min_Scroll(System::Object^  sender, System::EventArgs^     e) 
 {

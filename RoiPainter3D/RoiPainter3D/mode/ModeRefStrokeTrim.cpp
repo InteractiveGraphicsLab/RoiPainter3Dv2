@@ -54,7 +54,7 @@ void ModeRefStrokeTrim::StartMode()
 	m_b_modified = false;
 
   
-  m_trgt_maskid = formMaskIdSelection_showModalDialog( 
+  m_trgt_maskid = formMaskIdSelection_DoSingleSelection( 
     ImageCore::GetInst()->GetMaskData(), 
     ImageCore::GetInst()->GetActiveMaskID());
 

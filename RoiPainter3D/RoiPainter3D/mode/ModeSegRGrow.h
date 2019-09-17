@@ -1,10 +1,10 @@
 #pragma once
 
-//--------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // class ModeSegRGrow 
 // Region growing / thresholding Ç…ÇÊÇÈsegmentationÇçsÇ»Ç§ÉÇÅ[Éh
 // 
-//--------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 #include "ModeInterface.h"
 #include "GlslShader.h"
@@ -58,7 +58,10 @@ public:
 
   bool CanLeaveMode();
   void StartMode   ();
-  void DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center);
+  void DrawScene( 
+    const EVec3f &cuboid, 
+    const EVec3f &cam_pos, 
+    const EVec3f &cam_center);
 
 
 public:

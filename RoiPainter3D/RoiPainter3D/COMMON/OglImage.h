@@ -638,6 +638,19 @@ inline void t_Erode3D(
 }
 
 
+//voxel value 0:never change, 1:background, 255:foreground
+template <class T>
+inline void t_Erode3D(
+    const EVec3i &resolution,
+    T *vol)
+{
+  t_Erode3D<T>(resolution[0], resolution[1], resolution[2], vol);
+}
+
+
+
+
+
 //voxel value 0:never cahnge, 1:background, 255:foreground
 template <class T>
 inline void t_Dilate3D(
@@ -669,6 +682,17 @@ inline void t_Dilate3D(
   for (int i = 0; i < WHD; ++i) if (vol[i] == 2) vol[i] = 255;
 
 }
+
+
+//voxel value 0:never cahnge, 1:background, 255:foreground
+template <class T>
+inline void t_Dilate3D(
+    const EVec3i &resolution,
+    T *vol)
+{
+  t_Dilate3D<T>(resolution[0], resolution[1], resolution[2], vol);
+}
+
 
 
 

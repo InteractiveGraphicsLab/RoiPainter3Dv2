@@ -44,8 +44,8 @@ void ModeVizMask::StartMode()
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////
-//Mouse Listeners////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+//Mouse Listeners//////////////////////////////////////////////////////////////
 void ModeVizMask::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bL = true;
@@ -142,7 +142,10 @@ void ModeVizMask::KeyUp(int nChar) {}
 
 
 
-void ModeVizMask::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF)
+void ModeVizMask::DrawScene(
+    const EVec3f &cuboid, 
+    const EVec3f &cam_pos, 
+    const EVec3f &cam_cnt)
 {
   ImageCore::GetInst()->UpdateOGLMaskColorImg();
   const bool image_interpolation = formVisParam_doInterpolation();
@@ -189,8 +192,8 @@ void ModeVizMask::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec
 
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, true);
-    t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
+    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, cam_pos, bPsuedo, true);
+    t_DrawCuboidSlices(sliceN, cam_pos, cam_cnt, cuboid);
     m_volumeShader.Unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
