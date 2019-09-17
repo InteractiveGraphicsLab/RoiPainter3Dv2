@@ -14,14 +14,24 @@ namespace RoiPainter3D {
 	/// </summary>
 	public ref class FormIntegerSelection : public System::Windows::Forms::Form
 	{
+
+    int m_value;
+
 	public:
-		FormIntegerSelection(void)
+		FormIntegerSelection(int init_value, int min_value, int max_value, const char* message)
 		{
 			InitializeComponent();
-			//
-			//TODO: ここにコンストラクター コードを追加します
-			//
+      
+      m_numericUpDown->Minimum = min_value;
+      m_numericUpDown->Maximum = max_value;
+      m_numericUpDown->Value   = init_value;
+
+      m_label->Text = gcnew System::String(message);
 		}
+    
+    int GetValue(){ 
+      return m_value; 
+    }
 
 	protected:
 		/// <summary>
@@ -34,7 +44,12 @@ namespace RoiPainter3D {
 				delete components;
 			}
 		}
-  private: System::Windows::Forms::Label^  label1;
+  private: System::Windows::Forms::NumericUpDown^  m_numericUpDown;
+  private: System::Windows::Forms::Label^  m_label;
+  private: System::Windows::Forms::Button^  btnCancel;
+  private: System::Windows::Forms::Button^  btnOk;
+  protected:
+
   protected:
 
 	private:
@@ -50,30 +65,102 @@ namespace RoiPainter3D {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-      this->label1 = (gcnew System::Windows::Forms::Label());
+      this->m_numericUpDown = (gcnew System::Windows::Forms::NumericUpDown());
+      this->m_label = (gcnew System::Windows::Forms::Label());
+      this->btnCancel = (gcnew System::Windows::Forms::Button());
+      this->btnOk = (gcnew System::Windows::Forms::Button());
+      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->m_numericUpDown))->BeginInit();
       this->SuspendLayout();
       // 
-      // label1
+      // m_numericUpDown
       // 
-      this->label1->AutoSize = true;
-      this->label1->Location = System::Drawing::Point(90, 85);
-      this->label1->Name = L"label1";
-      this->label1->Size = System::Drawing::Size(30, 12);
-      this->label1->TabIndex = 0;
-      this->label1->Text = L"Todo";
+      this->m_numericUpDown->Font = (gcnew System::Drawing::Font(L"游ゴシック", 10.2F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->m_numericUpDown->Location = System::Drawing::Point(11, 38);
+      this->m_numericUpDown->Name = L"m_numericUpDown";
+      this->m_numericUpDown->Size = System::Drawing::Size(120, 35);
+      this->m_numericUpDown->TabIndex = 1;
+      this->m_numericUpDown->ValueChanged += gcnew System::EventHandler(this, &FormIntegerSelection::m_numericUpDown_ValueChanged);
+      // 
+      // m_label
+      // 
+      this->m_label->AutoSize = true;
+      this->m_label->Font = (gcnew System::Drawing::Font(L"メイリオ", 10.2F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->m_label->Location = System::Drawing::Point(12, 9);
+      this->m_label->Name = L"m_label";
+      this->m_label->Size = System::Drawing::Size(261, 25);
+      this->m_label->TabIndex = 2;
+      this->m_label->Text = L"message message message";
+      // 
+      // btnCancel
+      // 
+      this->btnCancel->DialogResult = System::Windows::Forms::DialogResult::Cancel;
+      this->btnCancel->Location = System::Drawing::Point(138, 99);
+      this->btnCancel->Margin = System::Windows::Forms::Padding(4);
+      this->btnCancel->Name = L"btnCancel";
+      this->btnCancel->Size = System::Drawing::Size(119, 40);
+      this->btnCancel->TabIndex = 7;
+      this->btnCancel->Text = L"CANCEL";
+      this->btnCancel->UseVisualStyleBackColor = true;
+      this->btnCancel->Click += gcnew System::EventHandler(this, &FormIntegerSelection::btnCancel_Click);
+      // 
+      // btnOk
+      // 
+      this->btnOk->DialogResult = System::Windows::Forms::DialogResult::OK;
+      this->btnOk->Location = System::Drawing::Point(11, 99);
+      this->btnOk->Margin = System::Windows::Forms::Padding(4);
+      this->btnOk->Name = L"btnOk";
+      this->btnOk->Size = System::Drawing::Size(119, 40);
+      this->btnOk->TabIndex = 6;
+      this->btnOk->Text = L"OK";
+      this->btnOk->UseVisualStyleBackColor = true;
+      this->btnOk->Click += gcnew System::EventHandler(this, &FormIntegerSelection::btnOk_Click);
       // 
       // FormIntegerSelection
       // 
-      this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
+      this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(232, 223);
-      this->Controls->Add(this->label1);
+      this->ClientSize = System::Drawing::Size(289, 145);
+      this->Controls->Add(this->btnCancel);
+      this->Controls->Add(this->btnOk);
+      this->Controls->Add(this->m_label);
+      this->Controls->Add(this->m_numericUpDown);
+      this->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->Name = L"FormIntegerSelection";
       this->Text = L"FormIntegerSelection";
+      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->m_numericUpDown))->EndInit();
       this->ResumeLayout(false);
       this->PerformLayout();
 
     }
 #pragma endregion
-	};
+  private: System::Void m_numericUpDown_ValueChanged(System::Object^  sender, System::EventArgs^  e) 
+  {
+    m_value = System::Decimal::ToInt32( m_numericUpDown->Value);
+  }
+  private: System::Void btnOk_Click(System::Object^  sender, System::EventArgs^  e) {}
+  private: System::Void btnCancel_Click(System::Object^  sender, System::EventArgs^  e) {}
+
+};
+
+inline bool FormIntegerSelection_doModal(
+    const int init_value,
+    const int min_value,
+    const int max_value,
+    const char* message,
+    int &value)
+{
+  FormIntegerSelection ^dlg 
+    = gcnew FormIntegerSelection(init_value, min_value ,max_value , message);
+  
+  value = 0;
+  if( dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return false;
+
+  value = dlg->GetValue();
+  return true;
+}
+
+
+
 }

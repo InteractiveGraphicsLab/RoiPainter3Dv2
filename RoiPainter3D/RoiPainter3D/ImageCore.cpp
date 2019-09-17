@@ -783,7 +783,7 @@ void ImageCore::MargeMaskIDs (std::set<int> &ids)
 //
 //smart fillhole 
 //
-void ImageCore::SmartFillHole( std::set<int> &ids )
+void ImageCore::SmartFillHole( std::set<int> &ids, int dilation_size )
 {
   bool b_zero_exist = false;
   for ( auto i : ids ) 
@@ -798,11 +798,11 @@ void ImageCore::SmartFillHole( std::set<int> &ids )
     return;
   }
 
-  //gen image
+  //1. gen volume 
   const int num_masks  = (int)m_mask_data.size();
   const int num_voxels = GetNumVoxels();
-  byte *is_trgt = new byte[num_masks ];
-  byte *volflg  = new byte[num_voxels];
+  byte *is_trgt    = new byte[num_masks ];
+  byte *vol_orig   = new byte[num_voxels];
 
   memset( is_trgt, 0, sizeof(byte) * num_masks );
   for ( auto it : ids) is_trgt[it] = 1;
@@ -810,23 +810,69 @@ void ImageCore::SmartFillHole( std::set<int> &ids )
 #pragma omp parallel for 
   for ( int i=0; i < num_voxels; ++i )
   {
-    volflg[i] = is_trgt[m_vol_mask[i]] ? 255 : 1;
+    vol_orig[i] = is_trgt[m_vol_mask[i]] ? 255 : 1;
   }
 
-  //t_Dilate3D()
 
+  //2. calc dilation
+  byte *vol_dilate = new byte[num_voxels];
+  memcpy( vol_dilate, vol_orig, sizeof(byte)*num_voxels);
 
+  for( int i=0; i < dilation_size; ++i)
+    t_Dilate3D(m_resolution, vol_orig);
   
 
+  //3. calc hole filling --> extract hole area (‘OŒi‚É•Ï‰»‚µ‚½‰æ‘f‚ğ’Šo)
+  byte *vol_fill   = new byte[num_voxels];
 
+#pragma omp parallel for 
+  for ( int i=0; i < num_voxels; ++i )
+  {
+    vol_fill[i] = (vol_dilate[i] == 255) ? 255 : 0;
+  }
 
+  t_FillHole3D(m_resolution[0], m_resolution[1], m_resolution[2], vol_fill);
 
+#pragma omp parallel for 
+  for ( int i=0; i < num_voxels; ++i )
+  {
+    vol_fill[i] = (vol_fill[i]==255 && vol_dilate[i] != 255) ? 255 : 1;
+  }
+
+  
+  //store hole area
+  bool b_foreexist = false;
+  for ( int i=0; i < num_voxels && !b_foreexist; ++i ) 
+  {
+    if ( vol_fill[i] == 255) b_foreexist = true;
+  }
+  
+  if( b_foreexist )
+  {
+    for ( int i=0; i < dilation_size; ++i )
+      t_Dilate3D(m_resolution, vol_fill);
+
+    m_vol_flag.SetAllZero();
+
+#pragma omp parallel for     
+    for ( int i=0; i < num_voxels; ++i)
+    {
+      int maskid = m_vol_mask[i]; 
+      if ( vol_fill[i] == 255 
+        && ( maskid == 0 || !m_mask_data[maskid].m_b_locked ) ) 
+      {
+        m_vol_flag[i] = 255;
+      }
+    }
+
+    StoreForegroundAsNewMask();
+  }  
+
+  delete[] is_trgt;
+  delete[] vol_orig;
+  delete[] vol_dilate;
+  delete[] vol_fill;
 }
-
-
-
-
-
 
 
 
@@ -877,7 +923,10 @@ void ImageCore::ActiveMask_Dilate  ()
 #pragma omp parallel for 
   for (int i = 0; i < N; ++i) 
   {
-    if (flgs[i] == 255) m_vol_mask[i] = m_active_maskid;
+    if (flgs[i] == 255) 
+    {
+      m_vol_mask[i] = m_active_maskid;
+    }
   }
   m_vol_mask.SetUpdated();
 
@@ -897,7 +946,8 @@ void ImageCore::ActiveMask_FillHole()
   byte* flgs = new byte[ N ]; //0:back, 255:trgt_mask_id
 
 #pragma omp parallel for 
-  for (int i = 0; i < N; ++i){
+  for (int i = 0; i < N; ++i)
+  {
     flgs[i] = (m_vol_mask[i] == m_active_maskid) ? 255 : 0;
   } 
 
@@ -907,7 +957,9 @@ void ImageCore::ActiveMask_FillHole()
   for (int i = 0; i < N; ++i)
   {
     if (flgs[i] == 255 && m_vol_mask[i] == 0 )
+    {
       m_vol_mask[i] = m_active_maskid;
+    }
   }
   m_vol_mask.SetUpdated();
 
@@ -922,10 +974,13 @@ void ImageCore::ActiveMask_ExportObj  (const string &fname)
 {
   if ( m_active_maskid <= 0 || m_mask_data.size() <= m_active_maskid) return;
 
-  const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
+  const int N = GetNumVoxels();
 
   short *v = new short[N];
-  for (int i = 0; i < N; ++i) v[i] = (m_vol_mask[i] == m_active_maskid) ? 255 : 0;
+  for (int i = 0; i < N; ++i) 
+  {
+    v[i] = (m_vol_mask[i] == m_active_maskid) ? 255 : 0;
+  }
 
   TMesh mesh;
   marchingcubes::t_MarchingCubes(m_resolution, m_pitch, v, 128, 0, 0, mesh);
@@ -970,17 +1025,20 @@ void ImageCore::ActiveMask_SetLocked(const bool tf)
 	m_mask_data[m_active_maskid].m_b_locked = tf;
 }
 
+
 void ImageCore::ActiveMask_SetAlpha(const double alpha)
 {
 	if( m_active_maskid < 0 || m_mask_data.size() <= m_active_maskid ) return;
 	m_mask_data[m_active_maskid].m_alpha = alpha;
 }
 
+
 void ImageCore::ActiveMask_SetColor(const EVec3i &c)
 {
 	if( m_active_maskid < 0 || m_mask_data.size() <= m_active_maskid ) return;
 	m_mask_data[m_active_maskid].m_color = c;
 }
+
 
 
 void ImageCore::ActiveMask_SetRendSurf(const bool tf)
@@ -992,11 +1050,14 @@ void ImageCore::ActiveMask_SetRendSurf(const bool tf)
 	
 	if( tf == true && trgtMsk.m_surface.m_vSize == 0)
 	{
-		const int N = m_resolution[0] * m_resolution[1] * m_resolution[2];
+		const int N = GetNumVoxels();
 
 		short *v = new short[N];
 
-		for( int i=0; i < N; ++i ) v[i] = ( m_vol_mask[i] == m_active_maskid ) ? 255 : 0;
+		for( int i=0; i < N; ++i )
+    {
+      v[i] = ( m_vol_mask[i] == m_active_maskid ) ? 255 : 0;
+    }
 
     marchingcubes::t_MarchingCubes(m_resolution, m_pitch, v, 128, 0, 0, trgtMsk.m_surface);
 		trgtMsk.m_surface.smoothing(2);
@@ -1004,6 +1065,8 @@ void ImageCore::ActiveMask_SetRendSurf(const bool tf)
 		delete[] v;
 	}
 }
+
+
 
 void  ImageCore::ClearMaskSurface(int trgtid) 
 {
@@ -1013,8 +1076,6 @@ void  ImageCore::ClearMaskSurface(int trgtid)
   trgtMsk.m_b_drawsurface = false;
   trgtMsk.m_surface.clear();
 }
-
-
 
 
 
@@ -1096,13 +1157,13 @@ void ImageCore::InitializeVolFlgByLockedMask(int fore_maskid )
 
 #pragma omp parallel for
   for (int i = 0; i < num_voxels; ++i) 
+  {
     m_vol_flag[i] = ( m_vol_mask[i]==fore_maskid ) ? 255 :
                     ( masklocked[m_vol_mask[i]]  ) ? 0   : 1;
+  }
 
 	m_vol_flag.SetUpdated();
 }
-
-
 
 
 

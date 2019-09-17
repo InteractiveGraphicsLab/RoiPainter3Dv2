@@ -1,6 +1,7 @@
 #include "FormVisMask.h"
 #include "FormMain.h"
 #include "FormMaskIDselection.h"
+#include "FormIntegerSelection.h"
 #include "ImageCore.h"
 #include "climessagebox.h"
 
@@ -236,7 +237,18 @@ System::Void FormVisMask::btnSmartFillHole_Click(
     return;
   }
 
-  ImageCore::GetInst()->SmartFillHole(trgt_ids);
+  const char *message1 = "Set dilation radius";
+  int dilation_size = 0;
+  if ( !FormIntegerSelection_doModal(1,1,30,message1,dilation_size) )
+  {
+    const char* m = 
+      "Set radius of dilation for smart holefil\n"
+      "holefill ’¼‘O‚És‚¤dilation‰ñ”‚ðŽw’è‚µ‚Ä‚­‚¾‚³‚¢";
+      CLI_MessageBox_OK_Show( m, "message");
+    return;
+  } 
+
+  ImageCore::GetInst()->SmartFillHole(trgt_ids, dilation_size);
   updateList();
   updateImageCoreVisVolumes();
   FormMain_RedrawMainPanel();

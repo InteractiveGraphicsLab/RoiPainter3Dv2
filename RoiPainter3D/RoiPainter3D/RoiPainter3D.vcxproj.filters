@@ -290,5 +290,8 @@
     <EmbeddedResource Include="FormSegLocalRGrow.resx">
       <Filter>リソース ファイル</Filter>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormIntegerSelection.resx">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

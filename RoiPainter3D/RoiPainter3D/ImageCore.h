@@ -161,7 +161,7 @@ public:
   void ActiveMask_FillHole ( );
   void ActiveMask_ExportObj(const std::string &fname);
     
-  void SmartFillHole( std::set<int> &ids );
+  void SmartFillHole( std::set<int> &ids, int dilation_size);
   void MargeMaskIDs ( std::set<int> &ids );
   //todo void ActiveMask_DilateAsNewRegion( );
 
