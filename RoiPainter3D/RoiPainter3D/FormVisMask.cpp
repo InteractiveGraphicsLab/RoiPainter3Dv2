@@ -38,14 +38,18 @@ void FormVisMask::updateList()
     maskList[0, i]->Style->BackColor = Color::FromArgb(255, 255, 255);
     maskList[1, i]->Style->BackColor = Color::FromArgb(maskData[i].m_color[0], maskData[i].m_color[1], maskData[i].m_color[2]);
 
-    if (i == maskSelectedId) checkbox_lock->CheckState = maskData[i].m_b_locked ? CheckState::Checked : CheckState::Unchecked;
+    if (i == maskSelectedId) 
+      checkbox_lock->CheckState = maskData[i].m_b_locked ? CheckState::Checked : CheckState::Unchecked;
   }
 
 
   this->Update();
   this->Invalidate();
 
-  if (0 <= maskSelectedId) maskList->CurrentCell = maskList[0, maskSelectedId];
+  if (0 <= maskSelectedId && maskSelectedId < maskData.size() )
+  {
+    maskList->CurrentCell = maskList[0, maskSelectedId];
+  }
   this->Update();
   this->Invalidate();
 
@@ -139,12 +143,13 @@ System::Void FormVisMask::btnDelete_Click(
 
 
 
-System::Void FormVisMask::btnMargeTo_Click( System::Object^  sender, System::EventArgs^  e) 
+System::Void FormVisMask::btnMargeTo_Click( 
+    System::Object^  sender, 
+    System::EventArgs^  e) 
 {
   const auto &maskdata = ImageCore::GetInst()->GetMaskData();
-  const int  selectid  = ImageCore::GetInst()->GetActiveMaskID();
 
-  set<int> trgt_ids = formMaskIdSelection_DoMultiSelection(maskdata, selectid);
+  set<int> trgt_ids = formMaskIdSelection_DoMultiSelection(maskdata, 0);
 
   if ( trgt_ids.size() <= 1) 
   {
@@ -156,7 +161,7 @@ System::Void FormVisMask::btnMargeTo_Click( System::Object^  sender, System::Eve
   }
 
   ImageCore::GetInst()->MargeMaskIDs(trgt_ids);
-
+  
   updateList();
   updateImageCoreVisVolumes();
   FormMain_RedrawMainPanel();
@@ -171,6 +176,7 @@ System::Void FormVisMask::btnErode_Click(
 {
   ImageCore::GetInst()->ActiveMask_Erode();
   updateImageCoreVisVolumes();
+  updateList();
   FormMain_RedrawMainPanel();
 }
 
@@ -182,6 +188,7 @@ System::Void FormVisMask::btnDilate_Click(
 {
   ImageCore::GetInst()->ActiveMask_Dilate();
   updateImageCoreVisVolumes();
+  updateList();
   FormMain_RedrawMainPanel();
 }
 
@@ -191,8 +198,23 @@ System::Void FormVisMask::btnFillHole_Click(
     System::Object^  sender, 
     System::EventArgs^  e)
 {
-  ImageCore::GetInst()->ActiveMask_FillHole();
+  const auto &maskdata = ImageCore::GetInst()->GetMaskData();
+  const int  selectid  = ImageCore::GetInst()->GetActiveMaskID();
+
+  set<int> trgt_ids = formMaskIdSelection_DoMultiSelection(maskdata, selectid);
+
+  if ( trgt_ids.size() < 1) 
+  {
+    const char* m = 
+      "Select multiple ids to calc fillhole\n"
+      "ŒŠ–„‚ß‚É—˜—p‚·‚é—Ìˆæ‚ð•¡”Žw’è‚µ‚Ä‚­‚¾‚³‚¢";
+    CLI_MessageBox_OK_Show( m, "message");
+    return;
+  }
+
+  ImageCore::GetInst()->FillHole( trgt_ids );
   updateImageCoreVisVolumes();
+  updateList();
   FormMain_RedrawMainPanel();
 }
 
@@ -228,7 +250,7 @@ System::Void FormVisMask::btnSmartFillHole_Click(
 
   set<int> trgt_ids = formMaskIdSelection_DoMultiSelection(maskdata, selectid);
 
-  if ( trgt_ids.size() <= 1) 
+  if ( trgt_ids.size() < 1) 
   {
     const char* m = 
       "Select multiple ids to calc fillhole\n"
