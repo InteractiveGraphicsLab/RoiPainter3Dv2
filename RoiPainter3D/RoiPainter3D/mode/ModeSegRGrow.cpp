@@ -16,10 +16,12 @@ using namespace std;
 
 #pragma unmanaged
 
+//-----------------------------------------------------------------------------
 // usage of "vol_flg" 
 //  0 : non target voxels (never change )
 //  1 : target & back ground voxels 
 // 255: target & fore ground voxels
+//-----------------------------------------------------------------------------
 
 ModeSegRGrow::ModeSegRGrow() :
   m_volume_shader("shader/volVtx.glsl"   , "shader/volFlg_Seg.glsl"),
@@ -97,7 +99,8 @@ void ModeSegRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
   if ( m_b_drawstroke )
   {
     EVec3f cube = ImageCore::GetInst()->GetCuboid();
-    CrssecCore::GetInst()->GenerateCurvedCrssec(cube, ogl->GetCamPos(), m_stroke);
+    EVec3f cpos = ogl->GetCamPos();
+    CrssecCore::GetInst()->GenerateCurvedCrssec(cube, cpos, m_stroke);
   }
 
   m_bL = m_b_drawstroke = false;
@@ -194,11 +197,14 @@ void ModeSegRGrow::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 
 
 
-int ModeSegRGrow::PickControlPoints(const EVec3f &ray_pos, const EVec3f &ray_dir)
+int ModeSegRGrow::PickControlPoints(
+    const EVec3f &ray_pos, 
+    const EVec3f &ray_dir)
 {
 	for (int i = 0; i < (int)m_cp_centers.size(); ++i)
 	{
-		if (t_distRayToPoint(ray_pos, ray_dir, m_cp_centers[i]) < m_cp_size) return i;
+		if (t_distRayToPoint(ray_pos, ray_dir, m_cp_centers[i]) < m_cp_size) 
+      return i;
 	}
 	return -1;
 }
@@ -217,7 +223,10 @@ void ModeSegRGrow::KeyUp(int nChar)
 }
 
 
-void ModeSegRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, const EVec3f &cam_center)
+void ModeSegRGrow::DrawScene(
+  const EVec3f &cuboid, 
+  const EVec3f &cam_pos, 
+  const EVec3f &cam_center)
 {
   const bool image_interpolation = formVisParam_doInterpolation();
   
@@ -317,7 +326,8 @@ void ModeSegRGrow::RunRegionGrow6(short minv, short maxv)
 
 	for (int i = 0; i < WHD; ++i) vflg[i] = ( vflg[i] == 0) ? 0 : 1;
 
-  const int maxnum_iteration = formSetRGrow_DoLimitIteration() ? formSetRGrow_GetMaxIteration() : INT_MAX;
+  const int maxnum_iteration = 
+    formSetRGrow_DoLimitIteration() ? formSetRGrow_GetMaxIteration() : INT_MAX;
 
 	//CP --> pixel id
 	//volFlg : 0:never change, 1:back, 255:fore
@@ -381,7 +391,8 @@ void ModeSegRGrow::RunRegionGrow26(short minV, short maxV)
 
 	for (int i = 0; i < WHD; ++i) vflg[i] = ( vflg[i] == 0) ? 0 : 1;
 
-  const int maxnum_iteration = formSetRGrow_DoLimitIteration() ? formSetRGrow_GetMaxIteration() : INT_MAX;
+  const int maxnum_iteration = 
+    formSetRGrow_DoLimitIteration() ? formSetRGrow_GetMaxIteration() : INT_MAX;
 
 	//CP --> pixel id
 	//vflg : 0:never change, 1:back, 255:fore
@@ -410,7 +421,7 @@ void ModeSegRGrow::RunRegionGrow26(short minV, short maxV)
 		Q.pop_front();
 
 		//grow to 26  neighbors
-		int K;
+		int K; 
     K = I-1-W-WH; if (x> 0 &&y> 0 &&z> 0 && vflg[K] == 1 && minV<=vol[K] && vol[K]<=maxV) { vflg[K] = 255; Q.push_back(EVec4i(x-1, y-1, z-1, K)); }
     K = I  -W-WH; if (       y> 0 &&z> 0 && vflg[K] == 1 && minV<=vol[K] && vol[K]<=maxV) { vflg[K] = 255; Q.push_back(EVec4i(x  , y-1, z-1, K)); }
     K = I+1-W-WH; if (x<W-1&&y> 0 &&z> 0 && vflg[K] == 1 && minV<=vol[K] && vol[K]<=maxV) { vflg[K] = 255; Q.push_back(EVec4i(x+1, y-1, z-1, K)); }
@@ -473,8 +484,14 @@ void ModeSegRGrow::RunFillHole()
   //compute fill hole
 	OglImage3D flg( ImageCore::GetInst()->m_vol_flag );
 	const int N = flg.GetW() * flg.GetH() * flg.GetD();
-	for (int i = 0; i < N; ++i) flg[i] = (flg[i] == 255) ? 255 : 0;
-	t_FillHole3D(flg);
+
+#pragma omp parallel for
+	for (int i = 0; i < N; ++i)
+  {
+    flg[i] = (flg[i] == 255) ? 255 : 0;
+  }
+
+  t_FillHole3D_6(flg);
 
   // update flg volume (never change voxel with vflg[i]==0)
 	byte *flg3d = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();

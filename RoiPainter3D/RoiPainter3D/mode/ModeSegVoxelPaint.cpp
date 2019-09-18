@@ -64,7 +64,7 @@ void ModeSegVoxelPaint::StartMode()
   {
     //REFINEMENT mode
     m_b_refinementmode = true;
-    m_refine_maskid = formMaskIdSelection_showModalDialog(
+    m_refine_maskid = formMaskIdSelection_DoSingleSelection(
       ImageCore::GetInst()->GetMaskData(), 
       ImageCore::GetInst()->GetActiveMaskID());
 

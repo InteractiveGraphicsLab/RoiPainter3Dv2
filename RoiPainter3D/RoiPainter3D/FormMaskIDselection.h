@@ -19,22 +19,54 @@ namespace RoiPainter3D {
 	public ref class FormMaskIDselection : public System::Windows::Forms::Form
 	{
   private:
-    int  m_bListInit;
-    int  m_activeId;
-    void initList(const std::vector<MaskData> &mask_set, const int default_mask_id);
+    bool m_bListInit;
+    bool m_bMultiSelect;
+  private: System::Windows::Forms::Label^  m_label;
+           Generic::List<int>^ m_active_ids;
+    
+    void initList(
+      const std::vector<MaskData> &mask_set, 
+      const int default_mask_id,
+      const int b_multiselect);
 
 	public:
-		FormMaskIDselection(const std::vector<MaskData> &mask_set, const int default_mask_id)
+
+		FormMaskIDselection(
+      const std::vector<MaskData> &mask_set, 
+      const int default_mask_id,
+      const bool b_multiselect)
 		{
 			InitializeComponent();
-			//
-			//TODO: ここにコンストラクター コードを追加します
-			//
+
       m_bListInit = false;
-      initList(mask_set,default_mask_id);
+      m_bMultiSelect = b_multiselect;
+      m_active_ids = gcnew Generic::List<int>();
+      initList(mask_set, default_mask_id, b_multiselect);
+
+      if ( b_multiselect )
+      {
+        m_label->Text = 
+          "Select multi IDs\n"
+          "by ctrl + click";
+      }
+      else
+      {
+        m_label->Text = 
+          "Select one ID\n"
+          "by click";
+
+      }
 		}
 
-    int  getTrgtID() { return m_activeId; } //should be called after the OK btn presssed
+    void getTrgtIDs( std::set<int> &selected_ids ) 
+    { 
+      selected_ids.clear();
+
+      for( int i = 0; i < m_active_ids->Count; ++i)
+      {
+        selected_ids.insert(m_active_ids[i]);
+      }
+    }
 
 	protected:
 		/// <summary>
@@ -74,15 +106,16 @@ System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
       this->maskIdList = (gcnew System::Windows::Forms::DataGridView());
       this->maskIDColumn = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
       this->colorColumn = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
+      this->m_label = (gcnew System::Windows::Forms::Label());
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->maskIdList))->BeginInit();
       this->SuspendLayout();
       // 
       // btnCancel
       // 
       this->btnCancel->DialogResult = System::Windows::Forms::DialogResult::Cancel;
-      this->btnCancel->Location = System::Drawing::Point(139, 126);
+      this->btnCancel->Location = System::Drawing::Point(145, 222);
       this->btnCancel->Name = L"btnCancel";
-      this->btnCancel->Size = System::Drawing::Size(63, 32);
+      this->btnCancel->Size = System::Drawing::Size(89, 32);
       this->btnCancel->TabIndex = 5;
       this->btnCancel->Text = L"CANCEL";
       this->btnCancel->UseVisualStyleBackColor = true;
@@ -91,9 +124,9 @@ System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
       // btnOk
       // 
       this->btnOk->DialogResult = System::Windows::Forms::DialogResult::OK;
-      this->btnOk->Location = System::Drawing::Point(139, 88);
+      this->btnOk->Location = System::Drawing::Point(145, 184);
       this->btnOk->Name = L"btnOk";
-      this->btnOk->Size = System::Drawing::Size(63, 32);
+      this->btnOk->Size = System::Drawing::Size(89, 32);
       this->btnOk->TabIndex = 4;
       this->btnOk->Text = L"OK";
       this->btnOk->UseVisualStyleBackColor = true;
@@ -110,12 +143,12 @@ System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
         this->maskIDColumn,
           this->colorColumn
       });
-      this->maskIdList->Location = System::Drawing::Point(12, 12);
+      this->maskIdList->Location = System::Drawing::Point(4, 6);
       this->maskIdList->Name = L"maskIdList";
       this->maskIdList->ReadOnly = true;
       this->maskIdList->RowHeadersVisible = false;
       this->maskIdList->RowTemplate->Height = 21;
-      this->maskIdList->Size = System::Drawing::Size(121, 289);
+      this->maskIdList->Size = System::Drawing::Size(131, 302);
       this->maskIdList->TabIndex = 3;
       this->maskIdList->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &FormMaskIDselection::maskIdList_CellContentClick);
       this->maskIdList->SelectionChanged += gcnew System::EventHandler(this, &FormMaskIDselection::maskIdList_SelectionChanged);
@@ -135,36 +168,89 @@ System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
       this->colorColumn->Name = L"colorColumn";
       this->colorColumn->ReadOnly = true;
       // 
+      // m_label
+      // 
+      this->m_label->AutoSize = true;
+      this->m_label->Font = (gcnew System::Drawing::Font(L"游ゴシック", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(0)));
+      this->m_label->Location = System::Drawing::Point(141, 20);
+      this->m_label->Name = L"m_label";
+      this->m_label->Size = System::Drawing::Size(95, 32);
+      this->m_label->TabIndex = 6;
+      this->m_label->Text = L"label label label\r\nlabel label label";
+      // 
       // FormMaskIDselection
       // 
       this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(207, 312);
+      this->ClientSize = System::Drawing::Size(240, 312);
+      this->Controls->Add(this->m_label);
       this->Controls->Add(this->btnCancel);
       this->Controls->Add(this->btnOk);
       this->Controls->Add(this->maskIdList);
+      this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedDialog;
       this->Name = L"FormMaskIDselection";
       this->Text = L"FormMaskIDselection";
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->maskIdList))->EndInit();
       this->ResumeLayout(false);
+      this->PerformLayout();
 
     }
 #pragma endregion
-  private: System::Void btnOk_Click(System::Object^  sender, System::EventArgs^  e) ;
-  private: System::Void btnCancel_Click(System::Object^  sender, System::EventArgs^  e);
-  private: System::Void maskIdList_CellContentClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellEventArgs^  e);
-  private: System::Void maskIdList_SelectionChanged(System::Object^  sender, System::EventArgs^  e);
+  private: System::Void btnOk_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e) {}
+  private: System::Void btnCancel_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e){}
+  private: System::Void maskIdList_CellContentClick(
+    System::Object^  sender, 
+    System::Windows::Forms::DataGridViewCellEventArgs^  e){}
+  private: System::Void maskIdList_SelectionChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e);
 };
 
-  //選択されなかった場合は-1が返る
-  inline int formMaskIdSelection_showModalDialog(const std::vector<MaskData> &mask_set, const int default_mask_id)
+  //Show modal dialog for selecting mask id 
+  //return -1 when no id is selected
+  inline int formMaskIdSelection_DoSingleSelection(
+    const std::vector<MaskData> &mask_set, 
+    const int default_mask_id)
   {
-    FormMaskIDselection ^modal = gcnew FormMaskIDselection(mask_set, default_mask_id);
-    if (modal->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return -1;
+    FormMaskIDselection ^modal 
+      = gcnew FormMaskIDselection(mask_set, default_mask_id, false);
+    
+    if (modal->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) 
+      return -1;
 
-    int trgtId = modal->getTrgtID();
+    std::set<int> selected_ids;
+    modal->getTrgtIDs(selected_ids);
     modal->Close();
-    return trgtId;
+
+    if ( selected_ids.empty() ) return -1;
+    else return *selected_ids.begin();
+  }
+
+
+  //選択されなかった場合は空のvectorが返る
+  inline std::set<int> formMaskIdSelection_DoMultiSelection(
+    const std::vector<MaskData> &mask_set, 
+    const int default_mask_id)
+  {
+    std::cout << "start multi maskid selection\n";
+    FormMaskIDselection ^modal 
+      = gcnew FormMaskIDselection(mask_set, default_mask_id, true);
+    
+    std::set<int> selected_ids;
+
+    if (modal->ShowDialog() != System::Windows::Forms::DialogResult::Cancel) 
+    {
+      modal->getTrgtIDs(selected_ids);
+      modal->Close();
+    }
+
+    std::cout << "multi maskid selection finished\n";
+    return selected_ids;
   }
 
 }

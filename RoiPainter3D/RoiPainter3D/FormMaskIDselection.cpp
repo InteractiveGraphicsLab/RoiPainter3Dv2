@@ -8,7 +8,8 @@ using namespace std;
 
 System::Void FormMaskIDselection::initList(
   const vector<MaskData> &mask_set, 
-  const int default_mask_id) 
+  const int default_mask_id,
+  const int b_multiselect) 
 {
   m_bListInit = true;
 
@@ -31,12 +32,16 @@ System::Void FormMaskIDselection::initList(
     maskIdList[1, i]->Style->BackColor = Color::FromArgb(mask_set[i].m_color[0], mask_set[i].m_color[1], mask_set[i].m_color[2]);
   }
 
+  maskIdList->MultiSelect = b_multiselect;
+
 
   this->Update();
   this->Invalidate();
 
-  if (0 <= default_mask_id) {
-    m_activeId = default_mask_id;
+  m_active_ids->Clear();
+  if ( 0 <= default_mask_id && default_mask_id < mask_set.size()) 
+  {
+    m_active_ids->Add(default_mask_id);
     maskIdList->CurrentCell = maskIdList[0, default_mask_id];
   }
 
@@ -46,20 +51,39 @@ System::Void FormMaskIDselection::initList(
   m_bListInit = false;
 }
 
-System::Void FormMaskIDselection::maskIdList_SelectionChanged(System::Object^  sender, System::EventArgs^  e){
-  //FormVisMask::updateList の maskList->Rows->Clear(); のタイミングで呼ばれてしまうので、その際は何もしない
+
+
+System::Void FormMaskIDselection::maskIdList_SelectionChanged(
+  System::Object^  sender, 
+  System::EventArgs^  e)
+{
+  //FormVisMask::updateList の maskList->Rows->Clear(); 
+  //のタイミングで呼ばれてしまうので、その際は何もしない
   if (m_bListInit) return;
-  std::cout << "selection changed " << maskIdList->CurrentCell->RowIndex << " " << maskIdList->CurrentCell->ColumnIndex << "\n";
-  m_activeId = maskIdList->CurrentCell->RowIndex;
+
+  if( m_bMultiSelect )
+  {
+    m_active_ids->Clear();
+
+    for( int i = 0; i < maskIdList->SelectedCells->Count; ++i )
+    {
+      std::cout << i << " selection changed  " 
+                << maskIdList->SelectedCells[i]->RowIndex << "  " 
+                << maskIdList->SelectedCells[i]->ColumnIndex << "\n";
+
+      m_active_ids->Add(maskIdList->SelectedCells[i]->RowIndex);
+    }
+  }
+  else
+  {
+    //single selection
+    std::cout << "selection changed " 
+              << maskIdList->CurrentCell->RowIndex << " " 
+              << maskIdList->CurrentCell->ColumnIndex << "\n";
+
+    m_active_ids->Clear();
+    m_active_ids->Add(maskIdList->CurrentCell->RowIndex);
+  }
+
 }
 
-
-System::Void FormMaskIDselection::btnOk_Click(System::Object^  sender, System::EventArgs^  e) {
-}
-
-System::Void FormMaskIDselection::btnCancel_Click(System::Object^  sender, System::EventArgs^  e){
-}
-
-
-System::Void FormMaskIDselection::maskIdList_CellContentClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellEventArgs^  e){
-}

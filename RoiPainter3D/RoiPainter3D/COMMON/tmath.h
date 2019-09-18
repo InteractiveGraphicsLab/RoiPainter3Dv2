@@ -41,6 +41,11 @@ typedef Eigen::Matrix4d EMat4d;
 #endif
 
 
+inline void Trace(const EVec3i &v)
+{
+  std::cout << v[0] << " " <<  v[1] << " " << v[2] << "\n";
+}
+
 inline void Trace(const EVec3d &v)
 {
   std::cout << v[0] << " " <<  v[1] << " " << v[2] << "\n";

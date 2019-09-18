@@ -4,6 +4,8 @@
 #include "tqueue.h"
 #include "timageloader.h"
 
+
+
 enum OGL_IMAGE_CH
 {
   CH_INTES = 1,
@@ -638,6 +640,19 @@ inline void t_Erode3D(
 }
 
 
+//voxel value 0:never change, 1:background, 255:foreground
+template <class T>
+inline void t_Erode3D(
+    const EVec3i &resolution,
+    T *vol)
+{
+  t_Erode3D<T>(resolution[0], resolution[1], resolution[2], vol);
+}
+
+
+
+
+
 //voxel value 0:never cahnge, 1:background, 255:foreground
 template <class T>
 inline void t_Dilate3D(
@@ -658,9 +673,12 @@ inline void t_Dilate3D(
         int idx = x + y * W + z*WH;
         if (vol[idx] != 1) continue;
 
-        if ((x >  0  && vol[idx-1] == 255) || (y >  0  && vol[idx-W] == 255) || (z >  0  && vol[idx-WH] == 255) ||
-            (x < W-1 && vol[idx+1] == 255) || (y < H-1 && vol[idx+W] == 255) || (z < D-1 && vol[idx+WH] == 255)) vol[idx] = 2;
-      
+        if ((x >  0  && vol[idx-1] == 255) || (x < W-1 && vol[idx+1] == 255) || 
+            (y >  0  && vol[idx-W] == 255) || (y < H-1 && vol[idx+W] == 255) || 
+            (z >  0  && vol[idx-WH]== 255) || (z < D-1 && vol[idx+WH]== 255))
+        {
+          vol[idx] = 2;
+        }
       }
     }
   }
@@ -671,11 +689,42 @@ inline void t_Dilate3D(
 }
 
 
+//voxel value 0:never cahnge, 1:background, 255:foreground
+template <class T>
+inline void t_Dilate3D(
+    const EVec3i &resolution,
+    T *vol)
+{
+  t_Dilate3D<T>(resolution[0], resolution[1], resolution[2], vol);
+}
 
-//TODO takashi double check the places that uses this function
+
+
+
+
+template <class T>
+inline bool __FH_Growbk6( 
+  const int &x, const int &y, const int &z, 
+  const int &W, const int &WH, T* vol)
+{
+  const int i = x + y*W + z*WH; 
+
+  if ( (vol[i] == 0) && 
+       (vol[i-1]==2 || vol[i-W]==2 || vol[i-WH]==2 || 
+        vol[i+1]==2 || vol[i+W]==2 || vol[i+WH]==2 ) )
+  {
+    vol[i] = 2;
+    return true;
+  }
+  return false;
+}
+
+
+
+
 //voxel value 0: background, 255:foreground
 template <class T>
-inline void t_FillHole3D(
+inline void t_FillHole3D_6(
     const int &W,
     const int &H,
     const int &D,
@@ -684,32 +733,156 @@ inline void t_FillHole3D(
   const int WH = W*H, WHD = W*H*D;
 
 
-  TQueue<EVec3i> Q ( WHD / 10);
+  //calc bounding box
+  EVec3i min_idx(W,H,D), max_idx(0,0,0);
 
+  for (int z = 0; z < D; ++z)
+  {
+    for (int y = 0; y < H; ++y)
+    {
+      for (int x = 0; x < W; ++x)
+      {
+        if ( vol[x+y*W+z*WH] == 255 )
+        {
+          min_idx[0] = std::min(min_idx[0], x);
+          min_idx[1] = std::min(min_idx[1], y);
+          min_idx[2] = std::min(min_idx[2], z);
+          max_idx[0] = std::max(max_idx[0], x);
+          max_idx[1] = std::max(max_idx[1], y);
+          max_idx[2] = std::max(max_idx[2], z);
+        }
+      }
+    }
+  }
+  
+  TQueue<int> Q ( WHD / 3);
+
+  for (int z = 0; z < D; ++z)
+  {
+    for (int y = 0; y < H; ++y)
+    {
+      for (int x = 0; x < W; ++x)
+      {
+        //paint outside
+        if ( x < min_idx[0] || max_idx[0] < x ||
+             y < min_idx[1] || max_idx[1] < y ||
+             z < min_idx[2] || max_idx[2] < z )  
+        {
+          vol[x+y*W+z*WH] = 2;
+        }
+        else if ( 
+             x == min_idx[0] || max_idx[0] == x ||
+             y == min_idx[1] || max_idx[1] == y ||
+             z == min_idx[2] || max_idx[2] == z )  
+        {
+          vol[x+y*W+z*WH] = 2;
+          Q.push_back(x+y*W+z*WH);
+        }
+      }
+    }
+  }
+  Trace(min_idx);
+  Trace(max_idx);
+
+  //region growing for background
+  while (!Q.empty())
+  {
+    const int I = Q.front();
+    Q.pop_front();
+    const int z = (I) / WH;
+    const int y = (I - z * WH) / W;
+    const int x = (I - z * WH - y * W);
+
+    if (x != 0   && !vol[I - 1 ]) { vol[I-1 ] = 2; Q.push_back(I-1 ); }
+    if (x != W-1 && !vol[I + 1 ]) { vol[I+1 ] = 2; Q.push_back(I+1 ); }
+    if (y != 0   && !vol[I - W ]) { vol[I-W ] = 2; Q.push_back(I-W ); }
+    if (y != H-1 && !vol[I + W ]) { vol[I+W ] = 2; Q.push_back(I+W ); }
+    if (z != 0   && !vol[I - WH]) { vol[I-WH] = 2; Q.push_back(I-WH); }
+    if (z != D-1 && !vol[I + WH]) { vol[I+WH] = 2; Q.push_back(I+WH); }
+  }
+
+  for (int i = 0; i < WHD; ++i) vol[i] = (vol[i] == 2) ? 0 : 255;
+}
+
+
+ /*
+  const int WH = W*H, WHD = W*H*D;
+
+  //é¸àÕÇìhÇÈ
   for (int y = 0; y < H; ++y)
     for (int x = 0; x < W; ++x)
     {
-      if (vol[x + y * W +   0  * WH] == 0)  Q.push_back(EVec3i(x, y, 0));
-      if (vol[x + y * W + (D-1)* WH] == 0)  Q.push_back(EVec3i(x, y, (D - 1)));
+      if (vol[x + y * W +   0  * WH] == 0) vol[x + y * W +   0  * WH] = 2;
+      if (vol[x + y * W + (D-1)* WH] == 0) vol[x + y * W + (D-1)* WH] = 2;
     }
 
   for (int z = 0; z < D; ++z)
     for (int y = 0; y < H; ++y)
     {
-      if (vol[  0   + y * W + z*WH] == 0)  Q.push_back(EVec3i(0, y, z));
-      if (vol[(W-1) + y * W + z*WH] == 0)  Q.push_back(EVec3i(W - 1, y, z));
+      if (vol[  0   + y * W + z*WH] == 0) vol[  0   + y * W + z*WH] = 2;
+      if (vol[(W-1) + y * W + z*WH] == 0) vol[(W-1) + y * W + z*WH] = 2;
     }
 
   for (int z = 0; z < D; ++z)
     for (int x = 0; x < W; ++x)
     {
-      if (vol[x +   0  * W + z*WH] == 0)  Q.push_back(EVec3i(x, 0, z));
-      if (vol[x + (H-1)* W + z*WH] == 0)  Q.push_back(EVec3i(x, H - 1, z));
+      if (vol[x +   0  * W + z*WH] == 0) vol[x +   0  * W + z*WH] = 2;
+      if (vol[x + (H-1)* W + z*WH] == 0) vol[x + (H-1)* W + z*WH] = 2;
     }
 
-  for (int i = 0; i < Q.size(); ++i) vol[Q[i].x() + Q[i].y()*W + Q[i].z()*WH] = 2;
+  //ÉâÉXÉ^èáÇÃgrowth (5âÒÇæÇØ)
+  for ( int i=0; i < 5; ++i)
+  {
+    bool tf = false;
 
+    for ( int z = 1; z < D-1; ++z ) 
+    {
+      for ( int y = 1; y < H-1; ++y ) 
+      {
+        for ( int x = 1; x < W-1; ++x ) tf |= __FH_Growbk6(x,y,z,W,WH,vol);
+        for ( int x = W-2; x > 0; --x ) tf |= __FH_Growbk6(x,y,z,W,WH,vol);
+      }
+      for ( int y = H-2; y > 0; --y ) 
+      {
+        for ( int x = 1; x < W-1; ++x ) tf |= __FH_Growbk6(x,y,z,W,WH,vol);
+        for ( int x = W-2; x > 0; --x ) tf |= __FH_Growbk6(x,y,z,W,WH,vol);
+      }
+    }
 
+    for ( int z = D-2; z > 0; --z ) 
+    {
+      for ( int y = 1; y < H-1; ++y ) 
+      {
+        for ( int x = 1; x < W-1; ++x ) tf |= __FH_Growbk6(x,y,z,W,WH,vol);
+        for ( int x = W-2; x > 0; --x ) tf |= __FH_Growbk6(x,y,z,W,WH,vol);
+      }
+
+      for ( int y = H-2; y > 0; --y ) 
+      {
+        for ( int x = 1; x < W-1; ++x ) tf |= __FH_Growbk6(x,y,z,W,WH,vol);
+        for ( int x = W-2; x > 0; --x ) tf |= __FH_Growbk6(x,y,z,W,WH,vol);
+      }
+    }
+
+    if ( !tf ) break;
+  }
+
+  //region growingï˚éÆÇ≈îwåiÇê¨í∑Ç≥ÇπÇÈ
+  TQueue<EVec3i> Q ( WHD / 10);
+
+  for (int z = 1; z < D-1; ++z)
+    for (int y = 1; y < H-1; ++y)
+      for (int x = 1; x < W-1; ++x)
+      {
+        int i = x + y*W + z*WH;
+        if ( vol[i] != 0 ) continue;
+        if ( vol[i-1] == 2 || vol[i-W] == 2 || vol[i-WH] == 2 || 
+             vol[i+1] == 2 || vol[i+W] == 2 || vol[i+WH] == 2 )
+        {
+          vol[i] = 2;
+          Q.push_back(EVec3i(x,y,z));
+        }
+      }
 
   //region growing for background
   while (!Q.empty())
@@ -729,7 +902,8 @@ inline void t_FillHole3D(
   }
 
   for (int i = 0; i < WHD; ++i) vol[i] = (vol[i] == 2) ? 0 : 255;
-}
+  */
+
 
 
 
@@ -750,9 +924,9 @@ inline void t_Dilate3D(OglImage3D &v)
 }
 
 //voxel value 0: background, 255:foreground
-inline void t_FillHole3D(OglImage3D &v)
+inline void t_FillHole3D_6(OglImage3D &v)
 {
-  t_FillHole3D(v.GetW(), v.GetH(), v.GetD(), v.GetVolumePtr());
+  t_FillHole3D_6(v.GetW(), v.GetH(), v.GetD(), v.GetVolumePtr());
   v.SetUpdated();
 }
 

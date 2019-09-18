@@ -439,8 +439,6 @@ public:
   {
     checkError();
 
-
-
     if (m_vSize == 0 || m_pSize == 0) return;
 
     glEnableClientState(GL_VERTEX_ARRAY);

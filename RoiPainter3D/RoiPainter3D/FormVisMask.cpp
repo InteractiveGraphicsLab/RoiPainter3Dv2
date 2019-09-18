@@ -1,7 +1,9 @@
 #include "FormVisMask.h"
 #include "FormMain.h"
 #include "FormMaskIDselection.h"
+#include "FormIntegerSelection.h"
 #include "ImageCore.h"
+#include "climessagebox.h"
 
 
 
@@ -15,8 +17,8 @@ void FormVisMask::updateList()
 {
   m_bListUpdating = true;
 
-  const vector<MaskData> &maskData       = ImageCore::GetInst()->GetMaskData();
-  const int              &maskSelectedId = ImageCore::GetInst()->GetActiveMaskID();
+  const vector<MaskData> &maskData = ImageCore::GetInst()->GetMaskData();
+  const int &maskSelectedId = ImageCore::GetInst()->GetActiveMaskID();
 
 
   //初期化
@@ -36,14 +38,18 @@ void FormVisMask::updateList()
     maskList[0, i]->Style->BackColor = Color::FromArgb(255, 255, 255);
     maskList[1, i]->Style->BackColor = Color::FromArgb(maskData[i].m_color[0], maskData[i].m_color[1], maskData[i].m_color[2]);
 
-    if (i == maskSelectedId) checkbox_lock->CheckState = maskData[i].m_b_locked ? CheckState::Checked : CheckState::Unchecked;
+    if (i == maskSelectedId) 
+      checkbox_lock->CheckState = maskData[i].m_b_locked ? CheckState::Checked : CheckState::Unchecked;
   }
 
 
   this->Update();
   this->Invalidate();
 
-  if (0 <= maskSelectedId) maskList->CurrentCell = maskList[0, maskSelectedId];
+  if (0 <= maskSelectedId && maskSelectedId < maskData.size() )
+  {
+    maskList->CurrentCell = maskList[0, maskSelectedId];
+  }
   this->Update();
   this->Invalidate();
 
@@ -52,9 +58,9 @@ void FormVisMask::updateList()
 
 
 
-
-
-System::Void FormVisMask::maskList_SelectionChanged(System::Object^  sender, System::EventArgs^  e)
+System::Void FormVisMask::maskList_SelectionChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e)
 {
   //FormVisMask::updateList の maskList->Rows->Clear(); のタイミングで呼ばれてしまうので、その際は何もしない
   if (m_bListUpdating) return;
@@ -79,26 +85,37 @@ System::Void FormVisMask::maskList_CellContentClick(System::Object^  sender, Sys
 }
 
 
-System::Void FormVisMask::btnColorPallet_Click  (System::Object^  sender, System::EventArgs^  e) 
+System::Void FormVisMask::btnColorPallet_Click  (
+    System::Object^  sender, 
+    System::EventArgs^  e) 
 {
-  System::Windows::Forms::ColorDialog ^colorDialog = gcnew System::Windows::Forms::ColorDialog();  
-  if (colorDialog->ShowDialog() != System::Windows::Forms::DialogResult::OK) return;
+  System::Windows::Forms::ColorDialog ^colorDialog 
+    = gcnew System::Windows::Forms::ColorDialog();  
+  if (colorDialog->ShowDialog() != System::Windows::Forms::DialogResult::OK) 
+    return;
   
-  ImageCore::GetInst()->ActiveMask_SetColor( EVec3i(colorDialog->Color.R, colorDialog->Color.G, colorDialog->Color.B) );
+  EVec3i c(colorDialog->Color.R, colorDialog->Color.G, colorDialog->Color.B);
+  ImageCore::GetInst()->ActiveMask_SetColor( c );
 
   updateList();
   FormMain_RedrawMainPanel();
 }
 
 
-System::Void FormVisMask::checkbox_lock_CheckedChanged(System::Object^  sender, System::EventArgs^  e)
+
+System::Void FormVisMask::checkbox_lock_CheckedChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e)
 {
-  ImageCore::GetInst()->ActiveMask_SetLocked( checkbox_lock->CheckState == CheckState::Checked ? true : false );
+  bool locked = (checkbox_lock->CheckState == CheckState::Checked);
+  ImageCore::GetInst()->ActiveMask_SetLocked( locked );
   FormMain_RedrawMainPanel();
 }
 
 
-System::Void FormVisMask::trackbar_alpha_Scroll (System::Object^  sender, System::EventArgs^  e) 
+System::Void FormVisMask::trackbar_alpha_Scroll (
+    System::Object^  sender, 
+    System::EventArgs^  e) 
 {
   ImageCore::GetInst()->ActiveMask_SetAlpha( trackbar_alpha->Value / 100.0);
   FormMain_RedrawMainPanel();
@@ -112,7 +129,10 @@ static void updateImageCoreVisVolumes()
 }
 
 
-System::Void FormVisMask::btnDelete_Click(System::Object^  sender, System::EventArgs^  e) 
+//DELETE/MARGE/
+System::Void FormVisMask::btnDelete_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
 {
   ImageCore::GetInst()->ActiveMask_Delete();
   updateList();
@@ -121,44 +141,92 @@ System::Void FormVisMask::btnDelete_Click(System::Object^  sender, System::Event
   FormMain_RedrawMainPanel();
 }
 
-System::Void FormVisMask::btnMargeTo_Click( System::Object^  sender, System::EventArgs^  e) 
+
+
+System::Void FormVisMask::btnMargeTo_Click( 
+    System::Object^  sender, 
+    System::EventArgs^  e) 
 {
-  const vector<MaskData> &maskdata = ImageCore::GetInst()->GetMaskData();
-  const int               selectid = ImageCore::GetInst()->GetActiveMaskID();
+  const auto &maskdata = ImageCore::GetInst()->GetMaskData();
 
-  int trgtId = formMaskIdSelection_showModalDialog(maskdata, selectid);
-  if( trgtId == -1) return;
+  set<int> trgt_ids = formMaskIdSelection_DoMultiSelection(maskdata, 0);
 
-  ImageCore::GetInst()->ActiveMask_Marge(trgtId);
+  if ( trgt_ids.size() <= 1) 
+  {
+    const char* m = 
+      "specify multiple ids to marge\n"
+      "マージする複数IDを指定してください";
+    CLI_MessageBox_OK_Show( m, "message");
+    return;
+  }
+
+  ImageCore::GetInst()->MargeMaskIDs(trgt_ids);
+  
   updateList();
-
   updateImageCoreVisVolumes();
   FormMain_RedrawMainPanel();
 }
 
-System::Void FormVisMask::btnErode_Click(System::Object^  sender, System::EventArgs^  e)
+
+
+//ERODE/DILATE/FILLHOLE
+System::Void FormVisMask::btnErode_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e)
 {
   ImageCore::GetInst()->ActiveMask_Erode();
   updateImageCoreVisVolumes();
+  updateList();
   FormMain_RedrawMainPanel();
 }
 
 
-System::Void FormVisMask::btnDilate_Click(System::Object^  sender, System::EventArgs^  e)
+
+System::Void FormVisMask::btnDilate_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e)
 {
   ImageCore::GetInst()->ActiveMask_Dilate();
   updateImageCoreVisVolumes();
+  updateList();
   FormMain_RedrawMainPanel();
 }
 
-System::Void FormVisMask::btnFillHole_Click(System::Object^  sender, System::EventArgs^  e)
+
+
+System::Void FormVisMask::btnFillHole_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e)
 {
-  ImageCore::GetInst()->ActiveMask_FillHole();
+  const auto &maskdata = ImageCore::GetInst()->GetMaskData();
+  const int  selectid  = ImageCore::GetInst()->GetActiveMaskID();
+
+  set<int> trgt_ids = formMaskIdSelection_DoMultiSelection(maskdata, selectid);
+
+  if ( trgt_ids.size() < 1) 
+  {
+    const char* m = 
+      "Select multiple ids to calc fillhole\n"
+      "穴埋めに利用する領域を複数指定してください";
+    CLI_MessageBox_OK_Show( m, "message");
+    return;
+  }
+
+  ImageCore::GetInst()->FillHole( trgt_ids );
   updateImageCoreVisVolumes();
+  updateList();
   FormMain_RedrawMainPanel();
 }
 
-System::Void FormVisMask::btnExpObj_Click(System::Object^  sender, System::EventArgs^  e) 
+
+
+
+
+
+
+System::Void FormVisMask::btnExpObj_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
 {
   SaveFileDialog^ dlg = gcnew SaveFileDialog();
   dlg->Filter = "surface data (*.obj)|*.obj";
@@ -170,4 +238,44 @@ System::Void FormVisMask::btnExpObj_Click(System::Object^  sender, System::Event
 
   ImageCore::GetInst()->ActiveMask_ExportObj(fname);
 }
+
+
+
+System::Void FormVisMask::btnSmartFillHole_Click(
+  System::Object^  sender,
+  System::EventArgs^  e)
+{
+  const auto &maskdata = ImageCore::GetInst()->GetMaskData();
+  const int  selectid  = ImageCore::GetInst()->GetActiveMaskID();
+
+  set<int> trgt_ids = formMaskIdSelection_DoMultiSelection(maskdata, selectid);
+
+  if ( trgt_ids.size() < 1) 
+  {
+    const char* m = 
+      "Select multiple ids to calc fillhole\n"
+      "穴埋めに利用する領域を複数指定してください";
+    CLI_MessageBox_OK_Show( m, "message");
+    return;
+  }
+
+  const char *message1 = "Set dilation radius";
+  int dilation_size = 0;
+  if ( !FormIntegerSelection_doModal(1,1,30,message1,dilation_size) )
+  {
+    const char* m = 
+      "Set radius of dilation for smart holefil\n"
+      "holefill 直前に行うdilation回数を指定してください";
+      CLI_MessageBox_OK_Show( m, "message");
+    return;
+  } 
+
+  ImageCore::GetInst()->SmartFillHole(trgt_ids, dilation_size);
+  updateList();
+  updateImageCoreVisVolumes();
+  FormMain_RedrawMainPanel();
+}
+
+
+
 

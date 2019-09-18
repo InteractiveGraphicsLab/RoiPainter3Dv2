@@ -40,7 +40,7 @@ private:
 	std::string m_filepath   ;
 
   std::vector<MaskData> m_mask_data     ;
-	int m_active_mask_id; // -1:none, 0...:maskID
+	int m_active_maskid; // -1:none, 0...:maskID
 
 public:
 	//volume images
@@ -86,17 +86,26 @@ public:
   
   //return tapple {width, height, depth, num_voxel}
   std::tuple<int, int, int> GetResolution3() {
-    return std::forward_as_tuple( m_resolution[0], m_resolution[1], m_resolution[2] ) ;
+    return std::forward_as_tuple( 
+      m_resolution[0], 
+      m_resolution[1], 
+      m_resolution[2] ) ;
   }
 
   //return tapple {width, height, depth, width*height, width*height*depth}
-  std::tuple<int, int, int, int, int> GetResolution5() {
-    int WH  = m_resolution[0]*m_resolution[1];
-    int WHD = m_resolution[0]*m_resolution[1]*m_resolution[2];
-    return std::forward_as_tuple( m_resolution[0], m_resolution[1], m_resolution[2], WH, WHD) ;
+  std::tuple<int, int, int, int, int> GetResolution5() 
+  {
+    return std::forward_as_tuple( 
+      m_resolution[0], 
+      m_resolution[1], 
+      m_resolution[2], 
+      m_resolution[0]*m_resolution[1], 
+      m_resolution[0]*m_resolution[1]*m_resolution[2]) ;
   }
 
-  int GetNumVoxels(){ return m_resolution[0] * m_resolution[1] * m_resolution[2];}
+  int GetNumVoxels(){
+    return m_resolution[0] * m_resolution[1] * m_resolution[2];
+  }
 
   std::string GetFilePath(){ return m_filepath;}
 
@@ -136,9 +145,9 @@ public:
   
 
   //mask manipuration
-  int   GetActiveMaskID(){ return m_active_mask_id; }
+  int   GetActiveMaskID(){ return m_active_maskid; }
   const std::vector<MaskData> &GetMaskData(){ return m_mask_data; }
-  void  SetActiveMaskID(int maskid){ m_active_mask_id = maskid; }
+  void  SetActiveMaskID(int maskid){ m_active_maskid = maskid; }
   void  ClearMaskSurface(int trgtid);
   void  DrawMaskSurfaces();
   // manipuration for active (user-selected) mask id
@@ -147,17 +156,24 @@ public:
   void ActiveMask_SetAlpha   (const double alpha );
   void ActiveMask_SetColor   (const EVec3i &c    );
   void ActiveMask_Delete   ( );
-  void ActiveMask_Marge    (const int &trgtMaskID);
   void ActiveMask_Erode    ( );
   void ActiveMask_Dilate   ( );
-  void ActiveMask_FillHole ( );
   void ActiveMask_ExportObj(const std::string &fname);
-  
+    
+
+  void FillHole ( std::set<int> &ids );
+
+  void SmartFillHole( std::set<int> &ids, int dilation_size);
+  void MargeMaskIDs ( std::set<int> &ids );
+  //todo void ActiveMask_DilateAsNewRegion( );
+
 
   void InitializeVolFlgByLockedMask(int fore_maskid = -1);
 
 private:
 	void UpdateGradMagnituteVolume();
+
+  void GetFlgVolByMask_0_1_255(const int trgt_maskid, byte* flgvol);
 };
 
 #pragma managed
