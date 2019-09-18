@@ -158,9 +158,11 @@ public:
   void ActiveMask_Delete   ( );
   void ActiveMask_Erode    ( );
   void ActiveMask_Dilate   ( );
-  void ActiveMask_FillHole ( );
   void ActiveMask_ExportObj(const std::string &fname);
     
+
+  void FillHole ( std::set<int> &ids );
+
   void SmartFillHole( std::set<int> &ids, int dilation_size);
   void MargeMaskIDs ( std::set<int> &ids );
   //todo void ActiveMask_DilateAsNewRegion( );

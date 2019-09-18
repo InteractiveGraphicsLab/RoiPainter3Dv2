@@ -110,9 +110,9 @@ namespace RoiPainter3D {
       // 
       this->btnMargeTo->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btnMargeTo->Location = System::Drawing::Point(143, 257);
+      this->btnMargeTo->Location = System::Drawing::Point(143, 240);
       this->btnMargeTo->Name = L"btnMargeTo";
-      this->btnMargeTo->Size = System::Drawing::Size(137, 23);
+      this->btnMargeTo->Size = System::Drawing::Size(137, 25);
       this->btnMargeTo->TabIndex = 34;
       this->btnMargeTo->Text = L"MARGE ids";
       this->btnMargeTo->UseVisualStyleBackColor = true;
@@ -122,7 +122,7 @@ namespace RoiPainter3D {
       // 
       this->btnDelete->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btnDelete->Location = System::Drawing::Point(6, 201);
+      this->btnDelete->Location = System::Drawing::Point(6, 178);
       this->btnDelete->Name = L"btnDelete";
       this->btnDelete->Size = System::Drawing::Size(114, 23);
       this->btnDelete->TabIndex = 33;
@@ -231,7 +231,7 @@ namespace RoiPainter3D {
       this->btnExpObj->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
       this->btnExpObj->ImageAlign = System::Drawing::ContentAlignment::MiddleLeft;
-      this->btnExpObj->Location = System::Drawing::Point(6, 168);
+      this->btnExpObj->Location = System::Drawing::Point(6, 142);
       this->btnExpObj->Name = L"btnExpObj";
       this->btnExpObj->Size = System::Drawing::Size(115, 25);
       this->btnExpObj->TabIndex = 35;
@@ -269,9 +269,9 @@ namespace RoiPainter3D {
       this->btnFillHole->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
       this->btnFillHole->ImageAlign = System::Drawing::ContentAlignment::MiddleLeft;
-      this->btnFillHole->Location = System::Drawing::Point(6, 141);
+      this->btnFillHole->Location = System::Drawing::Point(142, 266);
       this->btnFillHole->Name = L"btnFillHole";
-      this->btnFillHole->Size = System::Drawing::Size(114, 25);
+      this->btnFillHole->Size = System::Drawing::Size(137, 25);
       this->btnFillHole->TabIndex = 38;
       this->btnFillHole->Text = L"Fill hole ";
       this->btnFillHole->UseVisualStyleBackColor = true;
@@ -286,11 +286,10 @@ namespace RoiPainter3D {
       this->groupBox1->Controls->Add(this->btnDelete);
       this->groupBox1->Controls->Add(this->trackbar_alpha);
       this->groupBox1->Controls->Add(this->btnColorPallet);
-      this->groupBox1->Controls->Add(this->btnFillHole);
       this->groupBox1->Controls->Add(this->btnDilate);
       this->groupBox1->Location = System::Drawing::Point(142, 12);
       this->groupBox1->Name = L"groupBox1";
-      this->groupBox1->Size = System::Drawing::Size(150, 229);
+      this->groupBox1->Size = System::Drawing::Size(150, 206);
       this->groupBox1->TabIndex = 39;
       this->groupBox1->TabStop = false;
       this->groupBox1->Text = L"Manip. Selected ID";
@@ -299,9 +298,9 @@ namespace RoiPainter3D {
       // 
       this->btnSmartFillHole->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btnSmartFillHole->Location = System::Drawing::Point(142, 282);
+      this->btnSmartFillHole->Location = System::Drawing::Point(142, 293);
       this->btnSmartFillHole->Name = L"btnSmartFillHole";
-      this->btnSmartFillHole->Size = System::Drawing::Size(137, 23);
+      this->btnSmartFillHole->Size = System::Drawing::Size(137, 25);
       this->btnSmartFillHole->TabIndex = 40;
       this->btnSmartFillHole->Text = L"Smart Fill hole";
       this->btnSmartFillHole->UseVisualStyleBackColor = true;
@@ -316,6 +315,7 @@ namespace RoiPainter3D {
       this->Controls->Add(this->groupBox1);
       this->Controls->Add(this->btnMargeTo);
       this->Controls->Add(this->maskList);
+      this->Controls->Add(this->btnFillHole);
       this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedDialog;
       this->Margin = System::Windows::Forms::Padding(2);
       this->Name = L"FormVisMask";

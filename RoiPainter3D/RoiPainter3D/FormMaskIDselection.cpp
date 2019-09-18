@@ -38,9 +38,9 @@ System::Void FormMaskIDselection::initList(
   this->Update();
   this->Invalidate();
 
+  m_active_ids->Clear();
   if ( 0 <= default_mask_id && default_mask_id < mask_set.size()) 
   {
-    m_active_ids->Clear();
     m_active_ids->Add(default_mask_id);
     maskIdList->CurrentCell = maskIdList[0, default_mask_id];
   }

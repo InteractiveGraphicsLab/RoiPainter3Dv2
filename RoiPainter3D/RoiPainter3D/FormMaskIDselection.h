@@ -237,6 +237,7 @@ System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
     const std::vector<MaskData> &mask_set, 
     const int default_mask_id)
   {
+    std::cout << "start multi maskid selection\n";
     FormMaskIDselection ^modal 
       = gcnew FormMaskIDselection(mask_set, default_mask_id, true);
     
@@ -248,6 +249,7 @@ System::Windows::Forms::DataGridViewTextBoxColumn^  colorColumn;
       modal->Close();
     }
 
+    std::cout << "multi maskid selection finished\n";
     return selected_ids;
   }
 

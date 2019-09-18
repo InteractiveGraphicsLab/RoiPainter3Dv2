@@ -484,8 +484,14 @@ void ModeSegRGrow::RunFillHole()
   //compute fill hole
 	OglImage3D flg( ImageCore::GetInst()->m_vol_flag );
 	const int N = flg.GetW() * flg.GetH() * flg.GetD();
-	for (int i = 0; i < N; ++i) flg[i] = (flg[i] == 255) ? 255 : 0;
-	t_FillHole3D(flg);
+
+#pragma omp parallel for
+	for (int i = 0; i < N; ++i)
+  {
+    flg[i] = (flg[i] == 255) ? 255 : 0;
+  }
+
+  t_FillHole3D_6(flg);
 
   // update flg volume (never change voxel with vflg[i]==0)
 	byte *flg3d = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
