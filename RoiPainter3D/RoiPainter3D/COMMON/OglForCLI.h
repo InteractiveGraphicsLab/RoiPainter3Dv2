@@ -37,24 +37,24 @@
 class OglForCLI
 {
 private:
+
+  //windows handles
   HDC   m_hdc;
   HGLRC m_hglrc;
 
   // Camera position/center/Up direction 
-  EVec3f m_cam_position;
-  EVec3f m_cam_center;
-  EVec3f m_cam_updir;
+  EVec3f m_cam_pos;
+  EVec3f m_cam_cnt;
+  EVec3f m_cam_up ;
 
   // View Size
   bool   m_is_rendering;
   EVec2i m_mouse_position;
   EVec4f m_background_color;
 
-
   enum {
     BTN_NON, BTN_TRANS, BTN_ZOOM, BTN_ROT
   } m_mousebtn_state;
-
 
 public:
 
@@ -64,9 +64,9 @@ public:
   {
     if (dc == 0) return;
 
-    m_cam_position     = EVec3f(0, 0, 10);
-    m_cam_center       = EVec3f(0, 0, 0 );
-    m_cam_updir        = EVec3f(0, 1, 0 );
+    m_cam_pos = EVec3f(0, 0, 10);
+    m_cam_cnt = EVec3f(0, 0, 0 );
+    m_cam_up  = EVec3f(0, 1, 0 );
     m_background_color = EVec4f(0, 0, 0, 0.5);
 
     m_is_rendering = false;
@@ -144,10 +144,13 @@ public:
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    gluLookAt(m_cam_position[0], m_cam_position[1], m_cam_position[2],
-              m_cam_center[0], m_cam_center[1], m_cam_center[2],
-              m_cam_updir [0], m_cam_updir [1], m_cam_updir [2]);
-    glClearColor((float)m_background_color[0], (float)m_background_color[1], (float)m_background_color[2], (float)m_background_color[3]);
+    gluLookAt(m_cam_pos[0], m_cam_pos[1], m_cam_pos[2],
+              m_cam_cnt[0], m_cam_cnt[1], m_cam_cnt[2],
+              m_cam_up [0], m_cam_up [1], m_cam_up [2]);
+    glClearColor( m_background_color[0], 
+                  m_background_color[1], 
+                  m_background_color[2], 
+                  m_background_color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ACCUM_BUFFER_BIT);
   }
 
@@ -161,12 +164,24 @@ public:
 
 
   inline bool   IsDrawing() const { return m_is_rendering; }
-  inline EVec3f GetCamPos() const { return m_cam_position; }
-  inline EVec3f GetCamCnt() const { return m_cam_center  ; }
-  inline EVec3f GetCamUp()  const { return m_cam_updir   ; }
-  inline void   SetCam(const EVec3f &pos, const EVec3f &cnt, const EVec3f &up) { m_cam_position = pos; m_cam_center = cnt; m_cam_updir = up; }
-  inline void   SetBgColor(EVec4f bg) { m_background_color = bg; }
-  inline void   SetBgColor(float r, float g, float b, float a) { m_background_color << r, g, b, a; }
+  inline EVec3f GetCamPos() const { return m_cam_pos; }
+  inline EVec3f GetCamCnt() const { return m_cam_cnt  ; }
+  inline EVec3f GetCamUp()  const { return m_cam_up   ; }
+  inline void   SetCam(const EVec3f &pos, const EVec3f &cnt, const EVec3f &up) 
+  { 
+    m_cam_pos = pos; 
+    m_cam_cnt = cnt; 
+    m_cam_up  = up;
+  }
+  inline void  SetBgColor(EVec4f bg) 
+  { 
+    m_background_color = bg; 
+  }
+
+  inline void  SetBgColor(float r, float g, float b, float a) 
+  { 
+    m_background_color << r, g, b, a; 
+  }
 
 
   //Mouse Listener for Camera manipuration
@@ -175,11 +190,13 @@ public:
     m_mouse_position = p;
     m_mousebtn_state = BTN_TRANS;
   }
+
   void BtnDown_Zoom(const EVec2i &p)
   {
     m_mouse_position = p;
     m_mousebtn_state = BTN_ZOOM;
   }
+
   void BtnDown_Rot(const EVec2i &p)
   {
     m_mouse_position = p;
@@ -191,8 +208,6 @@ public:
     m_mousebtn_state = BTN_NON;
     ReleaseCapture();
   }
-
-
 
   void MouseMove(const EVec2i &p)
   {
@@ -206,24 +221,24 @@ public:
       float theta = -dX / 200.0f;
       float phi = -dY / 200.0f;
 
-      EVec3f x_dir = ((m_cam_center - m_cam_position).cross(m_cam_updir)).normalized();
-      Eigen::AngleAxisf rotTheta(theta, m_cam_updir);
+      EVec3f x_dir = ((m_cam_cnt - m_cam_pos).cross(m_cam_up)).normalized();
+      Eigen::AngleAxisf rotTheta(theta, m_cam_up);
       Eigen::AngleAxisf rotPhi  (  phi, x_dir      );
-      m_cam_updir    = rotPhi * rotTheta * m_cam_updir;
-      m_cam_position = rotPhi * rotTheta * (m_cam_position - m_cam_center) + m_cam_center;
+      m_cam_up    = rotPhi * rotTheta * m_cam_up;
+      m_cam_pos = rotPhi * rotTheta * (m_cam_pos - m_cam_cnt) + m_cam_cnt;
     }
     else if (m_mousebtn_state == BTN_ZOOM)
     {
-      EVec3f newEyeP = m_cam_position + dY / 80.0f * (m_cam_center - m_cam_position);
-      if ((newEyeP - m_cam_center).norm() > 0.02f) m_cam_position = newEyeP;
+      EVec3f newEyeP = m_cam_pos + dY / 80.0f * (m_cam_cnt - m_cam_pos);
+      if ((newEyeP - m_cam_cnt).norm() > 0.02f) m_cam_pos = newEyeP;
     }
     else if (m_mousebtn_state == BTN_TRANS)
     {
-      float c = (m_cam_position - m_cam_center).norm() / 900.0f;
-      EVec3f x_dir = ((m_cam_position - m_cam_center).cross(m_cam_updir)).normalized();
-      EVec3f t = c * dX * x_dir + c * dY * m_cam_updir;
-      m_cam_position += t;
-      m_cam_center += t;
+      float c = (m_cam_pos - m_cam_cnt).norm() / 900.0f;
+      EVec3f x_dir = ((m_cam_pos - m_cam_cnt).cross(m_cam_up)).normalized();
+      EVec3f t = c * dX * x_dir + c * dY * m_cam_up;
+      m_cam_pos += t;
+      m_cam_cnt += t;
     }
     m_mouse_position = p;
   }
@@ -240,12 +255,12 @@ public:
 */
   void ZoomCam(float distance)
   {
-    EVec3f rayD = (m_cam_center - m_cam_position);
+    EVec3f rayD = (m_cam_cnt - m_cam_pos);
     float  len = rayD.norm();
 
     if (distance > len) return;
     rayD /= len;
-    m_cam_position = m_cam_position + distance * rayD;
+    m_cam_pos = m_cam_pos + distance * rayD;
   }
 
 
@@ -328,10 +343,18 @@ private:
 
     //lights
     glEnable(GL_LIGHTING);
-    EVec4f lPosi[3] = { EVec4f(1000,1000,-1000,1), EVec4f(-1000,1000,-1000,1), EVec4f(1000,-1000,-1000,1) };
-    EVec4f lambi[3] = { EVec4f(1.0f,1.0f,1.0f,1), EVec4f(0,0,0,0)            , EVec4f(0,0,0,0) };
-    EVec4f ldiff[3] = { EVec4f(1.0f,1.0f,1.0f,1), EVec4f(0.5f,0.5f,0.5f,1)   , EVec4f(0.5f,0.5f,0.5f,1) };
-    EVec4f lspec[3] = { EVec4f(0.3f,0.3f,0.3f,1), EVec4f(0.3f,0.3f,0.3f,1)   , EVec4f(0.3f,0.3f,0.3f,1) };
+    EVec4f lPosi[3] = { EVec4f(1000,1000,-1000,1), 
+                        EVec4f(-1000,1000,-1000,1), 
+                        EVec4f(1000,-1000,-1000,1) };
+    EVec4f lambi[3] = { EVec4f(1.0f,1.0f,1.0f,1), 
+                        EVec4f(0,0,0,0)         , 
+                        EVec4f(0,0,0,0) };
+    EVec4f ldiff[3] = { EVec4f(1.0f,1.0f,1.0f,1), 
+                        EVec4f(0.5f,0.5f,0.5f,1), 
+                        EVec4f(0.5f,0.5f,0.5f,1) };
+    EVec4f lspec[3] = { EVec4f(0.3f,0.3f,0.3f,1), 
+                        EVec4f(0.3f,0.3f,0.3f,1), 
+                        EVec4f(0.3f,0.3f,0.3f,1) };
 
     for (int i = 0; i < 3; ++i)
     {

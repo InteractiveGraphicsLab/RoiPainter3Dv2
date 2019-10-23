@@ -126,7 +126,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <AdditionalIncludeDirectories>./;./3rdparty/glew/include;./3rdparty/Eigen;./3rdparty/dcmtk/include;./COMMON</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -135,6 +135,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glew32.lib</AdditionalDependencies>
@@ -221,6 +222,7 @@
     <ClInclude Include="mode\ModeVizMask.h" />
     <ClInclude Include="mode\ModeVizNormal.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="stdafx.h" />
     <ClInclude Include="ViewAngleCore.h" />
   </ItemGroup>
   <ItemGroup>
@@ -258,6 +260,7 @@
     <ClCompile Include="mode\ModeVizMask.cpp" />
     <ClCompile Include="mode\ModeVizNormal.cpp" />
     <ClCompile Include="RoiPainter3D.cpp" />
+    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="ViewAngleCore.cpp" />
   </ItemGroup>
   <ItemGroup>
