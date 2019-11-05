@@ -150,6 +150,12 @@
     <ClInclude Include="stdafx.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="mode\ModeSegParallelWires.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
+    <ClInclude Include="FormSegParallelWires.h">
+      <Filter>MODE</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -255,6 +261,12 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="mode\ModeSegParallelWires.cpp">
+      <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="FormSegParallelWires.cpp">
+      <Filter>MODE</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
