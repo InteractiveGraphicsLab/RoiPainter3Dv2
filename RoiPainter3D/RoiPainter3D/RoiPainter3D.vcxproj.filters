@@ -311,5 +311,8 @@
     <EmbeddedResource Include="FormIntegerSelection.resx">
       <Filter>リソース ファイル</Filter>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormSegParallelWires.resx">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

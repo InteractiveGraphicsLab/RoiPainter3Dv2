@@ -40,6 +40,10 @@ bool ModeVizNormal::CanLeaveMode()
   return true;
 }
 
+
+
+
+
 void ModeVizNormal::StartMode()
 {
   std::cout << "ModeVizNormal...startMode----------\n";

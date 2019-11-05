@@ -5,10 +5,38 @@
 // Segmetation by placing multiple wires (spline curve)
 //
 
+// User interface 
+// 
+// Browsing : 
+//  select plane (xy, yz, or zx) by dialog 
+//  mouse wheel (or up/down key) to move the plane
+//
+// Wire placement
+//  Shift L-click to add CP
+//  Shift L-drag  to move CP
+//  # click on a curve --> insert point
+//  # otherwise --> add cp at the end
+//
+//  Shift M/R click to remove CP
+//  
+//  If the user places more than three control points --> the system generates a closed curve 
+// 
+// 
+//
+
+
 #include "ModeInterface.h"
 #include "GlslShader.h"
 #include "COMMON\kcurves.h"
 #include <vector>
+
+
+
+
+
+
+
+
 
 
 class SplineWire
@@ -26,6 +54,8 @@ public:
   //rendering
   void DrawControlPoints(){}
   void DrawWire(){}
+
+  int GetNumCPs() const {return 0;}
 };
 
 
@@ -46,7 +76,9 @@ private:
   
   //dragging wire id , cp id
 	EVec2i m_draging_cpid;
-
+  
+  int m_planexy_pos, m_planeyz_pos, m_planezx_pos; 
+  
 private:
   ModeSegParallelWires();
 
@@ -60,7 +92,6 @@ public:
   }
 
   // overload functions ---------------------------------------------
-
   void LBtnUp    (const EVec2i &p, OglForCLI *ogl);
   void RBtnUp    (const EVec2i &p, OglForCLI *ogl);
   void MBtnUp    (const EVec2i &p, OglForCLI *ogl);
@@ -82,7 +113,14 @@ public:
 
   void FinishSegmentation();
   void CancelSegmentation();
+  //------------------------------------------------------------------------------
 
+  void ImportWireInfo(std::string fname);
+  void ExportWireInfo(std::string fname);
+
+
+private:
+  CRSSEC_ID GetCurrentTrgtPlane();
 };
 
 
