@@ -269,6 +269,10 @@ namespace RoiPainter3D {
     return FormSegParallelWires::GetInst()->IsTrgetZX();
   }
 
+  inline bool FormParallelWires_bDrawAllWires(){
+    return true;
+  }
+
 
 
 }

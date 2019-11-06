@@ -45,6 +45,9 @@ private:
   std::vector<EVec3f> m_cps;
   std::vector<EVec3f> m_curve;
 
+  static float m_cp_radius;
+
+
 public:
   SplineWire( PLANE_ID plane_id );
   
@@ -64,23 +67,22 @@ public:
   }
   
   //control point manipulation
-  void AddControlPoint (const EVec3f &p);
-  void MoveControlPoint(const int idx, const EVec3f &p);
-  int  PickControlPoint(
-      const EVec3f &ray_pos, 
-      const EVec3f &ray_dir, 
-      const float  &radius);
+  int  AddCtrlPt (const EVec3f &p);
+  void MoveCtrlPt(const int idx, const EVec3f &p);
 
-  void PickAndRemoveControlPoint(
-      const EVec3f &ray_pos, 
-      const EVec3f &ray_dir, 
-      const float  &radius);
+  int  PickCtrlPt( const EVec3f &ray_pos, const EVec3f &ray_dir);
+  void PickToEraseCtrlPt( const EVec3f &ray_pos, const EVec3f &ray_dir);
   
   //rendering
-  void DrawControlPoints(){}
+  void DrawCtrlPt(){}
   void DrawWire(){}
 
-  int GetNumCPs() const { return 0; }
+  int GetNumCtrlPts() const { return (int) return m_cps.size(); }
+
+  static SetCtrlPtRadius(float r){
+    m_cp_radius = r;
+  }
+
 
 private:
   void UpdateCurveFromCPs( );
@@ -105,7 +107,7 @@ private:
   //dragging wire id , cp id
 	EVec2i m_draging_cpid;
   
-  int m_planexy_pos, m_planeyz_pos, m_planezx_pos; 
+  int m_planexy_idx, m_planeyz_idx, m_planezx_idx; 
   
 private:
   ModeSegParallelWires();

@@ -73,18 +73,23 @@ void ModeSegParallelWires::StartMode ()
   m_wires_zx.resize(H, SplineWire(SplineWire::PLANE_ZX) );
   
   //x
-  m_planexy_pos = D / 2;
-  m_planeyz_pos = W / 2;
-  m_planezx_pos = H / 2;
+  m_planexy_idx = D / 2;
+  m_planeyz_idx = W / 2;
+  m_planezx_idx = H / 2;
   
-  float xy_pos = (m_planexy_pos + 0.5f) * (1.0f / D);
-  float yz_pos = (m_planeyz_pos + 0.5f) * (1.0f / W);
-  float zx_pos = (m_planezx_pos + 0.5f) * (1.0f / H);
+  float xy_pos = (m_planexy_idx + 0.5f) * (1.0f / D);
+  float yz_pos = (m_planeyz_idx + 0.5f) * (1.0f / W);
+  float zx_pos = (m_planezx_idx + 0.5f) * (1.0f / H);
   CrssecCore::GetInst()->SetPlaneXyPosition( xy_pos );
   CrssecCore::GetInst()->SetPlaneYzPosition( yz_pos );
   CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
   
   CrssecCore::GetInst()->ClearCurvedCrossec();
+
+  EVec3f pitch = ImageCore::GetInst()->GetPitch();
+  float cp_r = 5 * (pitch[0] + pitch[1] + pitch[2])/3.0;
+  SplineWire::SetCtrlPtRadius(cp_r);  
+
   std::cout << "ModeSegParallelWires...startMode DONE-----\n";
 }
 
@@ -96,17 +101,17 @@ bool ModeSegParallelWires::CanLeaveMode()
 
   for ( const auto wire : m_wires_xy )
   {
-    if ( wire.GetNumCPs() != 0 ) is_wire_exist = true;
+    if ( wire.GetNumCtrlPts() != 0 ) is_wire_exist = true;
     if ( is_wire_exist ) break;
   }
   for ( const auto wire : m_wires_yz )
   {
-    if ( wire.GetNumCPs() != 0 ) is_wire_exist = true;
+    if ( wire.GetNumCtrlPts() != 0 ) is_wire_exist = true;
     if ( is_wire_exist ) break;
   }
   for ( const auto wire : m_wires_zx )
   {
-    if ( wire.GetNumCPs() != 0 ) is_wire_exist = true;
+    if ( wire.GetNumCtrlPts() != 0 ) is_wire_exist = true;
     if ( is_wire_exist ) break;
   }  
   
@@ -133,6 +138,8 @@ CRSSEC_ID ModeSegParallelWires::GetCurrentTrgtPlane()
 
 
 
+void ModeSegParallelWires::FinishSegmentation(){}
+void ModeSegParallelWires::CancelSegmentation(){}
 
 
 
@@ -152,11 +159,30 @@ void ModeSegParallelWires::LBtnDown  (const EVec2i &p, OglForCLI *ogl)
     
   if ( IsShiftKeyOn() )
   {
+    EVec3f rayp, rayd, pos;
+    ogl->GetCursorRay( p, rayp, rayd);
     
-  }
-  else if ( IsCtrKeyOn() )
-  {
-    
+    bool bxy = FormParallelWires_bPlaneXY();    
+    if ( bxy && PickCrsSec( CRSSEC_XY, rayp, rayd, &pos ) != CRSSEC_NON )
+    {
+      int idx = m_wires_xy[ m_planexy_idx ].AddCtrlPt( pos );
+      m_draging_cpid << m_planexy_idx, idx;
+    }
+
+    bool byz = FormParallelWires_bPlaneYZ();    
+    if ( byz && PickCrsSec( CRSSEC_YZ, rayp, rayd, &pos ) != CRSSEC_NON )
+    {
+      int idx = m_wires_yz[ m_planeyz_idx ].AddCtrlPt( pos );
+      m_draging_cpid << m_planeyz_idx, idx;
+    }
+
+    bool bzx = FormParallelWires_bPlaneZX();    
+    if ( bzx && PickCrsSec( CRSSEC_ZX, rayp, rayd, &pos ) != CRSSEC_NON )
+    {
+      int idx = m_wires_zx[ m_planezx_idx ].AddCtrlPt( pos );
+      m_draging_cpid << m_planezx_idx, idx;
+    }
+     
   }
   else
   {
@@ -171,8 +197,21 @@ void ModeSegParallelWires::RBtnDown  (const EVec2i &p, OglForCLI *ogl)
     
   if ( IsShiftKeyOn() )
   {
-    //pick to remove controlpoint
+    EVec3f rayp, rayd, pos;
+    ogl->GetCursorRay( p, rayp, rayd );
     
+    if ( FormParallelWires_bPlaneXY() ) 
+    {
+      m_wires_xy[ m_planexy_idx ].PickToEraseCtrlPt( rayp, rayd );
+    }
+    if ( FormParallelWires_bPlaneYZ() ) 
+    {
+      m_wires_yz[ m_planeyz_idx ].PickToEraseCtrlPt( rayp, rayd );
+    }
+    if ( FormParallelWires_bPlaneZX() ) 
+    {
+      m_wires_zx[ m_planezx_idx ].PickToEraseCtrlPt( rayp, rayd );
+    }
   }
   else
   {
@@ -202,6 +241,7 @@ void ModeSegParallelWires::MBtnDown  (const EVec2i &p, OglForCLI *ogl)
 void ModeSegParallelWires::LBtnUp    (const EVec2i &p, OglForCLI *ogl)
 {
   m_bL = false;
+  m_draging_cpid << -1, -1;
   ogl->BtnUp();
 }
 
@@ -223,11 +263,21 @@ void ModeSegParallelWires::MouseMove (const EVec2i &p, OglForCLI *ogl)
 {
   if ( !m_bL && !m_bR && !m_bM)  return;
 
-  if ( m_draging_cpid[0] == -2 )
-  {
-	  EVec3f ray_pos, ray_dir;
-	  ogl->GetCursorRay( p, ray_pos, ray_dir);
-    //todo
+  if ( m_draging_cpid[0] != -1 )
+  {    
+    auto crssec_id = FormParallelWires_bPlaneXY() ? CRSSEC_XY : 
+                     FormParallelWires_bPlaneYZ() ? CRSSEC_YZ : CRSSEC_ZX;
+
+    auto &wires    = FormParallelWires_bPlaneXY() ? m_wires_xy : 
+                     FormParallelWires_bPlaneYZ() ? m_wires_yz : m_wires_zx;
+
+	  EVec3f rayp, rayd, pos;
+	  ogl->GetCursorRay( p, rayp, rayd);
+
+    if ( PickCrsSec( crssec_id, rayp, rayd, &pos ) != CRSSEC_NON )
+    {
+      wires[ m_draging_cpid[0] ].MoveCtrlPt( m_draging_cpid[1], pos );
+    }
   }
   else
   {
@@ -259,26 +309,26 @@ void ModeSegParallelWires::MouseWheel(
   
   if ( trgt_id == CRSSEC_XY )
   {
-    m_planexy_pos += (zDelta>0)?1:-1;
-    m_planexy_pos = t_crop<int>(0, D-1,m_planexy_pos);
+    m_planexy_idx += (zDelta>0)?1:-1;
+    m_planexy_idx = t_crop<int>(0, D-1,m_planexy_idx);
 
-    float xy_pos = (m_planexy_pos + 0.5f) * (1.0f / D);
+    float xy_pos = (m_planexy_idx + 0.5f) * (1.0f / D);
     CrssecCore::GetInst()->SetPlaneXyPosition( xy_pos );
   } 
   else if (trgt_id == CRSSEC_YZ) 
   { 
-    m_planeyz_pos += (zDelta>0)?1:-1;
-    m_planeyz_pos = t_crop<int>(0, W-1,m_planeyz_pos);
+    m_planeyz_idx += (zDelta>0)?1:-1;
+    m_planeyz_idx = t_crop<int>(0, W-1,m_planeyz_idx);
 
-    float yz_pos = (m_planeyz_pos + 0.5f) * (1.0f / W);
+    float yz_pos = (m_planeyz_idx + 0.5f) * (1.0f / W);
     CrssecCore::GetInst()->SetPlaneYzPosition( yz_pos );
   } 
   else if (trgt_id == CRSSEC_ZX)
   {
-    m_planezx_pos += (zDelta>0)?1:-1;
-    m_planezx_pos = t_crop<int>(0, H-1,m_planezx_pos);
+    m_planezx_idx += (zDelta>0)?1:-1;
+    m_planezx_idx = t_crop<int>(0, H-1,m_planezx_idx);
 
-    float zx_pos = (m_planezx_pos + 0.5f) * (1.0f / H);
+    float zx_pos = (m_planezx_idx + 0.5f) * (1.0f / H);
     CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
   } 
 
@@ -286,10 +336,11 @@ void ModeSegParallelWires::MouseWheel(
 }
 
 
-
-
 // Mouse Listener ---------------------------------------------
 //-------------------------------------------------------------  
+
+
+
 
 
 void ModeSegParallelWires::KeyDown(int nChar)
@@ -303,26 +354,26 @@ void ModeSegParallelWires::KeyDown(int nChar)
   
     if ( FormParallelWires_bPlaneXY() )
     {
-      m_planexy_pos += step;
-      m_planexy_pos = t_crop<int>(0, D-1,m_planexy_pos);
+      m_planexy_idx += step;
+      m_planexy_idx = t_crop<int>(0, D-1,m_planexy_idx);
 
-      float xy_pos = (m_planexy_pos + 0.5f) * (1.0f / D);
+      float xy_pos = (m_planexy_idx + 0.5f) * (1.0f / D);
       CrssecCore::GetInst()->SetPlaneXyPosition( xy_pos );
     } 
     else if ( FormParallelWires_bPlaneYZ() ) 
     { 
-      m_planeyz_pos += step;
-      m_planeyz_pos = t_crop<int>(0, W-1,m_planeyz_pos);
+      m_planeyz_idx += step;
+      m_planeyz_idx = t_crop<int>(0, W-1,m_planeyz_idx);
 
-      float yz_pos = (m_planeyz_pos + 0.5f) * (1.0f / W);
+      float yz_pos = (m_planeyz_idx + 0.5f) * (1.0f / W);
       CrssecCore::GetInst()->SetPlaneYzPosition( yz_pos );
     } 
     else if ( FormParallelWires_bPlaneZX() )
     {
-      m_planezx_pos += step;
-      m_planezx_pos = t_crop<int>(0, H-1,m_planezx_pos);
+      m_planezx_idx += step;
+      m_planezx_idx = t_crop<int>(0, H-1,m_planezx_idx);
 
-      float zx_pos = (m_planezx_pos + 0.5f) * (1.0f / H);
+      float zx_pos = (m_planezx_idx + 0.5f) * (1.0f / H);
       CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
     } 
     FormMain_RedrawMainPanel();
@@ -360,6 +411,18 @@ void ModeSegParallelWires::DrawScene(
 
   //if (m_bDrawStr) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
 
+  //draw wires (ctrlpt and curve)
+  if ( FormParallelWires_bDrawAllWires() )
+  {
+    for ( const auto& it : m_wires_xy) it.DrawWire( );  
+    for ( const auto& it : m_wires_yz) it.DrawWire( );  
+    for ( const auto& it : m_wires_zx) it.DrawWire( );  
+  }
+  
+  //draw current target wire
+  
+
+  
   const EVec3i reso = ImageCore::GetInst()->GetResolution();
   const bool b_gm = formVisParam_bGradMag();
   const bool b_xy = formVisParam_bPlaneXY() || FormParallelWires_bPlaneXY();
@@ -372,11 +435,11 @@ void ModeSegParallelWires::DrawScene(
   m_crssec_shader.Unbind();
 
 
-  const bool   b_rend_vol = formVisParam_bRendVol();
+  const bool b_rend_vol = formVisParam_bRendVol();
 
   if (b_rend_vol)
   {
-    const bool   b_psuedo = formVisParam_bDoPsued();
+    const bool  b_psuedo  = formVisParam_bDoPsued();
     const float alpha     = formVisParam_getAlpha();
     const bool  b_onmanip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
     const int   num_slice = (int)((b_onmanip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
@@ -391,19 +454,19 @@ void ModeSegParallelWires::DrawScene(
   }
 }
 
-void ModeSegParallelWires::FinishSegmentation(){}
-void ModeSegParallelWires::CancelSegmentation(){}
-//------------------------------------------------------------------------------
 
+
+//------------------------------------------------------------------------------
 void ModeSegParallelWires::ImportWireInfo(std::string fname){}
 void ModeSegParallelWires::ExportWireInfo(std::string fname){}
 
 
 
 
-
 //---------------------------------------------------------------------------//
 //--------SplineWire---------------------------------------------------------//
+float SplineWire::m_cp_radius = 1.0f;
+
 
 SplineWire::SplineWire( PLANE_ID plane_id ) : 
   m_plane_id( plane_id )
@@ -413,17 +476,19 @@ SplineWire::SplineWire( PLANE_ID plane_id ) :
 }
 
 
-
-void SplineWire::AddControlPoint (const EVec3f &p)
+//retern idx where the point was inserted
+int SplineWire::AddCtrlPt (const EVec3f &p)
 {
   //todo insert the closest two points
   m_cps.push_back(p);
   UpdateCurveFromCPs();
+
+  return m_cps.size()-1;
 }
 
 
 
-void SplineWire::MoveControlPoint(const int idx, const EVec3f &p)
+void SplineWire::MoveCtrlPt(const int idx, const EVec3f &p)
 {
   if ( idx < 0 || m_cps.size() <= idx ) return;
   m_cps[ idx ] = p;
@@ -432,14 +497,11 @@ void SplineWire::MoveControlPoint(const int idx, const EVec3f &p)
 
 
 
-int SplineWire::PickControlPoint(
-    const EVec3f &ray_pos, 
-    const EVec3f &ray_dir, 
-    const float  &radius)
+int SplineWire::PickCtrlPt( const EVec3f &ray_pos, const EVec3f &ray_dir)
 {
   for ( int i = 0; i < (int)m_cps.size(); ++i)
   {
-    if( t_distPointToLineSegment( m_cps[i], ray_pos, ray_dir) < radius ) 
+    if( t_distPointToLineSegment( m_cps[i], ray_pos, ray_dir) < m_cp_radius ) 
       return i;
   }
   return -1;
@@ -447,12 +509,9 @@ int SplineWire::PickControlPoint(
 
 
 
-void SplineWire::PickAndRemoveControlPoint(
-    const EVec3f &ray_pos, 
-    const EVec3f &ray_dir, 
-    const float  &radius)
+void SplineWire::PickToEraseCtrlPt( const EVec3f &ray_pos, const EVec3f &ray_dir)
 {
-  int idx = PickControlPoint(ray_pos, ray_dir, radius);
+  int idx = PickCtrlPt(ray_pos, ray_dir);
   
   if ( idx != -1 ) 
   {
