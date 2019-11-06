@@ -33,29 +33,42 @@
 
 
 
-
-
-
-
-
-
 class SplineWire
 {
 public:
-  SplineWire(){}
+  enum PLANE_ID {
+    PLANE_XY, PLANE_YZ, PLANE_ZX
+  };
+
+private:
+  const PLANE_ID m_plane_id;
+  std::vector<EVec3f> m_cps;
+  std::vector<EVec3f> m_curve;
+
+public:
+  SplineWire( PLANE_ID plane_id );
 
   //control point manipulation
-  void AddControlPoint(){}
-  void InsertControlPoint(){}
-  int  PickControlPoint(){return -1;}
-  void MoveControlPoint(){}
-  void RemoveControlPoint(){}
+  void AddControlPoint (const EVec3f &p);
+  void MoveControlPoint(const int idx, const EVec3f &p);
+  int  PickControlPoint(
+      const EVec3f &ray_pos, 
+      const EVec3f &ray_dir, 
+      const float  &radius);
+
+  void PickAndRemoveControlPoint(
+      const EVec3f &ray_pos, 
+      const EVec3f &ray_dir, 
+      const float  &radius);
   
   //rendering
   void DrawControlPoints(){}
   void DrawWire(){}
 
-  int GetNumCPs() const {return 0;}
+  int GetNumCPs() const { return 0; }
+
+private:
+  int UpdateCurveFromCPs( );
 };
 
 

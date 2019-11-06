@@ -4,6 +4,7 @@
 #include "ImageCore.h"
 #include "CrsSecCore.h"
 #include "climessagebox.h"
+#include "kcurves.h"
 
 
 using namespace RoiPainter3D;
@@ -208,14 +209,123 @@ void ModeSegParallelWires::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *
 //-------------------------------------------------------------  
 
 
-  void ModeSegParallelWires::KeyDown(int nChar){}
-  void ModeSegParallelWires::KeyUp  (int nChar){}
+void ModeSegParallelWires::KeyDown(int nChar){}
+void ModeSegParallelWires::KeyUp  (int nChar){}
 
-  void ModeSegParallelWires::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF){}
+void ModeSegParallelWires::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF){}
 
-  void ModeSegParallelWires::FinishSegmentation(){}
-  void ModeSegParallelWires::CancelSegmentation(){}
-  //------------------------------------------------------------------------------
+void ModeSegParallelWires::FinishSegmentation(){}
+void ModeSegParallelWires::CancelSegmentation(){}
+//------------------------------------------------------------------------------
 
-  void ModeSegParallelWires::ImportWireInfo(std::string fname){}
-  void ModeSegParallelWires::ExportWireInfo(std::string fname){}
+void ModeSegParallelWires::ImportWireInfo(std::string fname){}
+void ModeSegParallelWires::ExportWireInfo(std::string fname){}
+
+
+
+
+
+//---------------------------------------------------------------------------//
+//--------SplineWire---------------------------------------------------------//
+
+SplineWire::SplineWire( PLANE_ID plane_id ) : 
+  m_plane_id( plane_id )
+{
+  m_cps.clear();
+  m_curve.clear();
+}
+
+
+
+void SplineWire::AddControlPoint (const EVec3f &p)
+{
+  //todo insert the closest two points
+  m_cps.push_back(p);
+  UpdateCurveFromCPs();
+}
+
+
+
+void SplineWire::MoveControlPoint(const int idx, const EVec3f &p)
+{
+  if ( idx < 0 || m_cps.size() <= idx ) return;
+  m_cps[ idx ] = p;
+  UpdateCurveFromCPs();
+}
+
+
+
+int SplineWire::PickControlPoint(
+    const EVec3f &ray_pos, 
+    const EVec3f &ray_dir, 
+    const float  &radius)
+{
+  for ( int i = 0; i < (int)m_cps.size(); ++i)
+  {
+    if( t_distPointToLineSegment( m_cps[i], ray_pos, ray_dir) < radius ) 
+      return i;
+  }
+  return -1;
+}
+
+
+
+void SplineWire::PickAndRemoveControlPoint(
+    const EVec3f &ray_pos, 
+    const EVec3f &ray_dir, 
+    const float  &radius)
+{
+  int idx = PickControlPoint(ray_pos, ray_dir, radius);
+  
+  if ( idx != -1 ) 
+  {
+    m_cps.erase( m_cps.begin() + idx );  
+  }
+
+  UpdateCurveFromCPs();
+}
+
+
+
+
+int SplineWire::UpdateCurveFromCPs()
+{
+  m_curve.clear();
+  if( m_cps.size() < 3 ) return;
+  
+  std::vector<EVec2d> cps_2d ( m_cps.size() ) ;
+
+  if ( m_plane_id == PLANE_ID::PLANE_XY ) 
+  {
+    for ( int i = 0; i < (int) m_cps.size(); ++i)
+      cps_2d[i] << m_cps[i][0], m_cps[i][1];   
+  }
+  else if ( m_plane_id == PLANE_ID::PLANE_YZ ) 
+  {
+    for ( int i = 0; i < (int) m_cps.size(); ++i)
+      cps_2d[i] << m_cps[i][1], m_cps[i][2];   
+  }
+  else 
+  {
+    for ( int i = 0; i < (int) m_cps.size(); ++i)
+      cps_2d[i] << m_cps[i][2], m_cps[i][0];
+  }
+
+  //  
+  EVec3f pitch        = ImageCore::GetInst()->GetPitch();
+  float  ave_pitch    = (pitch[0] + pitch[1] + pitch[2]) / 3.0;
+  float  total_length = t_verts_Length( m_cps, true );
+  int    num_samples  = (int)( total_length / ave_pitch / 10.0);
+  if ( num_samples < 15 ) num_samples = 15; 
+
+  
+  std::vector<EVec2d> new_cps, curve_2d;
+  compute_kCurves( cps_2d, num_samples, new_cps, curve_2d);
+  
+  //input info
+
+
+}
+
+
+
