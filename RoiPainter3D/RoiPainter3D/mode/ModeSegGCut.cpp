@@ -374,7 +374,7 @@ void ModeSegGCut::DrawScene (
 	//render cross sections ----------------------------------
   const bool b_xy = formVisParam_bPlaneXY();
   const bool b_yz = formVisParam_bPlaneYZ();
-  const bool b_zx = formVisParam_bPlaneZX();
+  const bool b_zx = FormVisParam_bPlaneZX();
   const bool b_draw_gm = formVisParam_bGradMag();
   const EVec3i reso = ImageCore::GetInst()->GetResolution();
 

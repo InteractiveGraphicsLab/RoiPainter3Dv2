@@ -9,44 +9,9 @@ using namespace System::Runtime::InteropServices;
 FormSegParallelWires::FormSegParallelWires(void)
 {
 	InitializeComponent();
-	m_checkbox_xy->Checked = true ;
-	m_checkbox_yz->Checked = false;
-	m_checkbox_zx->Checked = false;
 }
 
 
-
-System::Void FormSegParallelWires::m_checkbox_xy_CheckedChanged(
-    System::Object^ sender, 
-    System::EventArgs^  e)
-{
-	m_checkbox_xy->Checked = true ;
-	m_checkbox_yz->Checked = false;
-	m_checkbox_zx->Checked = false;
-  FormMain::getInst()->redrawMainPanel();
-}
-
-System::Void FormSegParallelWires::m_checkbox_yz_CheckedChanged(
-    System::Object^  sender, 
-    System::EventArgs^  e)
-{
-	m_checkbox_xy->Checked = false;
-	m_checkbox_yz->Checked = true ;
-	m_checkbox_zx->Checked = false;
-  FormMain::getInst()->redrawMainPanel();
-
-}
-
-System::Void FormSegParallelWires::m_checkbox_zx_CheckedChanged(
-    System::Object^  sender, 
-    System::EventArgs^  e)
-{
-	m_checkbox_xy->Checked = false;
-	m_checkbox_yz->Checked = false;
-	m_checkbox_zx->Checked = true ;
-  FormMain::getInst()->redrawMainPanel();
-
-}
 
 
 
@@ -79,7 +44,7 @@ System::Void FormSegParallelWires::m_btn_importwires_Click(
   dlg->Filter = "wire data (*.txt)|*.txt";
   dlg->Multiselect = false;
 
-  if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return false;
+  if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return;
 
   IntPtr mptr = Marshal::StringToHGlobalAnsi(dlg->FileName);
   std::string fname = static_cast<const char*>(mptr.ToPointer());
@@ -105,3 +70,30 @@ System::Void FormSegParallelWires::m_btn_finish_Click(
   ModeSegParallelWires::GetInst()->FinishSegmentation();
   FormMain::getInst()->redrawMainPanel();
 }
+
+
+System::Void FormSegParallelWires::m_radiobtn_planexy_CheckedChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+  FormMain::getInst()->redrawMainPanel();
+}
+
+
+System::Void FormSegParallelWires::m_radiobtn_planeyz_CheckedChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+  FormMain::getInst()->redrawMainPanel();
+}
+
+
+System::Void FormSegParallelWires::m_radiobtn_planezx_CheckedChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+  FormMain::getInst()->redrawMainPanel();
+}
+
+
+

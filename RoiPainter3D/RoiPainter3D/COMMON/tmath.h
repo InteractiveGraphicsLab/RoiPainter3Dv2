@@ -171,14 +171,14 @@ inline bool t_intersectRayToTriangle
 {
   Eigen::Matrix3f A;
   A << x1[0] - x0[0], x2[0] - x0[0], -rayD[0],
-    x1[1] - x0[1], x2[1] - x0[1], -rayD[1],
-    x1[2] - x0[2], x2[2] - x0[2], -rayD[2];
+       x1[1] - x0[1], x2[1] - x0[1], -rayD[1],
+       x1[2] - x0[2], x2[2] - x0[2], -rayD[2];
 
   EVec3f stu = A.inverse()*(rayP - x0);
 
   if (0 <= stu[0] && stu[0] <= 1 &&
-    0 <= stu[1] && stu[1] <= 1 &&
-    0 <= stu[0] + stu[1] && stu[0] + stu[1] <= 1)
+      0 <= stu[1] && stu[1] <= 1 &&
+      0 <= stu[0] + stu[1] && stu[0] + stu[1] <= 1)
   {
     pos = rayP + stu[2] * rayD;
     return true;

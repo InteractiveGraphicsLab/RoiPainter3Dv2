@@ -296,7 +296,7 @@ void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
   m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, false, !IsSpaceKeyOn());
   const bool b_xy  = formVisParam_bPlaneXY();
   const bool b_yz  = formVisParam_bPlaneYZ();
-  const bool b_zx  = formVisParam_bPlaneZX();
+  const bool b_zx  = FormVisParam_bPlaneZX();
   CrssecCore::GetInst()->DrawCrssec(b_xy, b_yz, b_zx, cuboid);
   m_crssec_shader.Unbind();
 

@@ -29,13 +29,13 @@ namespace RoiPainter3D {
     }
 
   bool IsTrgetXY(){
-    return m_checkbox_xy->Checked;
+    return m_radiobtn_planexy->Checked;
   }
   bool IsTrgetYZ(){
-    return m_checkbox_yz->Checked;
+    return m_radiobtn_planeyz->Checked;
   }
   bool IsTrgetZX(){
-    return m_checkbox_zx->Checked;
+    return m_radiobtn_planezx->Checked;
   }
 
 	protected:
@@ -51,9 +51,9 @@ namespace RoiPainter3D {
 		}
 
   private: 
-    System::Windows::Forms::CheckBox^  m_checkbox_xy;
-    System::Windows::Forms::CheckBox^  m_checkbox_yz;
-    System::Windows::Forms::CheckBox^  m_checkbox_zx;
+
+
+
     System::Windows::Forms::Label^  m_label1;
     System::Windows::Forms::Label^  m_label2;
     System::Windows::Forms::Label^  m_label3;
@@ -62,6 +62,9 @@ namespace RoiPainter3D {
     System::Windows::Forms::Button^  m_btn_importwires;
     System::Windows::Forms::Button^  m_btn_finish;
     System::Windows::Forms::Button^  m_btn_cancel;
+    System::Windows::Forms::RadioButton^  m_radiobtn_planexy;
+    System::Windows::Forms::RadioButton^  m_radiobtn_planeyz;
+    System::Windows::Forms::RadioButton^  m_radiobtn_planezx;
 
 
 	private:
@@ -77,31 +80,19 @@ namespace RoiPainter3D {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-      this->m_checkbox_xy = (gcnew System::Windows::Forms::CheckBox());
       this->m_label1 = (gcnew System::Windows::Forms::Label());
       this->m_label3 = (gcnew System::Windows::Forms::Label());
       this->m_label2 = (gcnew System::Windows::Forms::Label());
-      this->m_checkbox_yz = (gcnew System::Windows::Forms::CheckBox());
-      this->m_checkbox_zx = (gcnew System::Windows::Forms::CheckBox());
       this->m_groupbox = (gcnew System::Windows::Forms::GroupBox());
+      this->m_radiobtn_planezx = (gcnew System::Windows::Forms::RadioButton());
+      this->m_radiobtn_planeyz = (gcnew System::Windows::Forms::RadioButton());
+      this->m_radiobtn_planexy = (gcnew System::Windows::Forms::RadioButton());
       this->m_btn_exportwires = (gcnew System::Windows::Forms::Button());
       this->m_btn_importwires = (gcnew System::Windows::Forms::Button());
       this->m_btn_finish = (gcnew System::Windows::Forms::Button());
       this->m_btn_cancel = (gcnew System::Windows::Forms::Button());
       this->m_groupbox->SuspendLayout();
       this->SuspendLayout();
-      // 
-      // m_checkbox_xy
-      // 
-      this->m_checkbox_xy->AutoSize = true;
-      this->m_checkbox_xy->Location = System::Drawing::Point(14, 28);
-      this->m_checkbox_xy->Margin = System::Windows::Forms::Padding(4);
-      this->m_checkbox_xy->Name = L"m_checkbox_xy";
-      this->m_checkbox_xy->Size = System::Drawing::Size(43, 21);
-      this->m_checkbox_xy->TabIndex = 0;
-      this->m_checkbox_xy->Text = L"XY";
-      this->m_checkbox_xy->UseVisualStyleBackColor = true;
-      this->m_checkbox_xy->CheckedChanged += gcnew System::EventHandler(this, &FormSegParallelWires::m_checkbox_xy_CheckedChanged);
       // 
       // m_label1
       // 
@@ -134,41 +125,52 @@ namespace RoiPainter3D {
       this->m_label2->TabIndex = 1;
       this->m_label2->Text = L"œShift + L drag : move a control point";
       // 
-      // m_checkbox_yz
-      // 
-      this->m_checkbox_yz->AutoSize = true;
-      this->m_checkbox_yz->Location = System::Drawing::Point(65, 28);
-      this->m_checkbox_yz->Margin = System::Windows::Forms::Padding(4);
-      this->m_checkbox_yz->Name = L"m_checkbox_yz";
-      this->m_checkbox_yz->Size = System::Drawing::Size(43, 21);
-      this->m_checkbox_yz->TabIndex = 3;
-      this->m_checkbox_yz->Text = L"YZ";
-      this->m_checkbox_yz->UseVisualStyleBackColor = true;
-      this->m_checkbox_yz->CheckedChanged += gcnew System::EventHandler(this, &FormSegParallelWires::m_checkbox_yz_CheckedChanged);
-      // 
-      // m_checkbox_zx
-      // 
-      this->m_checkbox_zx->AutoSize = true;
-      this->m_checkbox_zx->Location = System::Drawing::Point(116, 28);
-      this->m_checkbox_zx->Margin = System::Windows::Forms::Padding(4);
-      this->m_checkbox_zx->Name = L"m_checkbox_zx";
-      this->m_checkbox_zx->Size = System::Drawing::Size(43, 21);
-      this->m_checkbox_zx->TabIndex = 4;
-      this->m_checkbox_zx->Text = L"ZX";
-      this->m_checkbox_zx->UseVisualStyleBackColor = true;
-      this->m_checkbox_zx->CheckedChanged += gcnew System::EventHandler(this, &FormSegParallelWires::m_checkbox_zx_CheckedChanged);
-      // 
       // m_groupbox
       // 
-      this->m_groupbox->Controls->Add(this->m_checkbox_zx);
-      this->m_groupbox->Controls->Add(this->m_checkbox_xy);
-      this->m_groupbox->Controls->Add(this->m_checkbox_yz);
+      this->m_groupbox->Controls->Add(this->m_radiobtn_planezx);
+      this->m_groupbox->Controls->Add(this->m_radiobtn_planeyz);
+      this->m_groupbox->Controls->Add(this->m_radiobtn_planexy);
       this->m_groupbox->Location = System::Drawing::Point(11, 124);
       this->m_groupbox->Name = L"m_groupbox";
-      this->m_groupbox->Size = System::Drawing::Size(214, 58);
+      this->m_groupbox->Size = System::Drawing::Size(166, 58);
       this->m_groupbox->TabIndex = 5;
       this->m_groupbox->TabStop = false;
       this->m_groupbox->Text = L"Target Plane";
+      // 
+      // m_radiobtn_planezx
+      // 
+      this->m_radiobtn_planezx->AutoSize = true;
+      this->m_radiobtn_planezx->Location = System::Drawing::Point(106, 27);
+      this->m_radiobtn_planezx->Name = L"m_radiobtn_planezx";
+      this->m_radiobtn_planezx->Size = System::Drawing::Size(42, 21);
+      this->m_radiobtn_planezx->TabIndex = 32;
+      this->m_radiobtn_planezx->Text = L"ZX";
+      this->m_radiobtn_planezx->UseVisualStyleBackColor = true;
+      this->m_radiobtn_planezx->CheckedChanged += gcnew System::EventHandler(this, &FormSegParallelWires::m_radiobtn_planezx_CheckedChanged);
+      // 
+      // m_radiobtn_planeyz
+      // 
+      this->m_radiobtn_planeyz->AutoSize = true;
+      this->m_radiobtn_planeyz->Location = System::Drawing::Point(58, 27);
+      this->m_radiobtn_planeyz->Name = L"m_radiobtn_planeyz";
+      this->m_radiobtn_planeyz->Size = System::Drawing::Size(42, 21);
+      this->m_radiobtn_planeyz->TabIndex = 31;
+      this->m_radiobtn_planeyz->Text = L"YZ";
+      this->m_radiobtn_planeyz->UseVisualStyleBackColor = true;
+      this->m_radiobtn_planeyz->CheckedChanged += gcnew System::EventHandler(this, &FormSegParallelWires::m_radiobtn_planeyz_CheckedChanged);
+      // 
+      // m_radiobtn_planexy
+      // 
+      this->m_radiobtn_planexy->AutoSize = true;
+      this->m_radiobtn_planexy->Checked = true;
+      this->m_radiobtn_planexy->Location = System::Drawing::Point(10, 27);
+      this->m_radiobtn_planexy->Name = L"m_radiobtn_planexy";
+      this->m_radiobtn_planexy->Size = System::Drawing::Size(42, 21);
+      this->m_radiobtn_planexy->TabIndex = 30;
+      this->m_radiobtn_planexy->TabStop = true;
+      this->m_radiobtn_planexy->Text = L"XY";
+      this->m_radiobtn_planexy->UseVisualStyleBackColor = true;
+      this->m_radiobtn_planexy->CheckedChanged += gcnew System::EventHandler(this, &FormSegParallelWires::m_radiobtn_planexy_CheckedChanged);
       // 
       // m_btn_exportwires
       // 
@@ -220,7 +222,7 @@ namespace RoiPainter3D {
       // 
       this->AutoScaleDimensions = System::Drawing::SizeF(8, 17);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(269, 292);
+      this->ClientSize = System::Drawing::Size(269, 293);
       this->Controls->Add(this->m_btn_finish);
       this->Controls->Add(this->m_btn_cancel);
       this->Controls->Add(this->m_btn_importwires);
@@ -241,13 +243,13 @@ namespace RoiPainter3D {
     }
 #pragma endregion
   private: 
-    System::Void m_checkbox_xy_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
-    System::Void m_checkbox_yz_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
-    System::Void m_checkbox_zx_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
     System::Void m_btn_exportwires_Click(System::Object^  sender, System::EventArgs^  e);
     System::Void m_btn_importwires_Click(System::Object^  sender, System::EventArgs^  e);
     System::Void m_btn_cancel_Click(System::Object^  sender, System::EventArgs^  e);
     System::Void m_btn_finish_Click(System::Object^  sender, System::EventArgs^  e);
+    System::Void m_radiobtn_planexy_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
+    System::Void m_radiobtn_planeyz_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
+    System::Void m_radiobtn_planezx_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
 };
 
   inline void FormSegParallelWires_Hide(){
@@ -257,13 +259,13 @@ namespace RoiPainter3D {
     FormSegParallelWires::GetInst()->Show();
   }
   
-  inline bool FormSegParallelWires_IsTargetXY(){ 
+  inline bool FormParallelWires_bPlaneXY(){ 
     return FormSegParallelWires::GetInst()->IsTrgetXY();
   }
-  inline bool FormSegParallelWires_IsTargetYZ(){ 
+  inline bool FormParallelWires_bPlaneYZ(){ 
     return FormSegParallelWires::GetInst()->IsTrgetYZ();
   }
-  inline bool FormSegParallelWires_IsTargetZX(){ 
+  inline bool FormParallelWires_bPlaneZX(){ 
     return FormSegParallelWires::GetInst()->IsTrgetZX();
   }
 

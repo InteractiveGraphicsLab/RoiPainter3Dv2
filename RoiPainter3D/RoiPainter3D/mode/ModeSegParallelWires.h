@@ -47,7 +47,22 @@ private:
 
 public:
   SplineWire( PLANE_ID plane_id );
-
+  
+  SplineWire(const SplineWire& src) : m_plane_id (src.m_plane_id){
+    Copy(src);
+  }
+  SplineWire &operator=(const SplineWire &src)
+  {
+    Copy(src);
+    return *this;
+  }
+  void Copy(const SplineWire& src){
+    m_cps = src.m_cps;
+    m_curve = src.m_curve;
+    if ( m_plane_id != src.m_plane_id )
+      std::cout << "!!!!!!!!!!!!!!!!!!! strange copy at SplineWire !!!!!!!!!!!!\n"; 
+  }
+  
   //control point manipulation
   void AddControlPoint (const EVec3f &p);
   void MoveControlPoint(const int idx, const EVec3f &p);
@@ -68,7 +83,7 @@ public:
   int GetNumCPs() const { return 0; }
 
 private:
-  int UpdateCurveFromCPs( );
+  void UpdateCurveFromCPs( );
 };
 
 

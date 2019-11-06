@@ -172,7 +172,7 @@ void ModeVizMask::DrawScene(
   const EVec3i reso = ImageCore::GetInst()->GetResolution();
   const bool   b_xy = formVisParam_bPlaneXY();
   const bool   b_yz = formVisParam_bPlaneYZ();
-  const bool   b_zx = formVisParam_bPlaneZX();
+  const bool   b_zx = FormVisParam_bPlaneZX();
 
   glColor3d(1, 1, 1);
   m_crssecShader.Bind(0, 1, 2, 3, 6, reso, false, true);

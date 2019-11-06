@@ -146,7 +146,7 @@ void ModeSegLocalRGrow::AddNewSeed(bool bForeSeed)
     const float plane_yz = CrssecCore::GetInst()->GetPlaneYzPosition();
     cp_position << plane_yz * cuboid[0], cuboid[1]/2, cuboid[2]/2;
   }
-  else if ( formVisParam_bPlaneZX() )
+  else if ( FormVisParam_bPlaneZX() )
   {
     const float plane_zx = CrssecCore::GetInst()->GetPlaneZxPosition();
     cp_position << cuboid[0]/2, plane_zx * cuboid[1], cuboid[2]/2;
@@ -427,7 +427,7 @@ void ModeSegLocalRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
 	//render cross sections ----------------------------------
   const bool   b_xy = formVisParam_bPlaneXY();
   const bool   b_yz = formVisParam_bPlaneYZ();
-  const bool   b_zx = formVisParam_bPlaneZX();
+  const bool   b_zx = FormVisParam_bPlaneZX();
   const bool   b_gm = formVisParam_bGradMag();
   const EVec3i reso = ImageCore::GetInst()->GetResolution();
 

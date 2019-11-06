@@ -5,6 +5,22 @@
 #include "CrsSecCore.h"
 #include "climessagebox.h"
 #include "kcurves.h"
+#include "FormMain.h"
+#include "FormVisParam.h"
+
+
+
+// TODO
+//
+// 0. render volume and planes OK 
+// 1. camera rotation          OK
+// 2. mouse wheel and key to move target plane OK
+// 3. place/move/delete control point 
+// 4. insert controlpoint 
+// 5. fill inside   
+// 6. save/load wires 
+// 7. test and manual  
+// 
 
 
 using namespace RoiPainter3D;
@@ -52,9 +68,9 @@ void ModeSegParallelWires::StartMode ()
   m_wires_yz.clear();
   m_wires_zx.clear();
 
-  m_wires_xy.resize(D);
-  m_wires_yz.resize(W);
-  m_wires_zx.resize(H);
+  m_wires_xy.resize(D, SplineWire(SplineWire::PLANE_XY) );
+  m_wires_yz.resize(W, SplineWire(SplineWire::PLANE_YZ) );
+  m_wires_zx.resize(H, SplineWire(SplineWire::PLANE_ZX) );
   
   //x
   m_planexy_pos = D / 2;
@@ -68,6 +84,7 @@ void ModeSegParallelWires::StartMode ()
   CrssecCore::GetInst()->SetPlaneYzPosition( yz_pos );
   CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
   
+  CrssecCore::GetInst()->ClearCurvedCrossec();
   std::cout << "ModeSegParallelWires...startMode DONE-----\n";
 }
 
@@ -108,8 +125,8 @@ bool ModeSegParallelWires::CanLeaveMode()
 
 CRSSEC_ID ModeSegParallelWires::GetCurrentTrgtPlane()
 {
-  if ( )
-
+  return FormParallelWires_bPlaneXY() ? CRSSEC_XY : 
+         FormParallelWires_bPlaneYZ() ? CRSSEC_YZ : CRSSEC_ZX; 
 }
 
 
@@ -135,7 +152,7 @@ void ModeSegParallelWires::LBtnDown  (const EVec2i &p, OglForCLI *ogl)
     
   if ( IsShiftKeyOn() )
   {
-    //add control point
+    
   }
   else if ( IsCtrKeyOn() )
   {
@@ -202,17 +219,177 @@ void ModeSegParallelWires::MBtnUp    (const EVec2i &p, OglForCLI *ogl)
 }
 
 
-void ModeSegParallelWires::MouseMove (const EVec2i &p, OglForCLI *ogl){}
-void ModeSegParallelWires::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl){}
+void ModeSegParallelWires::MouseMove (const EVec2i &p, OglForCLI *ogl)
+{
+  if ( !m_bL && !m_bR && !m_bM)  return;
+
+  if ( m_draging_cpid[0] == -2 )
+  {
+	  EVec3f ray_pos, ray_dir;
+	  ogl->GetCursorRay( p, ray_pos, ray_dir);
+    //todo
+  }
+  else
+  {
+		ogl->MouseMove(p);
+  }
+
+  FormMain_RedrawMainPanel();
+
+}
+
+
+
+
+void ModeSegParallelWires::MouseWheel(
+    const EVec2i &p, 
+    short zDelta, 
+    OglForCLI *ogl)
+{
+	EVec3f ray_pos, ray_dir, pos;
+	ogl->GetCursorRay( p, ray_pos, ray_dir);
+  
+  const bool b_xy = formVisParam_bPlaneXY() || FormParallelWires_bPlaneXY();
+  const bool b_yz = formVisParam_bPlaneYZ() || FormParallelWires_bPlaneYZ();
+  const bool b_zx = FormVisParam_bPlaneZX() || FormParallelWires_bPlaneZX();
+  CRSSEC_ID trgt_id = PickCrsSec(ray_pos, ray_dir, &pos, b_xy, b_yz, b_zx);
+
+  int W,H,D;
+  std::tie(W,H,D) = ImageCore::GetInst()->GetResolution3();
+  
+  if ( trgt_id == CRSSEC_XY )
+  {
+    m_planexy_pos += (zDelta>0)?1:-1;
+    m_planexy_pos = t_crop<int>(0, D-1,m_planexy_pos);
+
+    float xy_pos = (m_planexy_pos + 0.5f) * (1.0f / D);
+    CrssecCore::GetInst()->SetPlaneXyPosition( xy_pos );
+  } 
+  else if (trgt_id == CRSSEC_YZ) 
+  { 
+    m_planeyz_pos += (zDelta>0)?1:-1;
+    m_planeyz_pos = t_crop<int>(0, W-1,m_planeyz_pos);
+
+    float yz_pos = (m_planeyz_pos + 0.5f) * (1.0f / W);
+    CrssecCore::GetInst()->SetPlaneYzPosition( yz_pos );
+  } 
+  else if (trgt_id == CRSSEC_ZX)
+  {
+    m_planezx_pos += (zDelta>0)?1:-1;
+    m_planezx_pos = t_crop<int>(0, H-1,m_planezx_pos);
+
+    float zx_pos = (m_planezx_pos + 0.5f) * (1.0f / H);
+    CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
+  } 
+
+  FormMain_RedrawMainPanel();
+}
+
+
+
 
 // Mouse Listener ---------------------------------------------
 //-------------------------------------------------------------  
 
 
-void ModeSegParallelWires::KeyDown(int nChar){}
+void ModeSegParallelWires::KeyDown(int nChar)
+{
+  if ( nChar == 38 /* up */ || nChar == 40 /* down */) 
+  {
+    int step = (nChar == 38) ? + 1: -1;
+ 
+    int W,H,D;
+    std::tie(W,H,D) = ImageCore::GetInst()->GetResolution3();
+  
+    if ( FormParallelWires_bPlaneXY() )
+    {
+      m_planexy_pos += step;
+      m_planexy_pos = t_crop<int>(0, D-1,m_planexy_pos);
+
+      float xy_pos = (m_planexy_pos + 0.5f) * (1.0f / D);
+      CrssecCore::GetInst()->SetPlaneXyPosition( xy_pos );
+    } 
+    else if ( FormParallelWires_bPlaneYZ() ) 
+    { 
+      m_planeyz_pos += step;
+      m_planeyz_pos = t_crop<int>(0, W-1,m_planeyz_pos);
+
+      float yz_pos = (m_planeyz_pos + 0.5f) * (1.0f / W);
+      CrssecCore::GetInst()->SetPlaneYzPosition( yz_pos );
+    } 
+    else if ( FormParallelWires_bPlaneZX() )
+    {
+      m_planezx_pos += step;
+      m_planezx_pos = t_crop<int>(0, H-1,m_planezx_pos);
+
+      float zx_pos = (m_planezx_pos + 0.5f) * (1.0f / H);
+      CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
+    } 
+    FormMain_RedrawMainPanel();
+  }
+
+}
+
 void ModeSegParallelWires::KeyUp  (int nChar){}
 
-void ModeSegParallelWires::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EVec3f &camF){}
+
+
+
+void ModeSegParallelWires::DrawScene(
+    const EVec3f &cuboid, 
+    const EVec3f &camP, 
+    const EVec3f &camF)
+{
+  //bind volumes ---------------------------------------
+  const bool image_interpolation = formVisParam_doInterpolation();
+
+  glActiveTextureARB(GL_TEXTURE0);
+  ImageCore::GetInst()->m_vol.BindOgl(image_interpolation);
+  glActiveTextureARB(GL_TEXTURE1);
+  ImageCore::GetInst()->m_vol_gm.BindOgl(image_interpolation);
+  glActiveTextureARB(GL_TEXTURE2);
+  ImageCore::GetInst()->m_vol_flag.BindOgl(false);
+  glActiveTextureARB(GL_TEXTURE3);
+  ImageCore::GetInst()->m_vol_mask.BindOgl(false);
+  glActiveTextureARB(GL_TEXTURE4);
+  formVisParam_bindTfImg();
+  glActiveTextureARB(GL_TEXTURE5);
+  formVisParam_bindPsuImg();
+  glActiveTextureARB(GL_TEXTURE6);
+  ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
+
+  //if (m_bDrawStr) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
+
+  const EVec3i reso = ImageCore::GetInst()->GetResolution();
+  const bool b_gm = formVisParam_bGradMag();
+  const bool b_xy = formVisParam_bPlaneXY() || FormParallelWires_bPlaneXY();
+  const bool b_yz = formVisParam_bPlaneYZ() || FormParallelWires_bPlaneYZ();
+  const bool b_zx = FormVisParam_bPlaneZX() || FormParallelWires_bPlaneZX();
+
+  glColor3d(1, 1, 1);
+  m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, b_gm, false);
+  CrssecCore::GetInst()->DrawCrssec(b_xy, b_yz, b_zx, cuboid);
+  m_crssec_shader.Unbind();
+
+
+  const bool   b_rend_vol = formVisParam_bRendVol();
+
+  if (b_rend_vol)
+  {
+    const bool   b_psuedo = formVisParam_bDoPsued();
+    const float alpha     = formVisParam_getAlpha();
+    const bool  b_onmanip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int   num_slice = (int)((b_onmanip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable (GL_BLEND);
+    m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, b_psuedo, false);
+    t_DrawCuboidSlices(num_slice, camP, camF, cuboid);
+    m_volume_shader.Unbind();
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+  }
+}
 
 void ModeSegParallelWires::FinishSegmentation(){}
 void ModeSegParallelWires::CancelSegmentation(){}
@@ -288,13 +465,13 @@ void SplineWire::PickAndRemoveControlPoint(
 
 
 
-int SplineWire::UpdateCurveFromCPs()
+void SplineWire::UpdateCurveFromCPs()
 {
   m_curve.clear();
   if( m_cps.size() < 3 ) return;
   
+  //convert point 3D --> 2D 
   std::vector<EVec2d> cps_2d ( m_cps.size() ) ;
-
   if ( m_plane_id == PLANE_ID::PLANE_XY ) 
   {
     for ( int i = 0; i < (int) m_cps.size(); ++i)
@@ -311,20 +488,38 @@ int SplineWire::UpdateCurveFromCPs()
       cps_2d[i] << m_cps[i][2], m_cps[i][0];
   }
 
-  //  
+  //prepare num of sampling points
   EVec3f pitch        = ImageCore::GetInst()->GetPitch();
-  float  ave_pitch    = (pitch[0] + pitch[1] + pitch[2]) / 3.0;
+  float  ave_pitch    = (pitch[0] + pitch[1] + pitch[2]) / 3.0f;
   float  total_length = t_verts_Length( m_cps, true );
   int    num_samples  = (int)( total_length / ave_pitch / 10.0);
   if ( num_samples < 15 ) num_samples = 15; 
 
-  
+  //compute curve
   std::vector<EVec2d> new_cps, curve_2d;
   compute_kCurves( cps_2d, num_samples, new_cps, curve_2d);
-  
-  //input info
+    
 
-
+  //convert curve 3D --> 2D 
+  m_curve.resize( curve_2d.size() );
+  if ( m_plane_id == PLANE_ID::PLANE_XY ) 
+  {
+    float z = m_cps.front()[2];
+    for ( int i = 0; i < (int) curve_2d.size(); ++i)
+      m_curve[i] << (float)curve_2d[i][0], (float)curve_2d[i][1], z;
+  }
+  else if ( m_plane_id == PLANE_ID::PLANE_YZ ) 
+  {
+    float x = m_cps.front()[0];
+    for ( int i = 0; i < (int) curve_2d.size(); ++i)
+      m_curve[i] << x, (float)curve_2d[i][0], (float)curve_2d[i][1];
+  }
+  else 
+  {
+    float y = m_cps.front()[2];
+    for ( int i = 0; i < (int) curve_2d.size(); ++i)
+      m_curve[i] << (float)curve_2d[i][2], y, (float)curve_2d[i][0];
+  }
 }
 
 

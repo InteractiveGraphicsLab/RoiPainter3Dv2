@@ -669,7 +669,7 @@ namespace RoiPainter3D {
 
   inline bool  formVisParam_bPlaneXY   (){return FormVisParam::getInst()->bPlaneXY();}
   inline bool  formVisParam_bPlaneYZ   (){return FormVisParam::getInst()->bPlaneYZ();}
-  inline bool  formVisParam_bPlaneZX   (){return FormVisParam::getInst()->bPlaneZX();}
+  inline bool  FormVisParam_bPlaneZX   (){return FormVisParam::getInst()->bPlaneZX();}
   inline bool  formVisParam_bRendVol   (){return FormVisParam::getInst()->bRendVol();}
   inline bool  formVisParam_bGradMag   (){return FormVisParam::getInst()->bGradMag();}
   inline bool  formVisParam_bDoPsued   (){return FormVisParam::getInst()->bDoPsued();}
