@@ -15,11 +15,13 @@
 // 0. render volume and planes OK 
 // 1. camera rotation          OK
 // 2. mouse wheel and key to move target plane OK
-// 3. place/move/delete control point 
-// 4. insert controlpoint 
-// 5. fill inside   
-// 6. save/load wires 
-// 7. test and manual  
+// 3. render cps and wires OK
+// 4. place/move/delete control point OK  
+// 5. insert cp OK
+// 6. fill inside (Finish seg)    TODO ---------
+// 7. save / load wires  OK 
+// 8. test and manual             TODO ---------
+// 9. show all wires / modify the size of cps TODO ---------
 // 
 
 
@@ -87,7 +89,7 @@ void ModeSegParallelWires::StartMode ()
   CrssecCore::GetInst()->ClearCurvedCrossec();
 
   EVec3f pitch = ImageCore::GetInst()->GetPitch();
-  float cp_r = 5 * (pitch[0] + pitch[1] + pitch[2])/3.0;
+  float cp_r = 3.0f * (pitch[0] + pitch[1] + pitch[2]) / 3.0f;
   SplineWire::SetCtrlPtRadius(cp_r);  
 
   std::cout << "ModeSegParallelWires...startMode DONE-----\n";
@@ -162,32 +164,32 @@ void ModeSegParallelWires::LBtnDown  (const EVec2i &p, OglForCLI *ogl)
     EVec3f rayp, rayd, pos;
     ogl->GetCursorRay( p, rayp, rayd);
     
-    bool bxy = FormParallelWires_bPlaneXY();    
-    if ( bxy && PickCrsSec( CRSSEC_XY, rayp, rayd, &pos ) != CRSSEC_NON )
+    bool bxy = FormParallelWires_bPlaneXY();
+    bool byz = FormParallelWires_bPlaneYZ();
+    bool bzx = FormParallelWires_bPlaneZX();
+    auto &wires    = bxy ? m_wires_xy    : byz ? m_wires_yz    : m_wires_zx   ; 
+    auto  wireidx  = bxy ? m_planexy_idx : byz ? m_planeyz_idx : m_planezx_idx;
+    auto  crssecid = bxy ? CRSSEC_XY     : byz ? CRSSEC_YZ     : CRSSEC_ZX    ;
+
+    //1) pick control point, 2) pick plane
+    int pidx = wires[ wireidx ].PickCtrlPt( rayp, rayd);
+    if ( pidx != -1 )
     {
-      int idx = m_wires_xy[ m_planexy_idx ].AddCtrlPt( pos );
-      m_draging_cpid << m_planexy_idx, idx;
+      m_draging_cpid << wireidx, pidx;
+    }
+    else if ( PickCrsSec( crssecid, rayp, rayd, &pos ) != CRSSEC_NON )
+    {
+      int idx = wires[ wireidx ].AddCtrlPt( pos );
+      m_draging_cpid << wireidx, idx;
     }
 
-    bool byz = FormParallelWires_bPlaneYZ();    
-    if ( byz && PickCrsSec( CRSSEC_YZ, rayp, rayd, &pos ) != CRSSEC_NON )
-    {
-      int idx = m_wires_yz[ m_planeyz_idx ].AddCtrlPt( pos );
-      m_draging_cpid << m_planeyz_idx, idx;
-    }
-
-    bool bzx = FormParallelWires_bPlaneZX();    
-    if ( bzx && PickCrsSec( CRSSEC_ZX, rayp, rayd, &pos ) != CRSSEC_NON )
-    {
-      int idx = m_wires_zx[ m_planezx_idx ].AddCtrlPt( pos );
-      m_draging_cpid << m_planezx_idx, idx;
-    }
-     
+    FormMain_RedrawMainPanel();
   }
   else
   {
     ogl->BtnDown_Trans(p);
   }
+  
 }
 
 
@@ -212,6 +214,7 @@ void ModeSegParallelWires::RBtnDown  (const EVec2i &p, OglForCLI *ogl)
     {
       m_wires_zx[ m_planezx_idx ].PickToEraseCtrlPt( rayp, rayd );
     }
+    FormMain_RedrawMainPanel();
   }
   else
   {
@@ -227,8 +230,24 @@ void ModeSegParallelWires::MBtnDown  (const EVec2i &p, OglForCLI *ogl)
     
   if ( IsShiftKeyOn() )
   {
-    //pick to remove controlpoint
+    EVec3f rayp, rayd, pos;
+    ogl->GetCursorRay( p, rayp, rayd );
     
+    if ( FormParallelWires_bPlaneXY() ) 
+    {
+      m_wires_xy[ m_planexy_idx ].PickToEraseCtrlPt( rayp, rayd );
+    }
+    if ( FormParallelWires_bPlaneYZ() ) 
+    {
+      m_wires_yz[ m_planeyz_idx ].PickToEraseCtrlPt( rayp, rayd );
+    }
+    if ( FormParallelWires_bPlaneZX() ) 
+    {
+      m_wires_zx[ m_planezx_idx ].PickToEraseCtrlPt( rayp, rayd );
+    }
+
+    FormMain_RedrawMainPanel();
+
   }
   else
   {
@@ -409,21 +428,45 @@ void ModeSegParallelWires::DrawScene(
   glActiveTextureARB(GL_TEXTURE6);
   ImageCore::GetInst()->m_img_maskcolor.BindOgl(false);
 
+  const EVec3i reso = ImageCore::GetInst()->GetResolution();
+
   //if (m_bDrawStr) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
 
   //draw wires (ctrlpt and curve)
+  EVec3f offset_xy( 0, 0, 0.05f * cuboid[2] / reso[2]);
+  EVec3f offset_yz( 0.05f * cuboid[2] / reso[0], 0, 0);
+  EVec3f offset_zx( 0, 0.05f * cuboid[2] / reso[1], 0);
+
+  EVec3f ray_dir = camP - camF;
+  if ( ray_dir[0] < 0 ) offset_yz[0] *= -1;
+  if ( ray_dir[1] < 0 ) offset_zx[1] *= -1;
+  if ( ray_dir[2] < 0 ) offset_xy[2] *= -1;
+  
+  static EVec3f cyan(0,   1, 1   );
+  static EVec3f red (1,0.2f, 0.2f);
+  static EVec3f ofstzero(0,0,0);
   if ( FormParallelWires_bDrawAllWires() )
   {
-    for ( const auto& it : m_wires_xy) it.DrawWire( );  
-    for ( const auto& it : m_wires_yz) it.DrawWire( );  
-    for ( const auto& it : m_wires_zx) it.DrawWire( );  
+    for ( const auto& w : m_wires_xy) w.DrawWire( ofstzero, cyan, 2 );  
+    for ( const auto& w : m_wires_yz) w.DrawWire( ofstzero, cyan, 2 );  
+    for ( const auto& w : m_wires_zx) w.DrawWire( ofstzero, cyan, 2 );  
   }
   
   //draw current target wire
+  glCullFace( GL_BACK );
+  if ( FormParallelWires_bPlaneXY() ) {
+    m_wires_xy[m_planexy_idx].DrawWire  ( offset_xy, red, 5 );  
+    m_wires_xy[m_planexy_idx].DrawCtrlPt( );  
+  }  
+  if ( FormParallelWires_bPlaneYZ() ){
+    m_wires_yz[m_planeyz_idx].DrawWire  ( offset_yz, red, 5 );  
+    m_wires_yz[m_planeyz_idx].DrawCtrlPt( );  
+  }  
+  if ( FormParallelWires_bPlaneZX() ){
+    m_wires_zx[m_planezx_idx].DrawWire  ( offset_zx, red, 5 );  
+    m_wires_zx[m_planezx_idx].DrawCtrlPt( );  
+  }  
   
-
-  
-  const EVec3i reso = ImageCore::GetInst()->GetResolution();
   const bool b_gm = formVisParam_bGradMag();
   const bool b_xy = formVisParam_bPlaneXY() || FormParallelWires_bPlaneXY();
   const bool b_yz = formVisParam_bPlaneYZ() || FormParallelWires_bPlaneYZ();
@@ -457,8 +500,72 @@ void ModeSegParallelWires::DrawScene(
 
 
 //------------------------------------------------------------------------------
-void ModeSegParallelWires::ImportWireInfo(std::string fname){}
-void ModeSegParallelWires::ExportWireInfo(std::string fname){}
+
+void ModeSegParallelWires::ImportWireInfo(std::string fname)
+{
+  std::ifstream ifs( fname.c_str() );
+ 
+  if (!ifs)
+  {
+    std::cout << "failed to open the file " << fname << "\n";
+  }
+ 
+  EVec3i reso  = ImageCore::GetInst()->GetResolution();
+  EVec3f pitch = ImageCore::GetInst()->GetPitch();
+
+  std::string buf;
+  EVec3i r;
+  EVec3f p;
+  ifs >> buf;
+  ifs >> r[0] >> r[1] >> r[2];
+  ifs >> p[0] >> p[1] >> p[2];
+
+  if ( r[0] != reso[0] || r[1] != reso[1] || r[2] != reso[2])  
+  {
+    std::cout << "image size does not coincide... error ...";
+    return ;
+  }
+
+  ImageCore::GetInst()->SetPitch( p );
+
+  for ( auto& wire : m_wires_xy ) wire.importCtrlPtInfo( ifs );
+  for ( auto& wire : m_wires_yz ) wire.importCtrlPtInfo( ifs );
+  for ( auto& wire : m_wires_zx ) wire.importCtrlPtInfo( ifs );
+
+  ifs >> buf; 
+  std::cout << buf << "\n";
+  ifs.close();
+  
+  FormVisParam::getInst()->initAllItemsForNewImg();
+}
+
+
+
+void ModeSegParallelWires::ExportWireInfo(std::string fname)
+{
+  std::ofstream ofs( fname.c_str() );
+ 
+  if (!ofs)
+  {
+    std::cout << "failed to open the file " << fname << "\n";
+  }
+ 
+  EVec3i reso  = ImageCore::GetInst()->GetResolution();
+  EVec3f pitch = ImageCore::GetInst()->GetPitch();
+  
+  ofs << "wire_info\n";
+  ofs << reso[0]  << " " << reso[1]  << " " << reso[2]  << "\n";
+  ofs << pitch[0] << " " << pitch[1] << " " << pitch[2] << "\n";
+  
+  //xy 
+  for ( const auto& wire : m_wires_xy ) wire.exportCtrlPtInfo( ofs );
+  for ( const auto& wire : m_wires_yz ) wire.exportCtrlPtInfo( ofs );
+  for ( const auto& wire : m_wires_zx ) wire.exportCtrlPtInfo( ofs );
+  
+  ofs << "wire_info_fin\n";
+
+  ofs.close();
+}
 
 
 
@@ -479,11 +586,39 @@ SplineWire::SplineWire( PLANE_ID plane_id ) :
 //retern idx where the point was inserted
 int SplineWire::AddCtrlPt (const EVec3f &p)
 {
-  //todo insert the closest two points
-  m_cps.push_back(p);
-  UpdateCurveFromCPs();
+  //find insert position 
+  int   found_idx = -1;
+  float found_dist = FLT_MAX;
+  for ( int i = 1; i < (int)m_cps.size(); ++i )
+  { 
+    //’†S : 0.5 * ( m_cp[i-1] + m_cp[i] ) 
+    //”¼Œa : 0.5 * | m_cp[i-1] - m_cp[i] |
+    //‚Ì‰~‚É“ü‚Á‚Ä‚¢‚ê‚Î i-1 ` i ‚ÌŠÔ‚É‘}“ü
+    //•¡”‚Ì‰~‚É“ü‚é‚Ì‚Å‚ ‚ê‚ÎÅ‚à‹ß‚¢ü•ª‚É‘}“ü
+    
+    EVec3f c = 0.5f * (m_cps[i-1] + m_cps[i]);
+    float  r = 0.5f * (m_cps[i-1] - m_cps[i]).norm(); 
+    float dist = (p - c).norm();
+    if ( dist < r && dist < found_dist) 
+    {
+      found_dist = dist;
+      found_idx = i;
+    }
+  }  
+  
+  if ( found_idx == -1 )
+  {
+    m_cps.push_back(p);
+    UpdateCurveFromCPs();
+    return (int)m_cps.size()-1;
+  }
+  else
+  {
+    m_cps.insert( m_cps.begin() + found_idx, p);
+    UpdateCurveFromCPs();
+    return found_idx;
+  }
 
-  return m_cps.size()-1;
 }
 
 
@@ -501,7 +636,7 @@ int SplineWire::PickCtrlPt( const EVec3f &ray_pos, const EVec3f &ray_dir)
 {
   for ( int i = 0; i < (int)m_cps.size(); ++i)
   {
-    if( t_distPointToLineSegment( m_cps[i], ray_pos, ray_dir) < m_cp_radius ) 
+    if( t_distRayToPoint( ray_pos, ray_dir, m_cps[i] ) < m_cp_radius ) 
       return i;
   }
   return -1;
@@ -575,11 +710,75 @@ void SplineWire::UpdateCurveFromCPs()
   }
   else 
   {
-    float y = m_cps.front()[2];
+    float y = m_cps.front()[1];
     for ( int i = 0; i < (int) curve_2d.size(); ++i)
-      m_curve[i] << (float)curve_2d[i][2], y, (float)curve_2d[i][0];
+      m_curve[i] << (float)curve_2d[i][1], y, (float)curve_2d[i][0];
   }
 }
 
 
 
+const static float diff_g[4] = { 0.5f, 1.0f, 0.5f, 0.3f };
+const static float ambi_g[4] = { 0.5f, 1.0f, 0.5f, 0.3f };
+const static float diff_r[4] = { 1.0f, 0.2f, 0, 0.3f };
+const static float ambi_r[4] = { 1.0f, 0.2f, 0, 0.3f };
+const static float spec[4] = { 1,1,1,0.3f };
+const static float shin[1] = { 64.0f };
+
+
+void SplineWire::DrawCtrlPt( ) const
+{
+  glEnable( GL_LIGHTING );
+
+  for ( int i=0; i < (int)m_cps.size(); ++i)
+  { 
+    const EVec3f &p = m_cps[i];
+    const float  &r = m_cp_radius;
+    if ( i == 0 || i == m_cps.size() -1 ) 
+      TMesh::DrawIcosaHedron( p, r, diff_g, ambi_g, spec, shin );
+    else
+      TMesh::DrawIcosaHedron( p, r, diff_r, ambi_r, spec, shin );
+  }
+  glDisable( GL_LIGHTING );
+
+}
+
+
+void SplineWire::DrawWire(
+    const EVec3f &offset, 
+    const EVec3f &color, 
+    float width) const
+{
+  if ( m_curve.size() < 2 ) return ;
+  
+  glDisable( GL_LIGHTING );
+  glTranslated( offset[0], offset[1], offset[2]);
+  t_DrawPolyLine ( color, width, m_curve, true );
+  glTranslated(-offset[0],-offset[1],-offset[2]);
+}
+
+
+
+
+void SplineWire::exportCtrlPtInfo(std::ofstream &ofs) const
+{
+  ofs << (int) m_cps.size() << "\n";
+  for ( int i=0; i < (int) m_cps.size(); ++i)
+    ofs << m_cps[i][0] << " " << m_cps[i][1] << " " << m_cps[i][2] << "\n";
+}
+
+
+void SplineWire::importCtrlPtInfo(std::ifstream &ifs) 
+{
+  m_curve.clear();
+  m_cps.clear();
+
+  int n;
+  ifs >> n;
+  m_cps.resize(n);
+
+  for ( int i=0; i < (int) m_cps.size(); ++i)
+    ifs >> m_cps[i][0] >> m_cps[i][1] >> m_cps[i][2];
+  
+  UpdateCurveFromCPs();
+}

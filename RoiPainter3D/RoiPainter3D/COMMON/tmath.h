@@ -96,9 +96,10 @@ inline float t_distRayToPoint(const EVec3f &rayP, const EVec3f &rayD, const EVec
 
 
 
-inline float t_distPointToLineSegment_sq(const EVec3f &p,
-  const EVec3f &lineP0,
-  const EVec3f &lineP1)
+inline float t_distPointToLineSegment_sq(
+    const EVec3f &p,
+    const EVec3f &lineP0,
+    const EVec3f &lineP1)
 {
   EVec3f dir = (lineP1 - lineP0);
   float len = dir.norm();
@@ -115,9 +116,10 @@ inline float t_distPointToLineSegment_sq(const EVec3f &p,
 }
 
 
-inline float t_distPointToLineSegment(const EVec3f &p,
-  const EVec3f &lineP0,
-  const EVec3f &lineP1)
+inline float t_distPointToLineSegment(
+    const EVec3f &p,
+    const EVec3f &lineP0,
+    const EVec3f &lineP1)
 {
   return sqrt(t_distPointToLineSegment_sq(p, lineP0, lineP1));
 }

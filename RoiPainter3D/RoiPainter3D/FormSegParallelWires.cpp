@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "FormSegParallelWires.h"
 #include "FormMain.h"
+#include "FormVisParam.h"
 #include "Mode/ModeSegParallelWires.h"
 
 using namespace RoiPainter3D;
@@ -49,10 +50,9 @@ System::Void FormSegParallelWires::m_btn_importwires_Click(
   IntPtr mptr = Marshal::StringToHGlobalAnsi(dlg->FileName);
   std::string fname = static_cast<const char*>(mptr.ToPointer());
 
-
   ModeSegParallelWires::GetInst()->ImportWireInfo(fname);
+  FormVisParam::getInst()->PitchUpdated();
   FormMain::getInst()->redrawMainPanel();
-
 }
 
 System::Void FormSegParallelWires::m_btn_cancel_Click(

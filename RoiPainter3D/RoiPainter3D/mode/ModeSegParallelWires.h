@@ -47,7 +47,6 @@ private:
 
   static float m_cp_radius;
 
-
 public:
   SplineWire( PLANE_ID plane_id );
   
@@ -74,15 +73,17 @@ public:
   void PickToEraseCtrlPt( const EVec3f &ray_pos, const EVec3f &ray_dir);
   
   //rendering
-  void DrawCtrlPt(){}
-  void DrawWire(){}
+  void DrawCtrlPt() const;
+  void DrawWire  (const EVec3f &offset, const EVec3f &color, float width) const;
 
-  int GetNumCtrlPts() const { return (int) return m_cps.size(); }
+  int GetNumCtrlPts() const { return (int) m_cps.size(); }
 
-  static SetCtrlPtRadius(float r){
+  static void SetCtrlPtRadius(float r){
     m_cp_radius = r;
   }
-
+  
+  void exportCtrlPtInfo(std::ofstream &ofs) const;
+  void importCtrlPtInfo(std::ifstream &ifs) ;
 
 private:
   void UpdateCurveFromCPs( );

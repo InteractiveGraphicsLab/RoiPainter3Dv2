@@ -614,6 +614,23 @@ public:
     glPopMatrix();
     glDisable( GL_NORMALIZE);
   }
+
+  static void DrawIcosaHedron(
+    const EVec3f &p, 
+    const float r, 
+    const float *diff,
+    const float *ambi,
+    const float *spec,
+    const float *shin)
+  {
+    glTranslated(  p[0],  p[1],  p[2]);
+    DrawIcosaHedron(r,diff,ambi,spec,shin);
+    glTranslated( -p[0], -p[1], -p[2]);
+  }
+
+
+
+
 };
 
 
@@ -1451,6 +1468,7 @@ inline void t_drawRotHandle(const EVec3f &gc, double handleSize, const EVec3f &o
 }
 
 
+//still have bug
 inline void t_drawSphere
 (
   const EVec3f &pos, //場所

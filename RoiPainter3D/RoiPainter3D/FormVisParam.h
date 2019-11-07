@@ -93,6 +93,7 @@ namespace RoiPainter3D {
     void initAllItemsForNewImg ();
     void updateHistogramBmp    ();
     void redrawTransFuncPictBox();
+    void PitchUpdated();
 
 
 
