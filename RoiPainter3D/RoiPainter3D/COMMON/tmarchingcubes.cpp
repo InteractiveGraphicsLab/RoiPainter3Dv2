@@ -2,14 +2,15 @@
 
 #include "tqueue.h"
 #include <time.h>
+#include <iostream>
 #include <vector>
 #include <map>
 #include <omp.h>
 
-
 using namespace marchingcubes;
 using namespace std;
 
+#pragma unmanaged
 
 //the table is from http://paulbourke.net/geometry/polygonise/
 
@@ -325,7 +326,7 @@ static const int mcTriTable[256][16] =
       ____4_____
      /        / |
     /7       /5 |9
-   /___6___ /   |  edge index
+   /___6____/   |  edge index
    |        |   |
  11|     0  |10/
    | 3      | /1
@@ -352,13 +353,13 @@ static const int mcTriTable[256][16] =
 class CellEdgeVtx 
 {
 public:
-  int x_, y_, z_, thread_i_;
+  int m_x, m_y, m_z, m_thread_i;
   CellEdgeVtx (  )
   {
-    x_ = -1;
-    y_ = -1;
-    z_ = -1;
-    thread_i_ = 0;
+    m_x = -1;
+    m_y = -1;
+    m_z = -1;
+    m_thread_i = 0;
   }
   
   CellEdgeVtx ( const CellEdgeVtx &src ){
@@ -372,13 +373,13 @@ public:
   }
 
   void Copy( const CellEdgeVtx &src ){
-    x_ = src.x_;
-    y_ = src.y_;
-    z_ = src.z_;
-    thread_i_ = src.thread_i_;
+    m_x = src.m_x;
+    m_y = src.m_y;
+    m_z = src.m_z;
+    m_thread_i = src.m_thread_i;
   }
 
-  void Set(int _x, int _y, int _z) { x_ = _x; y_ = _y; z_ = _z; }
+  void Set(int _x, int _y, int _z) { m_x = _x; m_y = _y; m_z = _z; }
 };
 
 
@@ -434,20 +435,20 @@ void t_MarchingCubesParallel_CalcVertex(
         const int vi = x + y * W + z * WH;
         const int ci = (x+1) + (y+1) *cW + (z+1) *cWH;
         CellEdgeVtx *cell = &cell_edges[ci];
-        cell->thread_i_ = thread_i;
+        cell->m_thread_i = thread_i;
 
         if ( v_flg[ vi ] !=  v_flg[ vi + 1] ){
-          cell->x_ = (int)v.size(); 
+          cell->m_x = (int)v.size(); 
           float t = (thresh - volume[vi]) / (float) (volume[vi+1] - volume[vi]);
           v.push_back( EVec3f((x + t + 0.5f) * pitch[0], (y + 0.5f) * pitch[1], (z + 0.5f) * pitch[2] )); 
         }
         if ( v_flg[ vi ] !=  v_flg[ vi + W] ){
-          cell->y_ = (int)v.size(); 
+          cell->m_y = (int)v.size(); 
           float t = (thresh - volume[vi]) / (float)(volume[vi+W] - volume[vi]);
           v.push_back( EVec3f((x + 0.5f) * pitch[0], (y + t + 0.5f) * pitch[1], (z + 0.5f) * pitch[2] )); 
         }
         if ( v_flg[ vi ] !=  v_flg[ vi + WH] ){
-          cell->z_ = (int)v.size(); 
+          cell->m_z = (int)v.size(); 
           float t = (thresh - volume[vi]) / (float)(volume[vi+WH] - volume[vi]);
           v.push_back( EVec3f( (x + 0.5f) * pitch[0], (y + 0.5f) * pitch[1], (z + t + 0.5f) * pitch[2] )); 
         }
@@ -469,7 +470,7 @@ void t_MarchingCubesParallel_CalcVertex(
         int x = (kk == 0) ? -1 : W-1;
         const int vi = x + y * W + z * WH;
         CellEdgeVtx *cell = &cell_edges[(x+1) + (y+1) *cW + (z+1) *cWH];
-        cell->thread_i_ = thread_i;
+        cell->m_thread_i = thread_i;
 
         byte flg_p = (x < 0     || y < 0      || z < 0     ) ?  false   :  v_flg[vi     ];
         byte flg_x = (x == W - 1|| y < 0      || z < 0     ) ?  false   :  v_flg[vi + 1 ];
@@ -481,17 +482,17 @@ void t_MarchingCubesParallel_CalcVertex(
         short v_z = (x < 0      || y < 0      || z == D - 1) ?  SHRT_MIN: volume[vi + WH];
 
         if ( flg_p != flg_x ) {
-          cell->x_ = (int)v.size(); 
+          cell->m_x = (int)v.size(); 
           float t = (thresh - v_p) / (float)(v_x - v_p);
           v.push_back( EVec3f((x + t + 0.5f) * pitch[0], (y + 0.5f) * pitch[1], (z + 0.5f) * pitch[2] ) ); 
         }
         if ( flg_p != flg_y ) {
-          cell->y_ = (int)v.size(); 
+          cell->m_y = (int)v.size(); 
           float t = (thresh - v_p) / (float)(v_y - v_p);
           v.push_back( EVec3f((x + 0.5f) * pitch[0], (y + t + 0.5f) * pitch[1], (z + 0.5f) * pitch[2] ) ); 
         }
         if ( flg_p !=  flg_z ) {
-          cell->z_ = (int)v.size(); 
+          cell->m_z = (int)v.size(); 
           float t = (thresh - v_p) / (float)(v_z - v_p);
           v.push_back( EVec3f((x + 0.5f) * pitch[0], (y + 0.5f) * pitch[1], (z + t + 0.5f) * pitch[2] ) ); 
         }
@@ -515,7 +516,7 @@ void t_MarchingCubesParallel_CalcVertex(
         int y = (kk == 0) ? -1 : H -1;
         const int vi = x + y * W + z * WH;
         CellEdgeVtx *cell = &cell_edges[(x+1) + (y+1) *cW + (z+1) *cWH];
-        cell->thread_i_ = thread_i;
+        cell->m_thread_i = thread_i;
                
         byte flg_p = (x < 0     || y < 0      || z < 0     ) ?  false   :  v_flg[vi     ];
         byte flg_x = (x == W - 1|| y < 0      || z < 0     ) ?  false   :  v_flg[vi + 1 ];
@@ -527,17 +528,17 @@ void t_MarchingCubesParallel_CalcVertex(
         short v_z = (x < 0      || y < 0      || z == D - 1) ?  SHRT_MIN: volume[vi + WH];
 
         if ( flg_p != flg_x ) {
-          cell->x_ = (int)v.size(); 
+          cell->m_x = (int)v.size(); 
           float t = (thresh - v_p) / (float)(v_x - v_p);
           v.push_back( EVec3f((x + t + 0.5f) * pitch[0], (y + 0.5f) * pitch[1], (z + 0.5f) * pitch[2] ) ); 
         }
         if ( flg_p != flg_y ) {
-          cell->y_ = (int)v.size(); 
+          cell->m_y = (int)v.size(); 
           float t = (thresh - v_p) / (float)(v_y - v_p);
           v.push_back( EVec3f((x + 0.5f) * pitch[0], (y + t + 0.5f) * pitch[1], (z + 0.5f) * pitch[2] ) ); 
         }
         if ( flg_p !=  flg_z ) {
-          cell->z_ = (int)v.size(); 
+          cell->m_z = (int)v.size(); 
           float t = (thresh - v_p) / (float)(v_z - v_p);
           v.push_back( EVec3f((x + 0.5f) * pitch[0], (y + 0.5f) * pitch[1], (z + t + 0.5f) * pitch[2] ) ); 
         }
@@ -560,7 +561,7 @@ void t_MarchingCubesParallel_CalcVertex(
         int z = (kk == 0) ? -1 : D -1;
         const int vi = x + y * W + z * WH;
         CellEdgeVtx *cell = &cell_edges[(x+1) + (y+1) *cW + (z+1) *cWH];
-        cell->thread_i_ = thread_i;
+        cell->m_thread_i = thread_i;
 
         byte flg_p = (x < 0     || y < 0      || z < 0     ) ?  false   :  v_flg[vi     ];
         byte flg_x = (x == W - 1|| y < 0      || z < 0     ) ?  false   :  v_flg[vi + 1 ];
@@ -572,17 +573,17 @@ void t_MarchingCubesParallel_CalcVertex(
         short v_z = (x < 0      || y < 0      || z == D - 1) ?  SHRT_MIN: volume[vi + WH];
 
         if ( flg_p != flg_x ) {
-          cell->x_ = (int)v.size(); 
+          cell->m_x = (int)v.size(); 
           float t = (thresh - v_p) / (float)(v_x - v_p);
           v.push_back( EVec3f((x + t + 0.5f) * pitch[0], (y + 0.5f) * pitch[1], (z + 0.5f) * pitch[2] ) ); 
         }
         if ( flg_p != flg_y ) {
-          cell->y_ = (int)v.size(); 
+          cell->m_y = (int)v.size(); 
           float t = (thresh - v_p) / (float)(v_y - v_p);
           v.push_back( EVec3f((x + 0.5f) * pitch[0], (y + t + 0.5f) * pitch[1], (z + 0.5f) * pitch[2] ) ); 
         }
         if ( flg_p !=  flg_z ) {
-          cell->z_ = (int)v.size(); 
+          cell->m_z = (int)v.size(); 
           float t = (thresh - v_p) / (float)(v_z - v_p);
           v.push_back( EVec3f((x + 0.5f) * pitch[0], (y + 0.5f) * pitch[1], (z + t + 0.5f) * pitch[2] ) ); 
         }
@@ -719,7 +720,7 @@ void t_MarchingCubesParallel(
   int sum_polys = 0;
   for( int i=0; i < thread_num; ++i) sum_polys += polys_thread[i].size();
 
-  std::cout << "AAA Mesh size vtx: " << sum_verts << " polys : " << sum_polys << " time: " << (t2-t0)/(double)CLOCKS_PER_SEC) << "\n";
+  cout << "AAA Mesh size vtx: " << sum_verts << " polys : " << sum_polys << " time: " << (t2-t0)/(double)CLOCKS_PER_SEC << "\n";
 
   delete[] v_flg;
   delete[] cell_edges;
@@ -781,11 +782,11 @@ void marchingcubes::t_MarchingCubes(
   const int cW = W + 1;
   const int cH = H + 1;
   const int cD = D + 1;
-  const int cWH = cW * cH, cWHD = cW*cH*cD;
+  int cellXs = 0, cellXe = cW;
+  int cellYs = 0, cellYe = cH;
+  int cellZs = 0, cellZe = cD;
 
-  int cellXs = 0, cellXe = W + 1;
-  int cellYs = 0, cellYe = H + 1;
-  int cellZs = 0, cellZe = D + 1;
+  const int cWH = cW * cH, cWHD = cW*cH*cD;
 
   if (minIdx != 0 && maxIdx != 0)
   {
@@ -799,7 +800,6 @@ void marchingcubes::t_MarchingCubes(
   for (int i = 0; i < cWH; ++i) edgePiv[i].Set(-1, -1, -1);
   for (int i = 0; i < cWH; ++i) edgeNex[i].Set(-1, -1, -1);
 
-
   //reserve Vs and Ps 
   int preCount = 0;
   for (int i = 0; i < WHD; ++i) if (volume[i] > thresh) preCount++;
@@ -811,7 +811,8 @@ void marchingcubes::t_MarchingCubes(
   {
     swap(edgeNex, edgePiv);
     for (int i = 0; i < cWH; ++i) edgeNex[i].Set(-1, -1, -1);
-    if (cz % 100 == 0) std::cout << cz << "/" << cellZe - cellZs << "done..\n";
+    if (cz % 100 == 0) 
+      std::cout << cz << "/" << cellZe - cellZs << "\n";
 
     double p[8];
 
@@ -828,7 +829,7 @@ void marchingcubes::t_MarchingCubes(
         p[2] = (x == W - 1 || y < 0      || z == D - 1) ? -DBL_MAX : volume[vI + 1 +     WH];
         p[3] = (x < 0      || y < 0      || z == D - 1) ? -DBL_MAX : volume[vI +         WH];
         p[4] = (x < 0      || y == H - 1 || z <  0    ) ? -DBL_MAX : volume[vI +     W     ];
-        p[5] = (x == W - 1 || y == H - 1 || z < 0     ) ? -DBL_MAX : volume[vI + 1 + W     ];
+        p[5] = (x == W - 1 || y == H - 1 || z <  0    ) ? -DBL_MAX : volume[vI + 1 + W     ];
         p[6] = (x == W - 1 || y == H - 1 || z == D - 1) ? -DBL_MAX : volume[vI + 1 + W + WH];
         p[7] = (x < 0      || y == H - 1 || z == D - 1) ? -DBL_MAX : volume[vI +     W + WH];
 
@@ -846,72 +847,74 @@ void marchingcubes::t_MarchingCubes(
         if (flg == 0) continue;
 
         const int eI = cx + cy * cW;
-        //x
-        if (flg & 1 && edgePiv[eI].x_ < 0) {
-          edgePiv[eI].x_ = (int)Vs.size(); 
+        
+        //x e0, e2, e4, e6
+        if (flg & 1 && edgePiv[eI].m_x < 0) {
+          edgePiv[eI].m_x = (int)Vs.size(); 
           Vs.push_back( getPosX(x, y, z, vPitch, (thresh - p[0]) / (p[1] - p[0])) ); 
         }
-        if (flg & 4 && edgeNex[eI].x_ < 0) { 
-          edgeNex[eI].x_ = (int)Vs.size(); 
+        if (flg & 4 && edgeNex[eI].m_x < 0) { 
+          edgeNex[eI].m_x = (int)Vs.size(); 
           Vs.push_back( getPosX(x, y, z + 1, vPitch, (thresh - p[3]) / (p[2] - p[3])) ); 
         }
-        if (flg & 16 && edgePiv[eI + cW].x_ < 0) { 
-          edgePiv[eI + cW].x_ = (int)Vs.size(); 
+        if (flg & 16 && edgePiv[eI + cW].m_x < 0) { 
+          edgePiv[eI + cW].m_x = (int)Vs.size(); 
           Vs.push_back( getPosX(x, y + 1, z, vPitch, (thresh - p[4]) / (p[5] - p[4])) ); 
         }
-        if (flg & 64 && edgeNex[eI + cW].x_ < 0) { 
-          edgeNex[eI + cW].x_ = (int)Vs.size(); 
+        if (flg & 64 && edgeNex[eI + cW].m_x < 0) { 
+          edgeNex[eI + cW].m_x = (int)Vs.size(); 
           Vs.push_back( getPosX(x, y + 1, z + 1, vPitch, (thresh - p[7]) / (p[6] - p[7]))); 
         }
-        //z
-        if (flg & 2 && edgePiv[eI + 1].z_ < 0) { 
-          edgePiv[eI + 1].z_ = (int)Vs.size(); 
+        //z e1, e3, e5, e7
+        if (flg & 2 && edgePiv[eI + 1].m_z < 0) { 
+          edgePiv[eI + 1].m_z = (int)Vs.size(); 
           Vs.push_back( getPosZ(x + 1, y, z, vPitch, (thresh - p[1]) / (p[2] - p[1]))); 
         }
-        if (flg & 8 && edgePiv[eI].z_ < 0) { 
-          edgePiv[eI].z_ = (int)Vs.size(); 
+        if (flg & 8 && edgePiv[eI].m_z < 0) { 
+          edgePiv[eI].m_z = (int)Vs.size(); 
           Vs.push_back( getPosZ(x, y, z, vPitch, (thresh - p[0]) / (p[3] - p[0])));
         }
-        if (flg & 32 && edgePiv[eI + 1 + cW].z_ < 0) { 
-          edgePiv[eI + 1 + cW].z_ = (int)Vs.size(); 
+        if (flg & 32 && edgePiv[eI + 1 + cW].m_z < 0) { 
+          edgePiv[eI + 1 + cW].m_z = (int)Vs.size(); 
           Vs.push_back( getPosZ(x + 1, y + 1, z, vPitch, (thresh - p[5]) / (p[6] - p[5]))); 
         }
-        if (flg & 128 && edgePiv[eI + cW].z_ < 0) { 
-          edgePiv[eI + cW].z_ = (int)Vs.size(); 
+        if (flg & 128 && edgePiv[eI + cW].m_z < 0) { 
+          edgePiv[eI + cW].m_z = (int)Vs.size(); 
           Vs.push_back( getPosZ(x, y + 1, z, vPitch, (thresh - p[4]) / (p[7] - p[4]))); 
         }
 
-        //y
-        if (flg & 256 && edgePiv[eI].y_ < 0) { 
-          edgePiv[eI].y_ = (int)Vs.size(); 
+        //y e8, e9, e10, e11
+        if (flg & 256 && edgePiv[eI].m_y < 0) { 
+          edgePiv[eI].m_y = (int)Vs.size(); 
           Vs.push_back( getPosY(x, y, z, vPitch, (thresh - p[0]) / (p[4] - p[0]))); 
         }
-        if (flg & 512 && edgePiv[eI + 1].y_ < 0) { 
-          edgePiv[eI + 1].y_ = (int)Vs.size(); 
+        if (flg & 512 && edgePiv[eI + 1].m_y < 0) { 
+          edgePiv[eI + 1].m_y = (int)Vs.size(); 
           Vs.push_back( getPosY(x + 1, y, z, vPitch, (thresh - p[1]) / (p[5] - p[1]))); 
         }
-        if (flg & 1024 && edgeNex[eI + 1].y_ < 0) { 
-          edgeNex[eI + 1].y_ = (int)Vs.size(); 
+        if (flg & 1024 && edgeNex[eI + 1].m_y < 0) { 
+          edgeNex[eI + 1].m_y = (int)Vs.size(); 
           Vs.push_back( getPosY(x + 1, y, z + 1, vPitch, (thresh - p[2]) / (p[6] - p[2]))); 
         }
-        if (flg & 2048 && edgeNex[eI].y_ < 0) { 
-          edgeNex[eI].y_ = (int)Vs.size(); 
+        if (flg & 2048 && edgeNex[eI].m_y < 0) { 
+          edgeNex[eI].m_y = (int)Vs.size(); 
           Vs.push_back( getPosY(x, y, z + 1, vPitch, (thresh - p[3]) / (p[7] - p[3]))); 
         }
 
         int v[12];
-        v[0]  = edgePiv[eI].x_;
-        v[2]  = edgeNex[eI].x_;
-        v[4]  = edgePiv[eI + cW].x_;
-        v[6]  = edgeNex[eI + cW].x_;
-        v[1]  = edgePiv[eI + 1].z_;
-        v[3]  = edgePiv[eI].z_;
-        v[5]  = edgePiv[eI + 1 + cW].z_;
-        v[7]  = edgePiv[eI + cW].z_;
-        v[8]  = edgePiv[eI].y_;
-        v[9]  = edgePiv[eI + 1].y_;
-        v[10] = edgeNex[eI + 1].y_;
-        v[11] = edgeNex[eI].y_;
+        v[0]  =             edgePiv[eI     ].m_x;
+        v[2]  =             edgeNex[eI     ].m_x;
+        v[4]  = (cy<cH-1) ? edgePiv[eI  +cW].m_x : -1;
+        v[6]  = (cy<cH-1) ? edgeNex[eI  +cW].m_x : -1;
+        v[1]  = (cx<cW-1) ? edgePiv[eI+1   ].m_z : -1;
+        v[3]  =             edgePiv[eI     ].m_z ;
+        v[5]  = (cx<cW-1 && cy<cH-1)
+                          ? edgePiv[eI+1+cW].m_z : -1;
+        v[7]  = (cy<cH-1) ? edgePiv[eI  +cW].m_z : -1;
+        v[8]  =             edgePiv[eI     ].m_y;
+        v[9]  = (cx<cW-1) ? edgePiv[eI+1   ].m_y : -1;
+        v[10] = (cx<cW-1) ? edgeNex[eI+1   ].m_y : -1;
+        v[11] =             edgeNex[eI     ].m_y;
 
         //polygon生成
         for (int i = 0; mcTriTable[caseID][i] != -1; i += 3)
@@ -925,18 +928,11 @@ void marchingcubes::t_MarchingCubes(
 
   clock_t t1 = clock();
 
-  std::cout << "Mesh size vtx: " << Vs.size() 
-            << " polys : "       << Ps.size() 
-            << " time: "         << (t1-t0)/(double)CLOCKS_PER_SEC << "\n";
+  cout << "Mesh size vtx: " << Vs.size() << " polys : " << Ps.size() << " time: " << (t1-t0)/(double)CLOCKS_PER_SEC << "\n";
 
   delete[] edgePiv;
   delete[] edgeNex;
-
-
 }
-
-
-
 
 
 
@@ -963,7 +959,7 @@ void marchingcubes::t_MarchingCubes(
       ____4_____
      /        / |
     /7       /5 |9
-   /___6___ /   |  edge index
+   /___6____/   |  edge index
    |        |   |
  11|     0  |10/
    | 3      | /1
@@ -1092,7 +1088,7 @@ void marchingcubes::t_MarchingCubes_PolygonSoup(
 
   clock_t t1 = clock();
 
-  std::cout << "AAAA: polys : " << polygon_verts_num << " time: " << (t1-t0)/(double)CLOCKS_PER_SEC << "\n";
+  cout << "AAAA: polys : " << polygon_verts_num << " time: " << (t1-t0)/(double)CLOCKS_PER_SEC << "\n";
 }
 
 
@@ -1139,15 +1135,9 @@ void marchingcubes::t_MarchingCubes(
 {
   vector<EVec3f> Vs;
   vector<TPoly > Ps;
-
   t_MarchingCubes(vRes, vPitch, vol, thresh, minIdx, maxIdx, Vs, Ps);
-
   mesh.initialize(Vs, Ps);
-
-  int n;
-  EVec3f* soup_verts;
-  t_MarchingCubes_PolygonSoup(vRes, vPitch, vol, thresh, minIdx, maxIdx, n, soup_verts);
-
 }
 
 
+#pragma managed
