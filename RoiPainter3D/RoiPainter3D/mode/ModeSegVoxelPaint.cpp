@@ -538,7 +538,7 @@ void ModeSegVoxelPaint::DrawScene
 {
   const bool   bXY = formVisParam_bPlaneXY();
   const bool   bYZ = formVisParam_bPlaneYZ();
-  const bool   bZX = formVisParam_bPlaneZX();
+  const bool   bZX = FormVisParam_bPlaneZX();
   const bool   bDrawVol = formVisParam_bRendVol();
   const bool   bGradMag = formVisParam_bGradMag();
   const bool   bPsuedo  = formVisParam_bDoPsued();

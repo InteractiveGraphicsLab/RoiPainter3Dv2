@@ -57,9 +57,6 @@ void t_MarchingCubes_PolygonSoup(
 );
 
 
-
-
-
 void t_MarchingCubes(
     const EVec3i &vRes,
     const EVec3f &vPitch,
@@ -69,6 +66,7 @@ void t_MarchingCubes(
     const int    *maxIdx,
     TMesh &mesh);
 };
+
 
 
 #pragma managed

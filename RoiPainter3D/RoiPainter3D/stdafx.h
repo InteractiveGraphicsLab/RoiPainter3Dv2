@@ -1,3 +1,9 @@
 ﻿#pragma once
 
-// TODO: プログラムに必要な追加ヘッダーをここで参照してください
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+
+#include "COMMON\tmath.h"
+
+

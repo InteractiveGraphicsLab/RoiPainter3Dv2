@@ -76,6 +76,10 @@ public:
   float GetPlaneYzPosition() { return m_plane_yz; }
   float GetPlaneZxPosition() { return m_plane_zx; }
 
+  void SetPlaneXyPosition(float plane_xy ){ m_plane_xy = plane_xy; }
+  void SetPlaneYzPosition(float plane_yz ){ m_plane_yz = plane_yz; }
+  void SetPlaneZxPosition(float plane_zx ){ m_plane_zx = plane_zx; }
+
 };
 
 

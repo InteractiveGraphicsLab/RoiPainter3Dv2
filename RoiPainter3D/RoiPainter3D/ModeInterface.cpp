@@ -30,7 +30,7 @@ CRSSEC_ID PickCrssec(const EVec3f &ray_pos, const EVec3f &ray_dir, EVec3f *pos)
   const EVec3f pitch  = ImageCore::GetInst()->GetPitch();
   const bool   b_xy = formVisParam_bPlaneXY();
   const bool   b_yz = formVisParam_bPlaneYZ();
-  const bool   b_zx = formVisParam_bPlaneZX();
+  const bool   b_zx = FormVisParam_bPlaneZX();
   return CrssecCore::GetInst()->PickCrssec(b_xy, b_yz, b_zx, true, cuboid, ray_pos, ray_dir, *pos);
 }
 

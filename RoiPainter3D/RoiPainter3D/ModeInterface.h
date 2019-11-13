@@ -29,7 +29,8 @@ enum MODE_ID
 	MODE_SEG_GCUT      , // ModeSegGGut           
 	MODE_SEG_VOXPAINT  , // ModeSegVoxelPaint
 	MODE_SEG_LCLRGROW  , // ModeSegLocalRGrow  (Local Region Growing by Takashi Ijiri & Shogo Tsuruoka (Ritumei))
-	MODE_SEG_THRESHPNT , // ModeSegThreshfieldPaint (UIST paper by Takeo Igarashi)
+  MODE_SEG_PARAWIRE  , // ModeSegParallelWires
+	MODE_SEG_THRESHPNT , // ModeSegThreshfieldPaint (UIST paper by Takeo Igarashi, NOT YET IMPLEMENTED)
 	MODE_REF_STRKTRIM  , // ModeRefStrokeTrim
 	MODE_REF_VOXPAINT    // ModeSegVoxelPaint
 };

@@ -62,6 +62,15 @@ void FormVisParam::initAllItemsForNewImg()
 
 
 
+void FormVisParam::PitchUpdated()
+{
+  EVec3f pitch = ImageCore::GetInst()->GetPitch();
+  pitchX->Text = pitch.x().ToString();
+  pitchY->Text = pitch.y().ToString();
+  pitchZ->Text = pitch.z().ToString();
+
+}
+
 
 
 

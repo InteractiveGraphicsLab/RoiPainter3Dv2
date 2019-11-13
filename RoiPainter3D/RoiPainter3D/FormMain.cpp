@@ -12,6 +12,7 @@
 #include "FormSegThreshfieldPaint.h"
 #include "FormSegVoxelPaint.h"
 #include "FormSegLocalRGrow.h"
+#include "FormSegParallelWires.h"
 #include "FormRefStrokeTrim.h"
 #include "climessagebox.h"
 #include <iostream>
@@ -169,9 +170,10 @@ void FormMain::replaceOtherForms()
   FormVisMask ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegRGrow::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegGCut ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
-  FormSegLocalRGrow::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
-  FormSegVoxelPaint::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
-  FormRefStrokeTrim::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegLocalRGrow   ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegVoxelPaint   ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormRefStrokeTrim   ::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
+  FormSegParallelWires::GetInst()->Location = Point(thisX + thisW, thisY + dlgH);
   FormSegThreshfieldPaint::getInst()->Location = Point(thisX + thisW, thisY + dlgH);
 }
 
@@ -195,6 +197,7 @@ void FormMain::initializeOtherForms()
   FormSegLocalRGrow ::getInst()->Show();
   FormSegVoxelPaint ::getInst()->Show();
   FormRefStrokeTrim ::getInst()->Show();
+  FormSegParallelWires::GetInst()->Show();
   FormSegThreshfieldPaint::getInst()->Show();
 
   replaceOtherForms();
@@ -206,6 +209,7 @@ void FormMain::initializeOtherForms()
   FormSegLocalRGrow ::getInst()->Hide();
   FormSegVoxelPaint ::getInst()->Hide();
   FormRefStrokeTrim ::getInst()->Hide();
+  FormSegParallelWires::GetInst()->Hide();
   FormSegThreshfieldPaint::getInst()->Hide();
 
   std::cout << "--------initialize form(dialogs)...DONE\n";
@@ -603,8 +607,13 @@ System::Void FormMain::refinementStrokeTrimingToolStripMenuItem_Click(System::Ob
 System::Void FormMain::segmentationToolStripMenuItem1_Click(System::Object^  sender, System::EventArgs^  e) {
   ModeCore::GetInst()->ModeSwitch(MODE_SEG_LCLRGROW);
   redrawMainPanel();
-
 }
+
+System::Void FormMain::segmentationParallelWiresToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e){
+  ModeCore::GetInst()->ModeSwitch(MODE_SEG_PARAWIRE);
+  redrawMainPanel();
+}
+
 
 
 

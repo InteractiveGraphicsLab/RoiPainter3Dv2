@@ -40,6 +40,10 @@ bool ModeVizNormal::CanLeaveMode()
   return true;
 }
 
+
+
+
+
 void ModeVizNormal::StartMode()
 {
   std::cout << "ModeVizNormal...startMode----------\n";
@@ -178,10 +182,10 @@ void ModeVizNormal::DrawScene(const EVec3f &cuboid, const EVec3f &camP, const EV
   if (m_bDrawStr) t_DrawPolyLine(EVec3f(1,1,0), 3, m_stroke);
 
   const EVec3i reso = ImageCore::GetInst()->GetResolution();
-  const bool b_gm   = formVisParam_bGradMag();
-  const bool b_xy   = formVisParam_bPlaneXY();
-  const bool b_yz   = formVisParam_bPlaneYZ();
-  const bool b_zx   = formVisParam_bPlaneZX();
+  const bool b_gm = formVisParam_bGradMag();
+  const bool b_xy = formVisParam_bPlaneXY();
+  const bool b_yz = formVisParam_bPlaneYZ();
+  const bool b_zx = FormVisParam_bPlaneZX();
 
   glColor3d(1, 1, 1);
   m_crssecShader.Bind(0, 1, 2, 3, 6, reso, b_gm, false);

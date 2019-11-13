@@ -187,6 +187,9 @@
     <ClInclude Include="FormSegLocalRGrow.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="FormSegParallelWires.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="FormSegRGrow.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -216,6 +219,7 @@
     <ClInclude Include="mode\ModeRefStrokeTrim.h" />
     <ClInclude Include="mode\ModeSegGCut.h" />
     <ClInclude Include="mode\ModeSegLocalRGrow.h" />
+    <ClInclude Include="mode\ModeSegParallelWires.h" />
     <ClInclude Include="mode\ModeSegRGrow.h" />
     <ClInclude Include="mode\ModeSegThreshfieldPaint.h" />
     <ClInclude Include="mode\ModeSegVoxelPaint.h" />
@@ -240,6 +244,7 @@
     <ClCompile Include="FormRefStrokeTrim.cpp" />
     <ClCompile Include="FormSegGCut.cpp" />
     <ClCompile Include="FormSegLocalRGrow.cpp" />
+    <ClCompile Include="FormSegParallelWires.cpp" />
     <ClCompile Include="FormSegRGrow.cpp" />
     <ClCompile Include="FormSegThreshfieldPaint.cpp" />
     <ClCompile Include="FormSegVoxelPaint.cpp" />
@@ -254,6 +259,7 @@
     <ClCompile Include="mode\ModeRefStrokeTrim.cpp" />
     <ClCompile Include="mode\ModeSegGCut.cpp" />
     <ClCompile Include="mode\ModeSegLocalRGrow.cpp" />
+    <ClCompile Include="mode\ModeSegParallelWires.cpp" />
     <ClCompile Include="mode\ModeSegRGrow.cpp" />
     <ClCompile Include="mode\ModeSegThreshfieldPaint.cpp" />
     <ClCompile Include="mode\ModeSegVoxelPaint.cpp" />
@@ -284,6 +290,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormSegLocalRGrow.resx">
       <DependentUpon>FormSegLocalRGrow.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormSegParallelWires.resx">
+      <DependentUpon>FormSegParallelWires.h</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormSegRGrow.resx">
       <DependentUpon>FormSegRGrow.h</DependentUpon>
