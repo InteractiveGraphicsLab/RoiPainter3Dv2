@@ -1206,6 +1206,7 @@ void ImageCore::InitializeVolFlgByLockedMask(int fore_maskid )
 {
   const int num_voxels = GetNumVoxels();
 
+  //vector[]のアクセスが遅いので配列を作成
   byte masklocked[256] = {};
   for( int i=0; i < (int)m_mask_data.size(); ++i ) 
     masklocked[i] = m_mask_data[i].m_b_locked ? 255 : 0;
@@ -1220,6 +1221,24 @@ void ImageCore::InitializeVolFlgByLockedMask(int fore_maskid )
 	m_vol_flag.SetUpdated();
 }
 
+
+
+bool ImageCore::bForeVoxelsExistInVolFlg()
+{
+	const int num_voxels = GetNumVoxels();
+
+	bool bForeExist = false;
+	for (int i = 0; i < num_voxels; ++i)
+	{
+		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
+		{
+			bForeExist = true;
+			break;
+		}
+	}
+  return bForeExist;
+
+}
 
 
 

@@ -90,6 +90,21 @@ void t_DrawCuboidSlices(const int num_slice, const EVec3f &cam_pos, const EVec3f
 
 
 
+//lasso‚Ì“à‘¤‚É‚ ‚évoxel‚ð fore/back‚É•ÏX
+//b_fore = true  --> vFlg 1   --> 255‚É
+//b_fore = false --> vFlg 255 --> 1‚É
+void t_AddPixsInsideLasso
+(
+	const CRSSEC_ID id   ,
+	const EVec3i    reso ,
+	const EVec3f    pitch,
+	const std::vector<EVec3f> &lasso_stroke,
+	const bool      b_fore,
+
+   		  byte*  vFlg
+);
+
+
 #pragma managed
 
 

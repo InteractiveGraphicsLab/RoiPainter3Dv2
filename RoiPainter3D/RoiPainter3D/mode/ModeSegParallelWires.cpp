@@ -7,6 +7,7 @@
 #include "kcurves.h"
 #include "FormMain.h"
 #include "FormVisParam.h"
+#include "../ModeCore.h"
 
 
 
@@ -18,19 +19,29 @@
 // 3. render cps and wires OK
 // 4. place/move/delete control point OK  
 // 5. insert cp OK
-// 6. fill inside (Finish seg)    TODO ---------
+// 6. fill inside (Finish seg) OK
 // 7. save / load wires  OK 
-// 8. test and manual             TODO ---------
-// 9. show all wires / modify the size of cps TODO ---------
-// 
+// 8. show all wires / modify the size of cps OK
+// 9. Lock Pitch Modification OK
+//10. show the other mask     OK
+//11. test 
+//12. manual         TODO ---------
 
+
+//TODO 
+// File Export a ROI as OBJ
+// File Export a ROI as Binary Bmp
+// File Export a MASK as BMP
 
 using namespace RoiPainter3D;
+
+#define PW_CPSIZE_MIN 1.0f
+#define PW_CPSIZE_MAX 6.0f
 
 
 ModeSegParallelWires::ModeSegParallelWires() : 
   m_volume_shader("shader/volVtx.glsl"   , "shader/volFlg.glsl"),
-  m_crssec_shader("shader/crssecVtx.glsl", "shader/crssecFlg.glsl")
+  m_crssec_shader("shader/crssecVtx.glsl", "shader/crssecFlg_ParallelWires.glsl")
 {
   std::cout << "ModeSegParallelWires constructure...\n";
 
@@ -88,12 +99,30 @@ void ModeSegParallelWires::StartMode ()
   
   CrssecCore::GetInst()->ClearCurvedCrossec();
 
-  EVec3f pitch = ImageCore::GetInst()->GetPitch();
-  float cp_r = 3.0f * (pitch[0] + pitch[1] + pitch[2]) / 3.0f;
-  SplineWire::SetCtrlPtRadius(cp_r);  
+  EVec3f pitch  = ImageCore::GetInst()->GetPitch();
+  float  base_r = (pitch[0] + pitch[1] + pitch[2]) / 3.0f;
+  float r = PW_CPSIZE_MIN + (PW_CPSIZE_MAX - PW_CPSIZE_MIN) * 0.5;
+  SplineWire::SetCtrlPtRadius(r * base_r);    
+
+  //Lock/Unlock pitch box
+  formVisParam_LockPitchBox();
+  formVisParam_SetPlanesCheck(false, false, false);
 
   std::cout << "ModeSegParallelWires...startMode DONE-----\n";
 }
+
+
+void ModeSegParallelWires::SetControlPointSize(float size_01)
+{
+  EVec3f pitch  = ImageCore::GetInst()->GetPitch();
+  float  base_r = (pitch[0] + pitch[1] + pitch[2]) / 3.0f;
+  float r = PW_CPSIZE_MIN + (PW_CPSIZE_MAX - PW_CPSIZE_MIN) * size_01;
+  SplineWire::SetCtrlPtRadius(r * base_r);    
+}
+
+
+
+
 
 
 
@@ -138,10 +167,64 @@ CRSSEC_ID ModeSegParallelWires::GetCurrentTrgtPlane()
 
 
 
+void ModeSegParallelWires::FinishSegmentation()
+{
+  //Fill in the curve
+  const EVec3i reso  = ImageCore::GetInst()->GetResolution();
+  const EVec3f pitch = ImageCore::GetInst()->GetPitch();
+  const EVec3f cube  = ImageCore::GetInst()->GetCuboid();
+  
+
+  //initialize ImageCore::m_vol_flg
+  ImageCore::GetInst()->InitializeVolFlgByLockedMask();
+
+  byte *vol_flg = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
+
+  for ( const auto&w : m_wires_xy ) {
+    if ( w.GetNumCtrlPts() >= 3 && w.GetCurve().size() > 0 ) 
+      t_AddPixsInsideLasso(CRSSEC_XY, reso, pitch, w.GetCurve(), true, vol_flg);
+  }
+  for ( const auto&w : m_wires_yz ) { 
+    if ( w.GetNumCtrlPts() >= 3 && w.GetCurve().size() > 0 ) 
+      t_AddPixsInsideLasso(CRSSEC_YZ, reso, pitch, w.GetCurve(), true, vol_flg);
+  }
+  for ( const auto&w : m_wires_zx ) { 
+    if ( w.GetNumCtrlPts() >= 3 && w.GetCurve().size() > 0 ) 
+      t_AddPixsInsideLasso(CRSSEC_ZX, reso, pitch, w.GetCurve(), true, vol_flg);
+  }
 
 
-void ModeSegParallelWires::FinishSegmentation(){}
-void ModeSegParallelWires::CancelSegmentation(){}
+  //precheck the foreground pixel
+	if ( !ImageCore::GetInst()->bForeVoxelsExistInVolFlg() ) 
+	{
+		CLI_MessageBox_OK_Show("No foreground region exist", "message");
+		return;
+	}
+
+  m_wires_xy.clear();
+  m_wires_yz.clear();
+  m_wires_zx.clear();
+  
+  ImageCore::GetInst()->StoreForegroundAsNewMask();
+  ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
+}
+
+
+
+
+void ModeSegParallelWires::CancelSegmentation()
+{
+  if ( !CLI_MessageBox_YESNO_Show("Do you want leave this mode?", "dlg.") )
+    return; 
+
+  //wireを削除（しないと、canEndModeでダイアログが表示される)
+  m_wires_xy.clear();
+  m_wires_yz.clear();
+  m_wires_zx.clear();
+
+	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
+	FormMain_RedrawMainPanel();	
+}
 
 
 
@@ -411,6 +494,7 @@ void ModeSegParallelWires::DrawScene(
     const EVec3f &camF)
 {
   //bind volumes ---------------------------------------
+  ImageCore::GetInst()->UpdateOGLMaskColorImg();
   const bool image_interpolation = formVisParam_doInterpolation();
 
   glActiveTextureARB(GL_TEXTURE0);
@@ -445,7 +529,7 @@ void ModeSegParallelWires::DrawScene(
   static EVec3f cyan(0,   1, 1   );
   static EVec3f red (1,0.2f, 0.2f);
   static EVec3f ofstzero(0,0,0);
-  if ( FormParallelWires_bDrawAllWires() )
+  if ( FormParallelWires_bDrawAllWires() && !IsSpaceKeyOn() )
   {
     for ( const auto& w : m_wires_xy) w.DrawWire( ofstzero, cyan, 2 );  
     for ( const auto& w : m_wires_yz) w.DrawWire( ofstzero, cyan, 2 );  
@@ -454,15 +538,15 @@ void ModeSegParallelWires::DrawScene(
   
   //draw current target wire
   glCullFace( GL_BACK );
-  if ( FormParallelWires_bPlaneXY() ) {
+  if ( FormParallelWires_bPlaneXY() && !IsSpaceKeyOn() ) {
     m_wires_xy[m_planexy_idx].DrawWire  ( offset_xy, red, 5 );  
     m_wires_xy[m_planexy_idx].DrawCtrlPt( );  
   }  
-  if ( FormParallelWires_bPlaneYZ() ){
+  if ( FormParallelWires_bPlaneYZ() && !IsSpaceKeyOn() ){
     m_wires_yz[m_planeyz_idx].DrawWire  ( offset_yz, red, 5 );  
     m_wires_yz[m_planeyz_idx].DrawCtrlPt( );  
   }  
-  if ( FormParallelWires_bPlaneZX() ){
+  if ( FormParallelWires_bPlaneZX() && !IsSpaceKeyOn() ){
     m_wires_zx[m_planezx_idx].DrawWire  ( offset_zx, red, 5 );  
     m_wires_zx[m_planezx_idx].DrawCtrlPt( );  
   }  
@@ -473,7 +557,7 @@ void ModeSegParallelWires::DrawScene(
   const bool b_zx = FormVisParam_bPlaneZX() || FormParallelWires_bPlaneZX();
 
   glColor3d(1, 1, 1);
-  m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, b_gm, false);
+  m_crssec_shader.Bind(0, 1, 2, 3, 6, reso, false, !IsSpaceKeyOn() );
   CrssecCore::GetInst()->DrawCrssec(b_xy, b_yz, b_zx, cuboid);
   m_crssec_shader.Unbind();
 

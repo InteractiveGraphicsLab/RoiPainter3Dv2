@@ -94,9 +94,10 @@ namespace RoiPainter3D {
       this->label1->AutoSize = true;
       this->label1->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->label1->Location = System::Drawing::Point(6, 3);
+      this->label1->Location = System::Drawing::Point(8, 4);
+      this->label1->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
       this->label1->Name = L"label1";
-      this->label1->Size = System::Drawing::Size(177, 20);
+      this->label1->Size = System::Drawing::Size(232, 25);
       this->label1->TabIndex = 2;
       this->label1->Text = L"shift L-drag : add Fore CPs";
       // 
@@ -105,9 +106,10 @@ namespace RoiPainter3D {
       this->label2->AutoSize = true;
       this->label2->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->label2->Location = System::Drawing::Point(4, 20);
+      this->label2->Location = System::Drawing::Point(5, 25);
+      this->label2->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
       this->label2->Name = L"label2";
-      this->label2->Size = System::Drawing::Size(182, 20);
+      this->label2->Size = System::Drawing::Size(237, 25);
       this->label2->TabIndex = 3;
       this->label2->Text = L"shift R-drag : add Back CPs";
       // 
@@ -116,9 +118,10 @@ namespace RoiPainter3D {
       this->label3->AutoSize = true;
       this->label3->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->label3->Location = System::Drawing::Point(1, 37);
+      this->label3->Location = System::Drawing::Point(1, 46);
+      this->label3->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
       this->label3->Name = L"label3";
-      this->label3->Size = System::Drawing::Size(161, 20);
+      this->label3->Size = System::Drawing::Size(210, 25);
       this->label3->TabIndex = 4;
       this->label3->Text = L"shift M-drag : erase CPs";
       // 
@@ -126,9 +129,10 @@ namespace RoiPainter3D {
       // 
       this->btn_clearAllCPs->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_clearAllCPs->Location = System::Drawing::Point(96, 60);
+      this->btn_clearAllCPs->Location = System::Drawing::Point(163, 75);
+      this->btn_clearAllCPs->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->btn_clearAllCPs->Name = L"btn_clearAllCPs";
-      this->btn_clearAllCPs->Size = System::Drawing::Size(87, 21);
+      this->btn_clearAllCPs->Size = System::Drawing::Size(116, 26);
       this->btn_clearAllCPs->TabIndex = 5;
       this->btn_clearAllCPs->Text = L"clear all CPs";
       this->btn_clearAllCPs->UseVisualStyleBackColor = true;
@@ -137,25 +141,28 @@ namespace RoiPainter3D {
       // label4
       // 
       this->label4->AutoSize = true;
-      this->label4->Location = System::Drawing::Point(5, 91);
+      this->label4->Location = System::Drawing::Point(91, 114);
+      this->label4->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
       this->label4->Name = L"label4";
-      this->label4->Size = System::Drawing::Size(65, 12);
+      this->label4->Size = System::Drawing::Size(185, 15);
       this->label4->TabIndex = 6;
-      this->label4->Text = L"lambda (λ)";
+      this->label4->Text = L"lambda : E = E1(i) + λE2(i,j)";
       // 
       // textBox_lambda
       // 
-      this->textBox_lambda->Location = System::Drawing::Point(47, 87);
+      this->textBox_lambda->Location = System::Drawing::Point(13, 110);
+      this->textBox_lambda->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->textBox_lambda->Name = L"textBox_lambda";
       this->textBox_lambda->ReadOnly = true;
-      this->textBox_lambda->Size = System::Drawing::Size(58, 19);
+      this->textBox_lambda->Size = System::Drawing::Size(76, 22);
       this->textBox_lambda->TabIndex = 7;
       // 
       // trackBar_lambda
       // 
-      this->trackBar_lambda->Location = System::Drawing::Point(3, 106);
+      this->trackBar_lambda->Location = System::Drawing::Point(4, 132);
+      this->trackBar_lambda->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->trackBar_lambda->Name = L"trackBar_lambda";
-      this->trackBar_lambda->Size = System::Drawing::Size(178, 45);
+      this->trackBar_lambda->Size = System::Drawing::Size(237, 56);
       this->trackBar_lambda->TabIndex = 8;
       this->trackBar_lambda->TickStyle = System::Windows::Forms::TickStyle::None;
       this->trackBar_lambda->Scroll += gcnew System::EventHandler(this, &FormSegGCut::trackBar_lambda_Scroll);
@@ -163,12 +170,13 @@ namespace RoiPainter3D {
       // rbtn_thick1
       // 
       this->rbtn_thick1->AutoSize = true;
-      this->rbtn_thick1->Location = System::Drawing::Point(3, 229);
+      this->rbtn_thick1->Location = System::Drawing::Point(8, 241);
+      this->rbtn_thick1->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->rbtn_thick1->Name = L"rbtn_thick1";
-      this->rbtn_thick1->Size = System::Drawing::Size(66, 16);
+      this->rbtn_thick1->Size = System::Drawing::Size(76, 19);
       this->rbtn_thick1->TabIndex = 9;
       this->rbtn_thick1->TabStop = true;
-      this->rbtn_thick1->Text = L"bandW 1";
+      this->rbtn_thick1->Text = L"bandW1";
       this->rbtn_thick1->UseVisualStyleBackColor = true;
       this->rbtn_thick1->CheckedChanged += gcnew System::EventHandler(this, &FormSegGCut::rbtn_thick1_CheckedChanged);
       // 
@@ -176,9 +184,10 @@ namespace RoiPainter3D {
       // 
       this->btn_runGraphCutWS->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_runGraphCutWS->Location = System::Drawing::Point(3, 151);
+      this->btn_runGraphCutWS->Location = System::Drawing::Point(8, 163);
+      this->btn_runGraphCutWS->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->btn_runGraphCutWS->Name = L"btn_runGraphCutWS";
-      this->btn_runGraphCutWS->Size = System::Drawing::Size(207, 27);
+      this->btn_runGraphCutWS->Size = System::Drawing::Size(276, 34);
       this->btn_runGraphCutWS->TabIndex = 5;
       this->btn_runGraphCutWS->Text = L"1. run Graph Cut Watashed Lv.";
       this->btn_runGraphCutWS->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -189,9 +198,10 @@ namespace RoiPainter3D {
       // 
       this->btn_runGraphCutVoxel->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_runGraphCutVoxel->Location = System::Drawing::Point(4, 197);
+      this->btn_runGraphCutVoxel->Location = System::Drawing::Point(9, 201);
+      this->btn_runGraphCutVoxel->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->btn_runGraphCutVoxel->Name = L"btn_runGraphCutVoxel";
-      this->btn_runGraphCutVoxel->Size = System::Drawing::Size(206, 26);
+      this->btn_runGraphCutVoxel->Size = System::Drawing::Size(275, 32);
       this->btn_runGraphCutVoxel->TabIndex = 13;
       this->btn_runGraphCutVoxel->Text = L"2. run Graph Cut voxel level";
       this->btn_runGraphCutVoxel->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
@@ -201,33 +211,36 @@ namespace RoiPainter3D {
       // rbtn_thick2
       // 
       this->rbtn_thick2->AutoSize = true;
-      this->rbtn_thick2->Location = System::Drawing::Point(72, 229);
+      this->rbtn_thick2->Location = System::Drawing::Point(100, 241);
+      this->rbtn_thick2->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->rbtn_thick2->Name = L"rbtn_thick2";
-      this->rbtn_thick2->Size = System::Drawing::Size(66, 16);
+      this->rbtn_thick2->Size = System::Drawing::Size(76, 19);
       this->rbtn_thick2->TabIndex = 9;
       this->rbtn_thick2->TabStop = true;
-      this->rbtn_thick2->Text = L"bandW 2";
+      this->rbtn_thick2->Text = L"bandW2";
       this->rbtn_thick2->UseVisualStyleBackColor = true;
       this->rbtn_thick2->CheckedChanged += gcnew System::EventHandler(this, &FormSegGCut::rbtn_thick2_CheckedChanged);
       // 
       // rbtn_thick3
       // 
       this->rbtn_thick3->AutoSize = true;
-      this->rbtn_thick3->Location = System::Drawing::Point(144, 229);
+      this->rbtn_thick3->Location = System::Drawing::Point(196, 241);
+      this->rbtn_thick3->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->rbtn_thick3->Name = L"rbtn_thick3";
-      this->rbtn_thick3->Size = System::Drawing::Size(66, 16);
+      this->rbtn_thick3->Size = System::Drawing::Size(76, 19);
       this->rbtn_thick3->TabIndex = 9;
       this->rbtn_thick3->TabStop = true;
-      this->rbtn_thick3->Text = L"bandW 3";
+      this->rbtn_thick3->Text = L"bandW3";
       this->rbtn_thick3->UseVisualStyleBackColor = true;
       this->rbtn_thick3->CheckedChanged += gcnew System::EventHandler(this, &FormSegGCut::rbtn_thick3_CheckedChanged);
       // 
       // checkBox_bandOnlyBack
       // 
       this->checkBox_bandOnlyBack->AutoSize = true;
-      this->checkBox_bandOnlyBack->Location = System::Drawing::Point(110, 251);
+      this->checkBox_bandOnlyBack->Location = System::Drawing::Point(151, 269);
+      this->checkBox_bandOnlyBack->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->checkBox_bandOnlyBack->Name = L"checkBox_bandOnlyBack";
-      this->checkBox_bandOnlyBack->Size = System::Drawing::Size(101, 16);
+      this->checkBox_bandOnlyBack->Size = System::Drawing::Size(124, 19);
       this->checkBox_bandOnlyBack->TabIndex = 14;
       this->checkBox_bandOnlyBack->Text = L"bond only back";
       this->checkBox_bandOnlyBack->UseVisualStyleBackColor = true;
@@ -237,9 +250,10 @@ namespace RoiPainter3D {
       // 
       this->btn_canel->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_canel->Location = System::Drawing::Point(3, 284);
+      this->btn_canel->Location = System::Drawing::Point(4, 307);
+      this->btn_canel->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->btn_canel->Name = L"btn_canel";
-      this->btn_canel->Size = System::Drawing::Size(56, 28);
+      this->btn_canel->Size = System::Drawing::Size(75, 35);
       this->btn_canel->TabIndex = 5;
       this->btn_canel->Text = L"cancel";
       this->btn_canel->UseVisualStyleBackColor = true;
@@ -249,9 +263,10 @@ namespace RoiPainter3D {
       // 
       this->btn_finish->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_finish->Location = System::Drawing::Point(60, 284);
+      this->btn_finish->Location = System::Drawing::Point(80, 307);
+      this->btn_finish->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->btn_finish->Name = L"btn_finish";
-      this->btn_finish->Size = System::Drawing::Size(155, 28);
+      this->btn_finish->Size = System::Drawing::Size(207, 35);
       this->btn_finish->TabIndex = 15;
       this->btn_finish->Text = L"End ＆ Store Region";
       this->btn_finish->UseVisualStyleBackColor = true;
@@ -259,9 +274,9 @@ namespace RoiPainter3D {
       // 
       // FormSegGCut
       // 
-      this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
+      this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(217, 316);
+      this->ClientSize = System::Drawing::Size(289, 348);
       this->Controls->Add(this->btn_finish);
       this->Controls->Add(this->checkBox_bandOnlyBack);
       this->Controls->Add(this->btn_runGraphCutVoxel);
@@ -277,6 +292,7 @@ namespace RoiPainter3D {
       this->Controls->Add(this->label3);
       this->Controls->Add(this->label2);
       this->Controls->Add(this->label1);
+      this->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->Name = L"FormSegGCut";
       this->Text = L"FormSegGCut";
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar_lambda))->EndInit();

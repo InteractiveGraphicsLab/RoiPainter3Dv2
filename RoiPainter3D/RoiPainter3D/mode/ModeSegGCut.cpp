@@ -127,6 +127,8 @@ void ModeSegGCut::StartMode()
     }
   }
 
+  //Lock/Unlock pitch box
+  formVisParam_LockPitchBox();
 }
 
 
@@ -134,19 +136,7 @@ void ModeSegGCut::StartMode()
 
 void ModeSegGCut::FinishSegmemntation ()
 {
-	const int num_voxels = ImageCore::GetInst()->GetNumVoxels();
-
-	bool bForeExist = false;
-	for (int i = 0; i < num_voxels; ++i)
-	{
-		if ( ImageCore::GetInst()->m_vol_flag[i] == 255)
-		{
-			bForeExist = true;
-			break;
-		}
-	}
-
-	if (!bForeExist) 
+	if ( !ImageCore::GetInst()->bForeVoxelsExistInVolFlg () ) 
 	{
 		CLI_MessageBox_OK_Show("No foreground pixel exist\n", "caution");
 		return;

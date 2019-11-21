@@ -95,8 +95,6 @@ namespace RoiPainter3D {
     void redrawTransFuncPictBox();
     void PitchUpdated();
 
-
-
     bool  bRendFrame(){ return isRendFrame  ->Checked; }
     bool  bRendIndi (){ return isRendIndi   ->Checked; }   
     bool  bPlaneXY  (){ return isRendPlaneXY->Checked; }
@@ -115,9 +113,24 @@ namespace RoiPainter3D {
     void bindPsuImg(){ m_imgPsu->BindOgl(true ); }
 
 
+    void LockPitchBox(){
+      pitchX->ReadOnly = true;
+      pitchY->ReadOnly = true;
+      pitchZ->ReadOnly = true;
+    }
 
-      
+    void UnlockPitchBox(){
+      pitchX->ReadOnly = false;
+      pitchY->ReadOnly = false;
+      pitchZ->ReadOnly = false;
+    }
 
+    void SetPlanesCheck(bool bxy, bool byz, bool bzx){
+      isRendPlaneXY->Checked = bxy;
+      isRendPlaneYZ->Checked = byz;
+      isRendPlaneZX->Checked = bzx;
+    }
+    
 	protected:
 		/// <summary>
 		/// 使用中のリソースをすべてクリーンアップします。
@@ -681,4 +694,9 @@ namespace RoiPainter3D {
   inline void  formVisParam_bindTfImg (){ FormVisParam::getInst()->bindTfImg ();}
   inline void  formVisParam_bindPsuImg(){ FormVisParam::getInst()->bindPsuImg();}
 
+
+  inline void formVisParam_LockPitchBox  () { FormVisParam::getInst()->LockPitchBox(); }
+  inline void formVisParam_UnlockPitchBox() { FormVisParam::getInst()->UnlockPitchBox();}
+  inline void formVisParam_SetPlanesCheck( bool xy, bool yz, bool zx) { 
+                                              FormVisParam::getInst()->SetPlanesCheck(xy,yz,zx);}
 }

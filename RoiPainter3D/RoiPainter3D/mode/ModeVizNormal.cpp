@@ -51,6 +51,9 @@ void ModeVizNormal::StartMode()
   m_bL = m_bR = m_bM = false;
   formVisNorm_Show();
 
+  //Lock/Unlock pitch box 
+  formVisParam_UnlockPitchBox();
+
   std::cout << "ModeVizNormal...startMode DONE-----\n";
 }
 
