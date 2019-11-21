@@ -28,6 +28,11 @@
 //12. manual         TODO ---------
 
 
+//TODO 
+// File Export a ROI as OBJ
+// File Export a ROI as Binary Bmp
+// File Export a MASK as BMP
+
 using namespace RoiPainter3D;
 
 #define PW_CPSIZE_MIN 1.0f
