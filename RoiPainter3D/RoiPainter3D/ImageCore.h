@@ -170,6 +170,8 @@ public:
 
   void InitializeVolFlgByLockedMask(int fore_maskid = -1);
 
+  bool bForeVoxelsExistInVolFlg();
+
 private:
 	void UpdateGradMagnituteVolume();
 

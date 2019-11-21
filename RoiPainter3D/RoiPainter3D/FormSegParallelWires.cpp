@@ -9,7 +9,9 @@ using namespace System::Runtime::InteropServices;
 
 FormSegParallelWires::FormSegParallelWires(void)
 {
-	InitializeComponent();
+  InitializeComponent();
+  m_trackbar_cpsize->SetRange(0,100);
+  m_trackbar_cpsize->Value = 50;
 }
 
 
@@ -94,6 +96,25 @@ System::Void FormSegParallelWires::m_radiobtn_planezx_CheckedChanged(
 {
   FormMain::getInst()->redrawMainPanel();
 }
+
+
+System::Void FormSegParallelWires::m_checkbox_showwires_CheckedChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e)
+{
+  FormMain::getInst()->redrawMainPanel();
+}
+
+
+System::Void FormSegParallelWires::m_trackbar_cpsize_Scroll(
+    System::Object^  sender, 
+    System::EventArgs^  e)
+{
+  double rate = m_trackbar_cpsize->Value / 100.0;
+  ModeSegParallelWires::GetInst()->SetControlPointSize(rate);
+  FormMain::getInst()->redrawMainPanel();
+}
+
 
 
 

@@ -36,6 +36,8 @@ bool ModeSegThreshfieldPaint::CanLeaveMode()
 
 void ModeSegThreshfieldPaint::StartMode()
 {
+  //Lock/Unlock pitch box 
+  formVisParam_UnlockPitchBox();
 }
 
 

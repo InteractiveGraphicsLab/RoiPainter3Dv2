@@ -582,6 +582,135 @@ void CrssecCore::GenerateCurvedCrssec(const EVec3f &cube, const EVec3f &camP, co
 }
 
 
+
+
+//íçñ⁄ÇµÇƒÇ¢ÇÈì_Ç™ lasso ÇÃì‡ë§Ç≈Ç†ÇÈÇ©îªíË
+static bool t_IsInsideLasso
+(
+	const EVec3f &pos, 
+	const std::vector<EVec3f> &lasso_stroke, 
+	const CRSSEC_ID &id
+) 
+{ 
+  const int N = (int)lasso_stroke.size();
+
+	EVec3f axis = (id == CRSSEC_XY) ? EVec3f(0, 0, 1) :
+		            (id == CRSSEC_YZ) ? EVec3f(1, 0, 0) : EVec3f(0, 1, 0);
+
+	double sum = 0;
+  for( int i=0; i < N; ++i)
+  {
+		sum += t_CalcAngle(lasso_stroke[ i ]-pos, lasso_stroke[ (i==N-1)?0:i+1 ]-pos, axis);
+  }
+
+	return fabs(2 * M_PI - fabs(sum)) < M_PI * 0.5;
+}
+
+
+
+//lassoÇÃì‡ë§Ç…Ç†ÇÈvoxelÇ fore/backÇ…ïœçX
+//b_fore = true  --> vFlg 1   --> 255Ç…
+//b_fore = false --> vFlg 255 --> 1Ç…
+void t_AddPixsInsideLasso
+(
+	const CRSSEC_ID       id   ,
+	const EVec3i          reso ,
+	const EVec3f          pitch,
+	const vector<EVec3f> &lasso_stroke,
+	const bool            b_fore,
+
+   		  byte*  vFlg
+)
+{
+	const int W = reso[0];
+	const int H = reso[1];
+	const int D = reso[2], WH = W*H;
+
+  vector<EVec3f> lasso;
+  const int new_num = std::max( 10, std::min( (int)lasso_stroke.size(), (int)( t_verts_Length(lasso_stroke, true)/pitch[0]) ));
+
+  t_verts_ResampleEqualInterval( new_num, lasso_stroke, lasso);
+
+  //compute bounding box
+  EVec3f tmp_min, tmp_max;
+  t_CalcBoundingBox( lasso, tmp_min, tmp_max);
+  EVec3i bb_min ( (int) (tmp_min[0]/pitch[0] ), (int) (tmp_min[1]/pitch[1] ), (int) (tmp_min[2]/pitch[2] ) );
+  EVec3i bb_max ( (int) (tmp_max[0]/pitch[0] ), (int) (tmp_max[1]/pitch[1] ), (int) (tmp_max[2]/pitch[2] ) );
+  bb_min[0] = max( 0 ,bb_min[0] - 1);
+  bb_min[1] = max( 0 ,bb_min[1] - 1);
+  bb_min[2] = max( 0 ,bb_min[2] - 1);
+  bb_max[0] = min(W-1,bb_max[0] + 1);
+  bb_max[1] = min(H-1,bb_max[1] + 1);
+  bb_max[2] = min(D-1,bb_max[2] + 1);
+  
+	if (id == CRSSEC_XY) 
+  {
+		const float zpos = lasso.front()[2];
+		const int   zi   = (int)(zpos / pitch[2]);
+
+#pragma omp parallel for
+		for (int yi = bb_min[1]; yi < bb_max[1]; ++yi)
+    {
+		  for (int xi = bb_min[0]; xi < bb_max[0]; ++xi)
+		  {
+        int idx = xi + yi * W + zi * WH;
+        if( vFlg[idx] == 0 ) continue;
+			  if (  b_fore && vFlg[idx] ==255 ) continue;
+			  if ( !b_fore && vFlg[idx] ==1   ) continue;
+      
+			  EVec3f p((xi + 0.5f) * pitch[0], (yi + 0.5f) * pitch[1], zpos);
+        if ( t_IsInsideLasso(p, lasso, id) ) vFlg[idx] = b_fore ? 255 : 1;
+		  }
+    }
+	}
+	
+	if (id == CRSSEC_YZ) 
+  {
+		const float xpos = lasso.front()[0];
+		const int   xi   = (int)(xpos / pitch[0]);
+
+#pragma omp parallel for
+		for (int zi = bb_min[2]; zi < bb_max[2]; ++zi)
+    {
+		  for (int yi = bb_min[1]; yi < bb_max[1]; ++yi)
+		  {
+        int idx = xi + yi * W + zi * WH;
+        if( vFlg[idx] == 0 ) continue;
+        if (  b_fore && vFlg[idx] ==255 ) continue;
+			  if ( !b_fore && vFlg[idx] ==1   ) continue;
+
+			  EVec3f p(xpos, (yi + 0.5f) * pitch[1], (zi + 0.5f) * pitch[2]);
+        if ( t_IsInsideLasso(p, lasso, id) ) vFlg[idx] = b_fore ? 255 : 1;
+	    }
+    }
+  }
+
+	if (id == CRSSEC_ZX) 
+  {
+		const float ypos = lasso.front()[1];
+		const int   yi   = (int)(ypos / pitch[1]);
+
+#pragma omp parallel for
+		for (int zi = bb_min[2]; zi < bb_max[2]; ++zi)
+    {
+		  for (int xi = bb_min[0]; xi < bb_max[0]; ++xi)
+		  {
+        int idx = xi + yi * W + zi * WH;
+        if( vFlg[idx] == 0 ) continue;
+        if (  b_fore && vFlg[idx] ==255 ) continue;
+			  if ( !b_fore && vFlg[idx] ==1   ) continue;
+      
+			  EVec3f p((xi + 0.5f) * pitch[0], ypos, (zi + 0.5f) * pitch[2]);
+        if ( t_IsInsideLasso(p, lasso, id) ) vFlg[idx] = b_fore ? 255 : 1;
+		  }
+    }
+	}
+}
+
+
+
+
+
 #pragma managed
 
 

@@ -52,7 +52,6 @@ bool ModeRefStrokeTrim::CanLeaveMode()
 void ModeRefStrokeTrim::StartMode()
 {
 	m_b_modified = false;
-
   
   m_trgt_maskid = formMaskIdSelection_DoSingleSelection( 
     ImageCore::GetInst()->GetMaskData(), 
@@ -84,6 +83,9 @@ void ModeRefStrokeTrim::StartMode()
 	if( m_vol_prev ) delete[] m_vol_prev;
 	m_vol_prev = new byte[nun_voxels];
 	memcpy(m_vol_prev, &(msk3d[0]), sizeof(byte)*nun_voxels);
+
+  //Lock/Unlock pitch box
+  formVisParam_UnlockPitchBox();
 }
 
 

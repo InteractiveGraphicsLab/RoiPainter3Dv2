@@ -77,6 +77,8 @@ public:
   void DrawWire  (const EVec3f &offset, const EVec3f &color, float width) const;
 
   int GetNumCtrlPts() const { return (int) m_cps.size(); }
+  const std::vector<EVec3f> &GetCurve() const { return m_curve; }
+
 
   static void SetCtrlPtRadius(float r){
     m_cp_radius = r;
@@ -84,7 +86,7 @@ public:
   
   void exportCtrlPtInfo(std::ofstream &ofs) const;
   void importCtrlPtInfo(std::ifstream &ifs) ;
-
+  
 private:
   void UpdateCurveFromCPs( );
 };
@@ -149,6 +151,7 @@ public:
   void ImportWireInfo(std::string fname);
   void ExportWireInfo(std::string fname);
 
+  void SetControlPointSize(float size_01);
 
 private:
   CRSSEC_ID GetCurrentTrgtPlane();

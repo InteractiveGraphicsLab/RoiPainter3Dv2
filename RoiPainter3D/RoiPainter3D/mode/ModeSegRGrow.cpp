@@ -65,6 +65,10 @@ void ModeSegRGrow::StartMode()
 	EVec2i vol_minmax = ImageCore::GetInst()->GetVolMinMax();
   formSegRGrow_InitAllItems(vol_minmax[0],vol_minmax[1]);
   formSegRGrow_Show();
+
+  //Lock/Unlock pitch box 
+  //ピッチ変更によりseedがずれる可能性はあるがseed数が少ないのでpitch変更可能にしておく
+  formVisParam_UnlockPitchBox();
 }
 
 

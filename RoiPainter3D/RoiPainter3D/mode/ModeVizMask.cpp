@@ -40,6 +40,9 @@ void ModeVizMask::StartMode()
   m_bL = m_bR = m_bM = false;
   formVisMask_Show();
   formVisMask_updateList();
+
+  //Lock/Unlock pitch box 
+  formVisParam_UnlockPitchBox();
 }
 
 

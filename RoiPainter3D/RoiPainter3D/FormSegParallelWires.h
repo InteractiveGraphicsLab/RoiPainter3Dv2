@@ -37,6 +37,10 @@ namespace RoiPainter3D {
   bool IsTrgetZX(){
     return m_radiobtn_planezx->Checked;
   }
+  bool IsDrawAllWires(){
+    return m_checkbox_showwires->Checked;
+  }
+
 
 	protected:
 		/// <summary>
@@ -65,6 +69,12 @@ namespace RoiPainter3D {
     System::Windows::Forms::RadioButton^  m_radiobtn_planexy;
     System::Windows::Forms::RadioButton^  m_radiobtn_planeyz;
     System::Windows::Forms::RadioButton^  m_radiobtn_planezx;
+  private: System::Windows::Forms::Label^  m_label4;
+  private: System::Windows::Forms::TrackBar^  m_trackbar_cpsize;
+  private: System::Windows::Forms::CheckBox^  m_checkbox_showwires;
+
+
+
 
 
 	private:
@@ -91,16 +101,22 @@ namespace RoiPainter3D {
       this->m_btn_importwires = (gcnew System::Windows::Forms::Button());
       this->m_btn_finish = (gcnew System::Windows::Forms::Button());
       this->m_btn_cancel = (gcnew System::Windows::Forms::Button());
+      this->m_label4 = (gcnew System::Windows::Forms::Label());
+      this->m_trackbar_cpsize = (gcnew System::Windows::Forms::TrackBar());
+      this->m_checkbox_showwires = (gcnew System::Windows::Forms::CheckBox());
       this->m_groupbox->SuspendLayout();
+      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->m_trackbar_cpsize))->BeginInit();
       this->SuspendLayout();
       // 
       // m_label1
       // 
       this->m_label1->AutoSize = true;
+      this->m_label1->Font = (gcnew System::Drawing::Font(L"游ゴシック", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
       this->m_label1->Location = System::Drawing::Point(2, 7);
       this->m_label1->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
       this->m_label1->Name = L"m_label1";
-      this->m_label1->Size = System::Drawing::Size(270, 51);
+      this->m_label1->Size = System::Drawing::Size(297, 60);
       this->m_label1->TabIndex = 1;
       this->m_label1->Text = L"●Shift + L click : add control points\r\n# click on a cirve -> \"insert\" a point\r\n# "
         L"otherwise         -> add a point at the end";
@@ -108,20 +124,24 @@ namespace RoiPainter3D {
       // m_label3
       // 
       this->m_label3->AutoSize = true;
+      this->m_label3->Font = (gcnew System::Drawing::Font(L"游ゴシック", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
       this->m_label3->Location = System::Drawing::Point(2, 92);
       this->m_label3->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
       this->m_label3->Name = L"m_label3";
-      this->m_label3->Size = System::Drawing::Size(218, 17);
+      this->m_label3->Size = System::Drawing::Size(246, 20);
       this->m_label3->TabIndex = 2;
       this->m_label3->Text = L"●Shift + R/M click : remove point ";
       // 
       // m_label2
       // 
       this->m_label2->AutoSize = true;
+      this->m_label2->Font = (gcnew System::Drawing::Font(L"游ゴシック", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
       this->m_label2->Location = System::Drawing::Point(2, 66);
       this->m_label2->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
       this->m_label2->Name = L"m_label2";
-      this->m_label2->Size = System::Drawing::Size(240, 17);
+      this->m_label2->Size = System::Drawing::Size(268, 20);
       this->m_label2->TabIndex = 1;
       this->m_label2->Text = L"●Shift + L drag : move a control point";
       // 
@@ -132,7 +152,7 @@ namespace RoiPainter3D {
       this->m_groupbox->Controls->Add(this->m_radiobtn_planexy);
       this->m_groupbox->Location = System::Drawing::Point(11, 124);
       this->m_groupbox->Name = L"m_groupbox";
-      this->m_groupbox->Size = System::Drawing::Size(166, 58);
+      this->m_groupbox->Size = System::Drawing::Size(205, 58);
       this->m_groupbox->TabIndex = 5;
       this->m_groupbox->TabStop = false;
       this->m_groupbox->Text = L"Target Plane";
@@ -140,9 +160,9 @@ namespace RoiPainter3D {
       // m_radiobtn_planezx
       // 
       this->m_radiobtn_planezx->AutoSize = true;
-      this->m_radiobtn_planezx->Location = System::Drawing::Point(106, 27);
+      this->m_radiobtn_planezx->Location = System::Drawing::Point(147, 27);
       this->m_radiobtn_planezx->Name = L"m_radiobtn_planezx";
-      this->m_radiobtn_planezx->Size = System::Drawing::Size(42, 21);
+      this->m_radiobtn_planezx->Size = System::Drawing::Size(53, 26);
       this->m_radiobtn_planezx->TabIndex = 32;
       this->m_radiobtn_planezx->Text = L"ZX";
       this->m_radiobtn_planezx->UseVisualStyleBackColor = true;
@@ -151,9 +171,9 @@ namespace RoiPainter3D {
       // m_radiobtn_planeyz
       // 
       this->m_radiobtn_planeyz->AutoSize = true;
-      this->m_radiobtn_planeyz->Location = System::Drawing::Point(58, 27);
+      this->m_radiobtn_planeyz->Location = System::Drawing::Point(80, 27);
       this->m_radiobtn_planeyz->Name = L"m_radiobtn_planeyz";
-      this->m_radiobtn_planeyz->Size = System::Drawing::Size(42, 21);
+      this->m_radiobtn_planeyz->Size = System::Drawing::Size(53, 26);
       this->m_radiobtn_planeyz->TabIndex = 31;
       this->m_radiobtn_planeyz->Text = L"YZ";
       this->m_radiobtn_planeyz->UseVisualStyleBackColor = true;
@@ -165,7 +185,7 @@ namespace RoiPainter3D {
       this->m_radiobtn_planexy->Checked = true;
       this->m_radiobtn_planexy->Location = System::Drawing::Point(10, 27);
       this->m_radiobtn_planexy->Name = L"m_radiobtn_planexy";
-      this->m_radiobtn_planexy->Size = System::Drawing::Size(42, 21);
+      this->m_radiobtn_planexy->Size = System::Drawing::Size(53, 26);
       this->m_radiobtn_planexy->TabIndex = 30;
       this->m_radiobtn_planexy->TabStop = true;
       this->m_radiobtn_planexy->Text = L"XY";
@@ -174,9 +194,9 @@ namespace RoiPainter3D {
       // 
       // m_btn_exportwires
       // 
-      this->m_btn_exportwires->Location = System::Drawing::Point(12, 191);
+      this->m_btn_exportwires->Location = System::Drawing::Point(10, 280);
       this->m_btn_exportwires->Name = L"m_btn_exportwires";
-      this->m_btn_exportwires->Size = System::Drawing::Size(99, 23);
+      this->m_btn_exportwires->Size = System::Drawing::Size(112, 31);
       this->m_btn_exportwires->TabIndex = 6;
       this->m_btn_exportwires->Text = L"Export Wire";
       this->m_btn_exportwires->UseVisualStyleBackColor = true;
@@ -184,9 +204,9 @@ namespace RoiPainter3D {
       // 
       // m_btn_importwires
       // 
-      this->m_btn_importwires->Location = System::Drawing::Point(117, 191);
+      this->m_btn_importwires->Location = System::Drawing::Point(129, 280);
       this->m_btn_importwires->Name = L"m_btn_importwires";
-      this->m_btn_importwires->Size = System::Drawing::Size(99, 23);
+      this->m_btn_importwires->Size = System::Drawing::Size(112, 31);
       this->m_btn_importwires->TabIndex = 7;
       this->m_btn_importwires->Text = L"Import Wire";
       this->m_btn_importwires->UseVisualStyleBackColor = true;
@@ -196,10 +216,10 @@ namespace RoiPainter3D {
       // 
       this->m_btn_finish->Font = (gcnew System::Drawing::Font(L"游ゴシック", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->m_btn_finish->Location = System::Drawing::Point(106, 245);
+      this->m_btn_finish->Location = System::Drawing::Point(106, 331);
       this->m_btn_finish->Margin = System::Windows::Forms::Padding(2);
       this->m_btn_finish->Name = L"m_btn_finish";
-      this->m_btn_finish->Size = System::Drawing::Size(152, 38);
+      this->m_btn_finish->Size = System::Drawing::Size(193, 38);
       this->m_btn_finish->TabIndex = 28;
       this->m_btn_finish->Text = L"FINISH and store region";
       this->m_btn_finish->UseVisualStyleBackColor = true;
@@ -209,7 +229,7 @@ namespace RoiPainter3D {
       // 
       this->m_btn_cancel->Font = (gcnew System::Drawing::Font(L"游ゴシック", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->m_btn_cancel->Location = System::Drawing::Point(8, 245);
+      this->m_btn_cancel->Location = System::Drawing::Point(8, 331);
       this->m_btn_cancel->Margin = System::Windows::Forms::Padding(2);
       this->m_btn_cancel->Name = L"m_btn_cancel";
       this->m_btn_cancel->Size = System::Drawing::Size(94, 38);
@@ -218,11 +238,48 @@ namespace RoiPainter3D {
       this->m_btn_cancel->UseVisualStyleBackColor = true;
       this->m_btn_cancel->Click += gcnew System::EventHandler(this, &FormSegParallelWires::m_btn_cancel_Click);
       // 
+      // m_label4
+      // 
+      this->m_label4->AutoSize = true;
+      this->m_label4->Font = (gcnew System::Drawing::Font(L"游ゴシック", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+        static_cast<System::Byte>(128)));
+      this->m_label4->Location = System::Drawing::Point(4, 189);
+      this->m_label4->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->m_label4->Name = L"m_label4";
+      this->m_label4->Size = System::Drawing::Size(130, 20);
+      this->m_label4->TabIndex = 30;
+      this->m_label4->Text = L"Control Point Size";
+      // 
+      // m_trackbar_cpsize
+      // 
+      this->m_trackbar_cpsize->Location = System::Drawing::Point(6, 210);
+      this->m_trackbar_cpsize->Name = L"m_trackbar_cpsize";
+      this->m_trackbar_cpsize->Size = System::Drawing::Size(210, 56);
+      this->m_trackbar_cpsize->TabIndex = 31;
+      this->m_trackbar_cpsize->TickStyle = System::Windows::Forms::TickStyle::None;
+      this->m_trackbar_cpsize->Scroll += gcnew System::EventHandler(this, &FormSegParallelWires::m_trackbar_cpsize_Scroll);
+      // 
+      // m_checkbox_showwires
+      // 
+      this->m_checkbox_showwires->AutoSize = true;
+      this->m_checkbox_showwires->Checked = true;
+      this->m_checkbox_showwires->CheckState = System::Windows::Forms::CheckState::Checked;
+      this->m_checkbox_showwires->Location = System::Drawing::Point(10, 251);
+      this->m_checkbox_showwires->Name = L"m_checkbox_showwires";
+      this->m_checkbox_showwires->Size = System::Drawing::Size(142, 26);
+      this->m_checkbox_showwires->TabIndex = 32;
+      this->m_checkbox_showwires->Text = L"show all wires";
+      this->m_checkbox_showwires->UseVisualStyleBackColor = true;
+      this->m_checkbox_showwires->CheckedChanged += gcnew System::EventHandler(this, &FormSegParallelWires::m_checkbox_showwires_CheckedChanged);
+      // 
       // FormSegParallelWires
       // 
-      this->AutoScaleDimensions = System::Drawing::SizeF(8, 17);
+      this->AutoScaleDimensions = System::Drawing::SizeF(9, 21);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(269, 293);
+      this->ClientSize = System::Drawing::Size(309, 377);
+      this->Controls->Add(this->m_checkbox_showwires);
+      this->Controls->Add(this->m_trackbar_cpsize);
+      this->Controls->Add(this->m_label4);
       this->Controls->Add(this->m_btn_finish);
       this->Controls->Add(this->m_btn_cancel);
       this->Controls->Add(this->m_btn_importwires);
@@ -237,6 +294,7 @@ namespace RoiPainter3D {
       this->Text = L"FormSegParallelWires";
       this->m_groupbox->ResumeLayout(false);
       this->m_groupbox->PerformLayout();
+      (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->m_trackbar_cpsize))->EndInit();
       this->ResumeLayout(false);
       this->PerformLayout();
 
@@ -250,6 +308,8 @@ namespace RoiPainter3D {
     System::Void m_radiobtn_planexy_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
     System::Void m_radiobtn_planeyz_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
     System::Void m_radiobtn_planezx_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
+    System::Void m_checkbox_showwires_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
+    System::Void m_trackbar_cpsize_Scroll(System::Object^  sender, System::EventArgs^  e);
 };
 
   inline void FormSegParallelWires_Hide(){
@@ -270,9 +330,8 @@ namespace RoiPainter3D {
   }
 
   inline bool FormParallelWires_bDrawAllWires(){
-    return true;
+    return FormSegParallelWires::GetInst()->IsDrawAllWires();
   }
-
 
 
 }
