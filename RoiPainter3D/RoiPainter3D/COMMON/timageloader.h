@@ -134,3 +134,50 @@ inline void t_saveImage(
 }
 
 
+
+inline void t_saveImage_gray(
+  const char *fname,
+  const int &W,
+  const int &H,
+  const unsigned char* intensity)
+{
+
+  System::Drawing::Bitmap^ bmp = gcnew System::Drawing::Bitmap(W, H, System::Drawing::Imaging::PixelFormat::Format32bppRgb);
+
+  System::Drawing::Imaging::BitmapData ^bmpData = bmp->LockBits(
+      System::Drawing::Rectangle(0, 0, W, H),
+      System::Drawing::Imaging::ImageLockMode::WriteOnly,
+      bmp->PixelFormat);
+
+  unsigned char* pBuf = (unsigned char*)bmpData->Scan0.ToPointer();
+
+
+  //32bit BGRA BGRABGRA...
+
+  int BitNum = bmp->GetPixelFormatSize(bmp->PixelFormat);
+  int Step = BitNum / 8;
+
+  for (int y = 0; y < H; y++)
+  {
+    for (int x = 0; x < W; x++)
+    {
+      const int I = x + y*W;
+      pBuf[x * Step + 0 + y * bmpData->Stride] = intensity[I]; //B 
+      pBuf[x * Step + 1 + y * bmpData->Stride] = intensity[I]; //G 
+      pBuf[x * Step + 2 + y * bmpData->Stride] = intensity[I]; //R
+    }
+  }
+
+  System::String ^fname_str = gcnew System::String(fname);
+  System::String ^ext = System::IO::Path::GetExtension(fname_str)->ToLower();
+
+  if (ext == ".bmp") bmp->Save(fname_str, System::Drawing::Imaging::ImageFormat::Bmp);
+  else if (ext == ".jpg") bmp->Save(fname_str, System::Drawing::Imaging::ImageFormat::Jpeg);
+  else if (ext == ".png") bmp->Save(fname_str, System::Drawing::Imaging::ImageFormat::Png);
+  else if (ext == ".tif") bmp->Save(fname_str, System::Drawing::Imaging::ImageFormat::Tiff);
+
+  delete(bmp);
+  delete(fname_str);
+}
+
+

@@ -8,6 +8,9 @@
 #include "./3rdParty/dcmtk/tdcmtk.h"
 #include "./3rdparty/vvv/ddsbase.h"
 
+#include "FormIntegerSelection.h"
+
+
 #include "./Mode/ModeSegGCut.h"
 #include <iostream>
 
@@ -1006,12 +1009,14 @@ void ImageCore::FillHole( std::set<int> &ids )
 
 
 
-
-
-
 void ImageCore::ActiveMask_ExportObj  (const string &fname)
 {
   if ( m_active_maskid <= 0 || m_mask_data.size() <= m_active_maskid) return;
+
+  const char* message = "Smoothing Time? (平滑化回数を指定)";
+  int smoothing_n;
+  FormIntegerSelection_doModal( 2, 0, 100, message, smoothing_n );
+
 
   const int N = GetNumVoxels();
 
@@ -1023,11 +1028,110 @@ void ImageCore::ActiveMask_ExportObj  (const string &fname)
 
   TMesh mesh;
   marchingcubes::t_MarchingCubes(m_resolution, m_pitch, v, 128, 0, 0, mesh);
-  mesh.smoothing(2);
+  mesh.smoothing(smoothing_n);
   mesh.exportObjNoTexCd(fname.c_str());
 
   delete[] v;
 }
+
+
+
+void ImageCore::ExportMaskIDsAsOneMesh   ( std::set<int> mask_ids, const char *fname )
+{
+  const char* message = "Smoothing Time? (平滑化回数を指定)";
+  int smoothing_n;
+  FormIntegerSelection_doModal( 2, 0, 100, message, smoothing_n );
+
+  //vector[]のアクセスが遅いので配列を作成
+  byte mask_b_trgt[256] = {0};
+  for( auto id : mask_ids ) mask_b_trgt[id] = 1;
+  
+  //generate binary volume
+  const int N = GetNumVoxels();
+  short *v = new short[N];
+
+  for (int i = 0; i < N; ++i) 
+  {
+    v[i] = ( mask_b_trgt[ m_vol_mask[i] ] ) ? 255 : 0;
+  }
+
+  TMesh mesh;
+  marchingcubes::t_MarchingCubes( m_resolution, m_pitch, v, 128, 0, 0, mesh);
+  mesh.smoothing(smoothing_n);
+  mesh.exportObjNoTexCd( fname );
+
+  delete[] v; 
+}
+
+
+
+void ImageCore::ExportAllMaskIdAsBmpSlice( const char *fname )
+{ 
+  int W, H, D, WH, WHD;
+  std::tie(W,H,D,WH,WHD) = GetResolution5();
+
+  OGLImage2D4 img;
+  img.Allocate(W,H);
+
+  for ( int z = 0; z < D; ++z )
+  {
+    for ( int y = 0; y < H; ++y )
+    {
+      for ( int x = 0; x < W; ++x )
+      {
+        EVec3i &c = m_mask_data[ m_vol_mask[x + y*W + z*WH] ].m_color;
+        img[4*(x + y*W) + 0] = c[0];
+        img[4*(x + y*W) + 1] = c[1];
+        img[4*(x + y*W) + 2] = c[2];
+      }
+    }
+    string bmp_name = string(fname);                     
+
+    if      ( z < 10  ) bmp_name += string("000");
+    else if ( z < 100 ) bmp_name += string("00") ;
+    else if ( z < 1000) bmp_name += string("0")  ;
+    bmp_name += std::to_string(z) + string(".bmp");
+    
+    img.SaveAs( bmp_name.c_str() );
+  }
+}
+
+
+
+
+void ImageCore::ExportOneMaskIdAsBmpSlice( int mask_id, const char *fname)
+{
+  int W, H, D, WH, WHD;
+  std::tie(W,H,D,WH,WHD) = GetResolution5();
+
+  OGLImage2D1 img;
+  img.Allocate(W,H);
+
+  for ( int z = 0; z < D; ++z )
+  {
+    for ( int y = 0; y < H; ++y )
+    {
+      for ( int x = 0; x < W; ++x )
+      {
+        if ( m_vol_mask[x + y*W + z*WH] == mask_id ) 
+          img[x + y*W ] = 255;
+        else 
+          img[x + y*W ] = 0;
+      }
+    }
+    string bmp_name = string(fname);                     
+
+    if      ( z < 10  ) bmp_name += string("000");
+    else if ( z < 100 ) bmp_name += string("00") ;
+    else if ( z < 1000) bmp_name += string("0")  ;
+    bmp_name += std::to_string(z) + string(".bmp");
+    
+    img.SaveAs( bmp_name.c_str() );
+  }
+}
+
+
+
 
 
 

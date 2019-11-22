@@ -14,6 +14,10 @@
 #include "FormSegLocalRGrow.h"
 #include "FormSegParallelWires.h"
 #include "FormRefStrokeTrim.h"
+#include "formMaskIdSelection.h"
+#include "FormIntegerSelection.h"
+
+
 #include "climessagebox.h"
 #include <iostream>
 
@@ -239,12 +243,14 @@ static void t_drawFrame(const EVec3f &c)
     glVertex3d(   0, c[1],    0); glVertex3d(   0, c[1], c[2]);
   glEnd();
 
+  glTranslated(-0.1, -0.1, -0.1);
   glDisable(GL_LIGHTING);
   glBegin(GL_LINES);
     glColor3d(1, 0, 0); glVertex3d(0, 0, 0); glVertex3d(10, 0, 0);
     glColor3d(0, 1, 0); glVertex3d(0, 0, 0); glVertex3d(0, 10, 0);
     glColor3d(0, 0, 1); glVertex3d(0, 0, 0); glVertex3d(0, 0, 10);
   glEnd();
+  glTranslated( 0.1,  0.1,  0.1);
 }
 
 
@@ -531,26 +537,89 @@ System::Void FormMain::loadMaskmskToolStripMenuItem_Click(System::Object^  sende
 
 
 
-//
-System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) 
+
+// Export functions fav
+System::Void FormMain::saveMaskfavbToolStripMenuItem_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e
+    )
 {
+  CLI_MessageBox_OK_Show( "This function is under construction", "message" );
+}
+
+
+
+System::Void FormMain::exportROIsAsMesh_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e
+) 
+{
+  std::set<int> mask_ids = formMaskIdSelection_DoMultiSelection( 
+                             ImageCore::GetInst()->GetMaskData(), 
+                             ImageCore::GetInst()->GetActiveMaskID());
+  if( mask_ids.empty() ) return;
+  
+  string filter = "export obj mesh name (*.obj)|*.obj";
   string fname;
-  if( !t_showSaveFileDlg("traw3d signed short file (*.traw3D_ss)|*.traw3D_ss", fname) ) return;
+  if( !t_showSaveFileDlg( filter.c_str(), fname) ) return;
+
+
+  ImageCore::GetInst()->ExportMaskIDsAsOneMesh( mask_ids, fname.c_str() );
+  
+
+}
+
+System::Void FormMain::exportROIsAsBmpImage_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e
+    ) 
+{
+  string filter = "Export bmp file name (*)|*";
+  string fname;
+  if( !t_showSaveFileDlg( filter.c_str(), fname) ) return;
+  
+  ImageCore::GetInst()->ExportAllMaskIdAsBmpSlice( fname.c_str() );
+
+  
+}
+
+
+
+
+
+System::Void FormMain::exportAROIAsBmpImage_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+  int mask_id = formMaskIdSelection_DoSingleSelection( 
+    ImageCore::GetInst()->GetMaskData(), 
+    ImageCore::GetInst()->GetActiveMaskID());
+
+  if ( mask_id == -1 ) return;
+  
+  string filter = "Export bmp file name (*)|*";
+  string fname;
+  if( !t_showSaveFileDlg( filter.c_str(), fname) ) return;
+  
+  ImageCore::GetInst()->ExportOneMaskIdAsBmpSlice(mask_id, fname.c_str());
+}
+
+
+
+//
+System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e
+    ) 
+{
+  string filter = "traw3d signed short file (*.traw3D_ss)|*.traw3D_ss";
+  string fname;
+  if( !t_showSaveFileDlg( filter.c_str(), fname) ) return;
   ImageCore::GetInst()->SaveVolumeAsTraw3dss(fname.c_str());
 }
 
 
-//fav
-System::Void FormMain::saveMaskfavbToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
-{
-  CLI_MessageBox_OK_Show( "export mask as fab is under construction", "message" );
-}
 
-
-System::Void FormMain::exportMaskAsMeshobjToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
-{
-  CLI_MessageBox_OK_Show( "export mask as mesh (obj) is under construction", "message" );
-}
 
 
 

@@ -304,7 +304,7 @@ public:
   //bmp/png/tif/jpeg (only 24 bit color image) are supported
   //‰æ‘œ¶ã‚ªŒ´“_‚Æ‚È‚é‚Ì‚ÅAOpenGL—˜—p‚ÌÛ‚Íflip‚·‚é
   bool Allocate(const char *fname);
-  bool SaveAs(const char *fname, int flg_BmpJpgPngTiff);
+  bool SaveAs(const char *fname);
 
 
   //should be wglMakeCurrent
@@ -392,12 +392,18 @@ inline bool OglImage2D<CH_RGBA>::Allocate(const char *fname)
 }
 
 
-inline bool OglImage2D<CH_RGBA>::SaveAs(const char *fname, int flg_BmpJpgPngTiff)
+inline bool OglImage2D<CH_RGBA>::SaveAs(const char *fname)
 {
   t_saveImage(fname, m_resolution[0], m_resolution[1], m_image);
   return true;
 }
 
+
+inline bool OglImage2D<CH_INTES>::SaveAs(const char *fname)
+{
+  t_saveImage_gray(fname, m_resolution[0], m_resolution[1], m_image);
+  return true;
+}
 
 inline void OglImage2D<CH_RGBA>::SetGrayValue_normalize(float* image)
 {

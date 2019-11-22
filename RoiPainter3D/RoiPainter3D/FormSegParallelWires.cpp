@@ -110,10 +110,12 @@ System::Void FormSegParallelWires::m_trackbar_cpsize_Scroll(
     System::Object^  sender, 
     System::EventArgs^  e)
 {
-  double rate = m_trackbar_cpsize->Value / 100.0;
+  float rate = m_trackbar_cpsize->Value / 100.0f;
   ModeSegParallelWires::GetInst()->SetControlPointSize(rate);
   FormMain::getInst()->redrawMainPanel();
 }
+
+
 
 
 

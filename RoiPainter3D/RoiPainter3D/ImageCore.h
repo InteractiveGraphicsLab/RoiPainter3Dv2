@@ -172,6 +172,13 @@ public:
 
   bool bForeVoxelsExistInVolFlg();
 
+
+  void ExportMaskIDsAsOneMesh   ( std::set<int> mask_ids, const char *fname );
+  void ExportAllMaskIdAsBmpSlice( const char *fname );
+  void ExportOneMaskIdAsBmpSlice( int mask_id, const char *fname);
+
+
+
 private:
 	void UpdateGradMagnituteVolume();
 
