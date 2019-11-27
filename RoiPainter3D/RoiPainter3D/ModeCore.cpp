@@ -48,6 +48,7 @@ void ModeCore::ModeSwitch(MODE_ID m)
   else if (m == MODE_SEG_VOXPAINT  ) { m_mode = ModeSegVoxelPaint   ::GetInst(); m_mode_id = m; }
   else if (m == MODE_SEG_PARAWIRE  ) { m_mode = ModeSegParallelWires::GetInst(); m_mode_id = m; }
   else if (m == MODE_REF_STRKTRIM  ) { m_mode = ModeRefStrokeTrim   ::GetInst(); m_mode_id = m; }
+  else if (m == MODE_REF_VOXPAINT  ) { m_mode = ModeSegVoxelPaint   ::GetInst(); m_mode_id = m; }
   else if (m == MODE_SEG_LCLRGROW  ) { m_mode = ModeSegLocalRGrow   ::GetInst(); m_mode_id = m; }
   else	                             { m_mode = ModeVizNormal::getInst(); m_mode_id = MODE_VIS_NORMAL; }
 
