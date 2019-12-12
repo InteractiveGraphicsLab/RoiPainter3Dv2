@@ -74,7 +74,7 @@ void ModeVizMask::LBtnUp(const EVec2i &p, OglForCLI *ogl)
   m_bDrawStr = false;
   
   ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeVizMask::RBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -87,7 +87,7 @@ void ModeVizMask::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bR = false;
   ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 }
 
 
@@ -101,7 +101,7 @@ void ModeVizMask::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = false;
   ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 }
 
 
@@ -122,7 +122,7 @@ void ModeVizMask::MouseMove(const EVec2i &p, OglForCLI *ogl)
   else{
     ogl->MouseMove(p);
   }
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 }
 
 
@@ -130,10 +130,10 @@ void ModeVizMask::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
   if( !PickToMoveCrossSecByWheeling(p, ogl, z_delta ) )
   {
-    ogl->ZoomCam(z_delta * 0.1f);
+    ogl->ZoomCamByWheel( z_delta );
   }
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 

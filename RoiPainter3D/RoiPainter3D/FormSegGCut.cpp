@@ -30,7 +30,7 @@ FormSegGCut::FormSegGCut(void)
 System::Void FormSegGCut::btn_clearAllCPs_Click(System::Object^  sender, System::EventArgs^  e) 
 {
   ModeSegGCut::getInst()->ClearAllCPs();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 System::Void FormSegGCut::trackBar_lambda_Scroll(System::Object^  sender, System::EventArgs^  e) {
@@ -55,9 +55,9 @@ System::Void FormSegGCut::rbtn_thick3_CheckedChanged(System::Object^  sender, Sy
 System::Void FormSegGCut::checkBox_bandOnlyBack_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {}
 System::Void FormSegGCut::btn_canel_Click(System::Object^ sender, System::EventArgs^   e) {
   ModeSegGCut::getInst()->CancelSegmentation();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 System::Void FormSegGCut::btn_finish_Click(System::Object^ sender, System::EventArgs^  e) {
   ModeSegGCut::getInst()->FinishSegmemntation();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }

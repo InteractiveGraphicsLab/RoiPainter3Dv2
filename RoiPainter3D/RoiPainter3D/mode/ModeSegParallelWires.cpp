@@ -206,6 +206,7 @@ void ModeSegParallelWires::FinishSegmentation()
   
   ImageCore::GetInst()->StoreForegroundAsNewMask();
   ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
+	RedrawScene();	
 }
 
 
@@ -222,7 +223,7 @@ void ModeSegParallelWires::CancelSegmentation()
   m_wires_zx.clear();
 
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	FormMain_RedrawMainPanel();	
+	RedrawScene();	
 }
 
 
@@ -265,7 +266,7 @@ void ModeSegParallelWires::LBtnDown  (const EVec2i &p, OglForCLI *ogl)
       m_draging_cpid << wireidx, idx;
     }
 
-    FormMain_RedrawMainPanel();
+    RedrawScene();
   }
   else
   {
@@ -296,7 +297,7 @@ void ModeSegParallelWires::RBtnDown  (const EVec2i &p, OglForCLI *ogl)
     {
       m_wires_zx[ m_planezx_idx ].PickToEraseCtrlPt( rayp, rayd );
     }
-    FormMain_RedrawMainPanel();
+    RedrawScene();
   }
   else
   {
@@ -328,7 +329,7 @@ void ModeSegParallelWires::MBtnDown  (const EVec2i &p, OglForCLI *ogl)
       m_wires_zx[ m_planezx_idx ].PickToEraseCtrlPt( rayp, rayd );
     }
 
-    FormMain_RedrawMainPanel();
+    RedrawScene();
 
   }
   else
@@ -385,7 +386,7 @@ void ModeSegParallelWires::MouseMove (const EVec2i &p, OglForCLI *ogl)
 		ogl->MouseMove(p);
   }
 
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 
 }
 
@@ -433,7 +434,7 @@ void ModeSegParallelWires::MouseWheel(
     CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
   } 
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -477,7 +478,7 @@ void ModeSegParallelWires::KeyDown(int nChar)
       float zx_pos = (m_planezx_idx + 0.5f) * (1.0f / H);
       CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
     } 
-    FormMain_RedrawMainPanel();
+    RedrawScene();
   }
 
 }

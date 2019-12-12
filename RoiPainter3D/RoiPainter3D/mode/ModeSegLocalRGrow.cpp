@@ -87,7 +87,7 @@ void ModeSegLocalRGrow::FinishSegmentation()
   m_seeds.clear();
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -96,7 +96,7 @@ void ModeSegLocalRGrow::CancelSegmentation()
   m_seeds.clear();
   formSegLocalRGrow_updateAllItems();
   ModeCore::GetInst()->ModeSwitch(MODE_VIS_NORMAL);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -174,7 +174,7 @@ void ModeSegLocalRGrow::AddNewSeed(bool bForeSeed)
   }
 
   formSegLocalRGrow_updateAllItems();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -217,7 +217,7 @@ void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
     ogl->BtnDown_Trans(p);
   }
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -234,7 +234,7 @@ void ModeSegLocalRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
   m_bL = false;
 	m_drag_seedcp_id << -1, -1;
 	ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -267,7 +267,7 @@ void ModeSegLocalRGrow::RBtnDown(const EVec2i &p, OglForCLI *ogl)
     ogl->BtnDown_Rot(p);
   }
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -277,7 +277,7 @@ void ModeSegLocalRGrow::RBtnUp(const EVec2i &p, OglForCLI *ogl)
   ogl->BtnUp();
   m_bR = false;
   m_drag_seedcp_id << -1, -1;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -286,7 +286,6 @@ void ModeSegLocalRGrow::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = true;
   ogl->BtnDown_Zoom(p);
-  FormMain_RedrawMainPanel();
 }
 
 void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
@@ -294,7 +293,7 @@ void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
   ogl->BtnUp();
 	m_bM = false;
 	m_drag_seedcp_id << -1, -1;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -358,7 +357,7 @@ void ModeSegLocalRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
 		ogl->MouseMove( p );
 	}
 
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 }
 
 
@@ -376,20 +375,20 @@ void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *og
 	{
     PickToMoveCrossSecByWheeling(p, ogl, z_delta );
 	}
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
 
 void ModeSegLocalRGrow::KeyDown(int nChar) 
 { 
-  FormMain_RedrawMainPanel(); 
+  RedrawScene(); 
 }
 
 
 void ModeSegLocalRGrow::KeyUp  (int nChar) 
 {
-  FormMain_RedrawMainPanel(); 
+  RedrawScene(); 
 }
 
 

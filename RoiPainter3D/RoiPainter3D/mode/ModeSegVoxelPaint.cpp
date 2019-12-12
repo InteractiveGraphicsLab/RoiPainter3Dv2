@@ -142,7 +142,7 @@ void ModeSegVoxelPaint::FinishSegmentation()
 void ModeSegVoxelPaint::CancelSegmentation()
 {
     ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-    FormMain_RedrawMainPanel();
+    RedrawScene();
 }
 
 
@@ -250,7 +250,7 @@ void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 	m_paint_voxels.clear();
 	m_bL = m_b_paintmode = m_b_lassomode = false;
 	ogl->BtnUp();
-	FormMain_RedrawMainPanel();
+	RedrawScene();
 }
 
 
@@ -276,16 +276,16 @@ void ModeSegVoxelPaint::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 
 	m_lasso.clear();
 	m_paint_voxels.clear();
-	m_bL = m_b_paintmode = m_b_lassomode = false;
+	m_bR = m_b_paintmode = m_b_lassomode = false;
 	ogl->BtnUp();
-	FormMain_RedrawMainPanel();
+	RedrawScene();
 }
 
 void ModeSegVoxelPaint::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = false;
   ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -318,7 +318,9 @@ void ModeSegVoxelPaint::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	{
 		ogl->MouseMove(p);
 	}	
-  FormMain_RedrawMainPanel();
+  RedrawScene(true);
+  ‚±‚±‚©‚ç‚â‚é
+  opengl‚ð‹¤—L‚·‚é‚Æs—ñ‚ª‚¨‚©‚µ‚­‚È‚é‚Ì‚Åpush‚·‚ê‚Î‚¨‚‹‚È‚Í‚¸
 }
 
 
@@ -327,10 +329,10 @@ void ModeSegVoxelPaint::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *og
 {
   if( !PickToMoveCrossSecByWheeling(p, ogl, z_delta) )
   {
-    ogl->ZoomCam(z_delta * 0.1f);
+    ogl->ZoomCamByWheel( z_delta );
   }
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -342,11 +344,11 @@ void ModeSegVoxelPaint::MBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
 
 
 void ModeSegVoxelPaint::KeyDown(int nChar) {
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeSegVoxelPaint::KeyUp(int nChar) {
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 

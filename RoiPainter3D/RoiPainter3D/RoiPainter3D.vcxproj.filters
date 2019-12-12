@@ -156,6 +156,9 @@
     <ClInclude Include="FormSegParallelWires.h">
       <Filter>MODE</Filter>
     </ClInclude>
+    <ClInclude Include="FormSubView.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -267,6 +270,9 @@
     </ClCompile>
     <ClCompile Include="FormSegParallelWires.cpp">
       <Filter>MODE</Filter>
+    </ClCompile>
+    <ClCompile Include="FormSubView.cpp">
+      <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

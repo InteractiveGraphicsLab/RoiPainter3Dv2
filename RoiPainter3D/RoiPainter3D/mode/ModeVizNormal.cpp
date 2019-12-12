@@ -83,7 +83,8 @@ void ModeVizNormal::LBtnUp(const EVec2i &p, OglForCLI *ogl)
   m_bDrawStr = false;
   m_bL = false;
   ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+
+  RedrawScene();
 }
 
 void ModeVizNormal::RBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -96,7 +97,7 @@ void ModeVizNormal::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bR = false;
   ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 }
 
 void ModeVizNormal::MBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -109,7 +110,7 @@ void ModeVizNormal::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = false;
   ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 }
 
 
@@ -138,12 +139,12 @@ void ModeVizNormal::MouseMove(const EVec2i &p, OglForCLI *ogl)
   if (m_bDrawStr)
   {
     m_stroke.push_back(rayP + 0.1f * rayD);
-    FormMain_RedrawMainPanel();
+    RedrawScene(false);
   }
   else if (m_bL || m_bR || m_bM)
   {
     ogl->MouseMove(p);
-    FormMain_RedrawMainPanel();
+    RedrawScene(false);
   }
 }
 
@@ -152,9 +153,9 @@ void ModeVizNormal::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
   if( !PickToMoveCrossSecByWheeling(p, ogl, zDelta ) )
   {
-    ogl->ZoomCam(zDelta * 0.1f);
+    ogl->ZoomCamByWheel( zDelta );
   }
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 

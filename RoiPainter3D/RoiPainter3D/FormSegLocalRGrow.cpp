@@ -186,7 +186,7 @@ System::Void FormSegLocalRGrow::trackBar_radius_Scroll(System::Object^  sender, 
   if( 0 <= activeSeedId && activeSeedId < seeds.size())
     seeds[activeSeedId].m_radius = val;
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -194,7 +194,7 @@ System::Void FormSegLocalRGrow::trackBar_radius_Scroll(System::Object^  sender, 
 System::Void FormSegLocalRGrow::btn_runLocalRGrow_Click(System::Object^  sender, System::EventArgs^  e) 
 {
   ModeSegLocalRGrow::GetInst()->RunLocalRegionGrow();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -202,24 +202,24 @@ System::Void FormSegLocalRGrow::btn_runLocalRGrow_Click(System::Object^  sender,
 System::Void FormSegLocalRGrow::btn_cancel_Click(System::Object^  sender, System::EventArgs^  e) 
 {
   ModeSegLocalRGrow::GetInst()->CancelSegmentation();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
 System::Void FormSegLocalRGrow::btn_finish_Click(System::Object^  sender, System::EventArgs^  e) 
 {
   ModeSegLocalRGrow::GetInst()->FinishSegmentation();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 System::Void FormSegLocalRGrow::button_addforeseed_Click(System::Object^  sender, System::EventArgs^  e)
 {
   ModeSegLocalRGrow::GetInst()->AddNewSeed(true);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 System::Void FormSegLocalRGrow::button_addbackseed_Click(System::Object^  sender, System::EventArgs^  e)
 {
   ModeSegLocalRGrow::GetInst()->AddNewSeed(false);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }

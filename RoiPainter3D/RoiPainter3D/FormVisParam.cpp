@@ -184,7 +184,7 @@ void FormVisParam::pitchTextBoxChanged()
   pitchY->Text = pitch[1].ToString("F5");
   pitchZ->Text = pitch[2].ToString("F5");
   ImageCore::GetInst()->SetPitch( pitch );
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 System::Void FormVisParam::pitchX_TextChanged(System::Object^  sender, System::EventArgs^  e) {
   pitchTextBoxChanged();
@@ -217,7 +217,7 @@ System::Void FormVisParam::winLevelMinBar_MouseUp(System::Object^  sender, Syste
 
   updateHistogramBmp();
   redrawTransFuncPictBox();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 System::Void FormVisParam::winLevelMaxBar_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) 
@@ -229,34 +229,34 @@ System::Void FormVisParam::winLevelMaxBar_MouseUp(System::Object^  sender, Syste
 
   updateHistogramBmp();
   redrawTransFuncPictBox();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
 
-System::Void FormVisParam::isRendFrame_CheckedChanged    (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendVolume_CheckedChanged   (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendPseudo_CheckedChanged   (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendIndi_CheckedChanged     (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendPlaneXY_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendPlaneYZ_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendPlaneZX_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
-System::Void FormVisParam::isRendGradMag_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
-System::Void FormVisParam::doInterpolation_CheckedChanged(System::Object^  sender, System::EventArgs^  e){ FormMain_RedrawMainPanel();}
-System::Void FormVisParam::transBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {FormMain_RedrawMainPanel();}
-System::Void FormVisParam::sliceBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {FormMain_RedrawMainPanel();}
+System::Void FormVisParam::isRendFrame_CheckedChanged    (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::isRendVolume_CheckedChanged   (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::isRendPseudo_CheckedChanged   (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::isRendIndi_CheckedChanged     (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::isRendPlaneXY_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::isRendPlaneYZ_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::isRendPlaneZX_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::isRendGradMag_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::doInterpolation_CheckedChanged(System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::transBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {RedrawScene();}
+System::Void FormVisParam::sliceBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {RedrawScene();}
 
 System::Void FormVisParam::isWhite_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
   FormMain_SetBkColor(1,1,1);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 System::Void FormVisParam::isBlack_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
   FormMain_SetBkColor(  0,  0,  0);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 System::Void FormVisParam::isGray_CheckedChanged(System::Object^  sender, System::EventArgs^  e)  {
   FormMain_SetBkColor(0.5f,0.5f,0.5f);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 

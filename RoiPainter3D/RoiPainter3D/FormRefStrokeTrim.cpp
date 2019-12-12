@@ -6,9 +6,9 @@
 using namespace RoiPainter3D;
 System::Void FormRefStrokeTrim::btn_cancel_Click(System::Object^  sender, System::EventArgs^  e){
   ModeRefStrokeTrim::GetInst()->cancelSegmentation();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 System::Void FormRefStrokeTrim::btn_finish_Click(System::Object^  sender, System::EventArgs^  e){
   ModeRefStrokeTrim::GetInst()->finishSegmentation();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }

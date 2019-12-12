@@ -3,6 +3,8 @@
 #include "COMMON/OglForCLI.h"
 #include "COMMON/OglImage.h"
 
+#include "FormSubView.h"
+
 
 namespace RoiPainter3D {
 
@@ -31,6 +33,14 @@ namespace RoiPainter3D {
   private: System::Windows::Forms::ToolStripMenuItem^  segmentationParallelWiresToolStripMenuItem;
   private: System::Windows::Forms::ToolStripMenuItem^  exportROIsAsBmpImage;
   private: System::Windows::Forms::ToolStripMenuItem^  exportAROIAsBmpImage;
+  private: System::Windows::Forms::ToolStripMenuItem^  m_menuitem_subview_x;
+
+  private: System::Windows::Forms::ToolStripMenuItem^  m_menuitem_subview_y;
+  private: System::Windows::Forms::ToolStripMenuItem^  m_menuitem_subview_z;
+
+
+
+
 
 
 
@@ -50,6 +60,8 @@ namespace RoiPainter3D {
     void redrawMainPanel();
     void initCameraPosition(EVec3f &cuboid);
     void setBkColor(float r, float g, float b){ m_ogl->SetBgColor(r,g,b,0);}
+    OglForCLI *GetOgl(){ return m_ogl;}
+
   private:
     void initializeOtherForms();
     void replaceOtherForms();
@@ -69,7 +81,7 @@ namespace RoiPainter3D {
 				delete components;
 			}
 		}
-  private: System::Windows::Forms::Panel^  FormMainPanel;
+  private: System::Windows::Forms::Panel^      FormMainPanel;
   private: System::Windows::Forms::MenuStrip^  menuStrip1;
   private: System::Windows::Forms::ToolStripMenuItem^  fileToolStripMenuItem;
   private: System::Windows::Forms::ToolStripMenuItem^  open2DSlicesToolStripMenuItem;
@@ -143,6 +155,9 @@ namespace RoiPainter3D {
       this->miscsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->exportCurrentCameraPosToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->importCurrentCameraPosToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+      this->m_menuitem_subview_x = (gcnew System::Windows::Forms::ToolStripMenuItem());
+      this->m_menuitem_subview_y = (gcnew System::Windows::Forms::ToolStripMenuItem());
+      this->m_menuitem_subview_z = (gcnew System::Windows::Forms::ToolStripMenuItem());
       this->menuStrip1->SuspendLayout();
       this->SuspendLayout();
       // 
@@ -193,68 +208,68 @@ namespace RoiPainter3D {
       // open2DSlicesToolStripMenuItem
       // 
       this->open2DSlicesToolStripMenuItem->Name = L"open2DSlicesToolStripMenuItem";
-      this->open2DSlicesToolStripMenuItem->Size = System::Drawing::Size(313, 22);
+      this->open2DSlicesToolStripMenuItem->Size = System::Drawing::Size(342, 22);
       this->open2DSlicesToolStripMenuItem->Text = L"open 2D slices (bmp, tif)";
       this->open2DSlicesToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open2DSlicesToolStripMenuItem_Click);
       // 
       // open2DSlicesdcmToolStripMenuItem
       // 
       this->open2DSlicesdcmToolStripMenuItem->Name = L"open2DSlicesdcmToolStripMenuItem";
-      this->open2DSlicesdcmToolStripMenuItem->Size = System::Drawing::Size(313, 22);
+      this->open2DSlicesdcmToolStripMenuItem->Size = System::Drawing::Size(342, 22);
       this->open2DSlicesdcmToolStripMenuItem->Text = L"open 2D slices (dcm)";
       this->open2DSlicesdcmToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open2DSlicesdcmToolStripMenuItem_Click);
       // 
       // open3DVolumetraw3DToolStripMenuItem
       // 
       this->open3DVolumetraw3DToolStripMenuItem->Name = L"open3DVolumetraw3DToolStripMenuItem";
-      this->open3DVolumetraw3DToolStripMenuItem->Size = System::Drawing::Size(313, 22);
+      this->open3DVolumetraw3DToolStripMenuItem->Size = System::Drawing::Size(342, 22);
       this->open3DVolumetraw3DToolStripMenuItem->Text = L"open 3D volume (traw3D)";
       this->open3DVolumetraw3DToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DVolumetraw3DToolStripMenuItem_Click);
       // 
       // open3DColumedcmToolStripMenuItem
       // 
       this->open3DColumedcmToolStripMenuItem->Name = L"open3DColumedcmToolStripMenuItem";
-      this->open3DColumedcmToolStripMenuItem->Size = System::Drawing::Size(313, 22);
+      this->open3DColumedcmToolStripMenuItem->Size = System::Drawing::Size(342, 22);
       this->open3DColumedcmToolStripMenuItem->Text = L"open 3D volume (dcm)";
       this->open3DColumedcmToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DColumedcmToolStripMenuItem_Click);
       // 
       // open3DVolumefavToolStripMenuItem
       // 
       this->open3DVolumefavToolStripMenuItem->Name = L"open3DVolumefavToolStripMenuItem";
-      this->open3DVolumefavToolStripMenuItem->Size = System::Drawing::Size(313, 22);
+      this->open3DVolumefavToolStripMenuItem->Size = System::Drawing::Size(342, 22);
       this->open3DVolumefavToolStripMenuItem->Text = L"open 3D volume (fav)";
       this->open3DVolumefavToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DVolumefavToolStripMenuItem_Click);
       // 
       // open3DVolumepvmSphToolStripMenuItem
       // 
       this->open3DVolumepvmSphToolStripMenuItem->Name = L"open3DVolumepvmSphToolStripMenuItem";
-      this->open3DVolumepvmSphToolStripMenuItem->Size = System::Drawing::Size(313, 22);
+      this->open3DVolumepvmSphToolStripMenuItem->Size = System::Drawing::Size(342, 22);
       this->open3DVolumepvmSphToolStripMenuItem->Text = L"open 3D volume (pvm, sph)";
       this->open3DVolumepvmSphToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::open3DVolumepvmSphToolStripMenuItem_Click);
       // 
       // toolStripSeparator1
       // 
       this->toolStripSeparator1->Name = L"toolStripSeparator1";
-      this->toolStripSeparator1->Size = System::Drawing::Size(310, 6);
+      this->toolStripSeparator1->Size = System::Drawing::Size(339, 6);
       // 
       // saveMaskmskToolStripMenuItem
       // 
       this->saveMaskmskToolStripMenuItem->Name = L"saveMaskmskToolStripMenuItem";
-      this->saveMaskmskToolStripMenuItem->Size = System::Drawing::Size(313, 22);
+      this->saveMaskmskToolStripMenuItem->Size = System::Drawing::Size(342, 22);
       this->saveMaskmskToolStripMenuItem->Text = L"save mask (msk)";
       this->saveMaskmskToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::saveMaskmskToolStripMenuItem_Click);
       // 
       // loadMaskmskToolStripMenuItem
       // 
       this->loadMaskmskToolStripMenuItem->Name = L"loadMaskmskToolStripMenuItem";
-      this->loadMaskmskToolStripMenuItem->Size = System::Drawing::Size(313, 22);
+      this->loadMaskmskToolStripMenuItem->Size = System::Drawing::Size(342, 22);
       this->loadMaskmskToolStripMenuItem->Text = L"load mask (msk)";
       this->loadMaskmskToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::loadMaskmskToolStripMenuItem_Click);
       // 
       // toolStripSeparator2
       // 
       this->toolStripSeparator2->Name = L"toolStripSeparator2";
-      this->toolStripSeparator2->Size = System::Drawing::Size(310, 6);
+      this->toolStripSeparator2->Size = System::Drawing::Size(339, 6);
       // 
       // saveMaskfavbToolStripMenuItem
       // 
@@ -273,21 +288,21 @@ namespace RoiPainter3D {
       // exportROIsAsBmpImage
       // 
       this->exportROIsAsBmpImage->Name = L"exportROIsAsBmpImage";
-      this->exportROIsAsBmpImage->Size = System::Drawing::Size(313, 22);
+      this->exportROIsAsBmpImage->Size = System::Drawing::Size(342, 22);
       this->exportROIsAsBmpImage->Text = L"export All ROIs (mask IDs) as color bmp";
       this->exportROIsAsBmpImage->Click += gcnew System::EventHandler(this, &FormMain::exportROIsAsBmpImage_Click);
       // 
       // exportAROIAsBmpImage
       // 
       this->exportAROIAsBmpImage->Name = L"exportAROIAsBmpImage";
-      this->exportAROIAsBmpImage->Size = System::Drawing::Size(313, 22);
+      this->exportAROIAsBmpImage->Size = System::Drawing::Size(342, 22);
       this->exportAROIAsBmpImage->Text = L"export a ROI (mask ID) as binary bmp";
       this->exportAROIAsBmpImage->Click += gcnew System::EventHandler(this, &FormMain::exportAROIAsBmpImage_Click);
       // 
       // exportVolumeAsTraw3dssToolStripMenuItem
       // 
       this->exportVolumeAsTraw3dssToolStripMenuItem->Name = L"exportVolumeAsTraw3dssToolStripMenuItem";
-      this->exportVolumeAsTraw3dssToolStripMenuItem->Size = System::Drawing::Size(313, 22);
+      this->exportVolumeAsTraw3dssToolStripMenuItem->Size = System::Drawing::Size(342, 22);
       this->exportVolumeAsTraw3dssToolStripMenuItem->Text = L"export volume as traw3d_ss";
       this->exportVolumeAsTraw3dssToolStripMenuItem->Click += gcnew System::EventHandler(this, &FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click);
       // 
@@ -385,9 +400,9 @@ namespace RoiPainter3D {
       // 
       // miscsToolStripMenuItem
       // 
-      this->miscsToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+      this->miscsToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(5) {
         this->exportCurrentCameraPosToolStripMenuItem,
-          this->importCurrentCameraPosToolStripMenuItem
+          this->importCurrentCameraPosToolStripMenuItem, this->m_menuitem_subview_x, this->m_menuitem_subview_y, this->m_menuitem_subview_z
       });
       this->miscsToolStripMenuItem->Name = L"miscsToolStripMenuItem";
       this->miscsToolStripMenuItem->Size = System::Drawing::Size(53, 22);
@@ -404,6 +419,27 @@ namespace RoiPainter3D {
       this->importCurrentCameraPosToolStripMenuItem->Name = L"importCurrentCameraPosToolStripMenuItem";
       this->importCurrentCameraPosToolStripMenuItem->Size = System::Drawing::Size(233, 22);
       this->importCurrentCameraPosToolStripMenuItem->Text = L"import current camera pos";
+      // 
+      // m_menuitem_subview_x
+      // 
+      this->m_menuitem_subview_x->Name = L"m_menuitem_subview_x";
+      this->m_menuitem_subview_x->Size = System::Drawing::Size(233, 22);
+      this->m_menuitem_subview_x->Text = L"Show SubView X";
+      this->m_menuitem_subview_x->Click += gcnew System::EventHandler(this, &FormMain::m_menuitem_subview_x_Click);
+      // 
+      // m_menuitem_subview_y
+      // 
+      this->m_menuitem_subview_y->Name = L"m_menuitem_subview_y";
+      this->m_menuitem_subview_y->Size = System::Drawing::Size(233, 22);
+      this->m_menuitem_subview_y->Text = L"Show SubView Y";
+      this->m_menuitem_subview_y->Click += gcnew System::EventHandler(this, &FormMain::m_menuitem_subview_y_Click);
+      // 
+      // m_menuitem_subview_z
+      // 
+      this->m_menuitem_subview_z->Name = L"m_menuitem_subview_z";
+      this->m_menuitem_subview_z->Size = System::Drawing::Size(233, 22);
+      this->m_menuitem_subview_z->Text = L"Show SubView Z";
+      this->m_menuitem_subview_z->Click += gcnew System::EventHandler(this, &FormMain::m_menuitem_subview_z_Click);
       // 
       // FormMain
       // 
@@ -465,16 +501,29 @@ namespace RoiPainter3D {
     System::Void exportROIsAsMesh_Click(System::Object^  sender, System::EventArgs^  e) ;
     System::Void exportROIsAsBmpImage_Click(System::Object^  sender, System::EventArgs^  e) ;
     System::Void exportAROIAsBmpImage_Click(System::Object^  sender, System::EventArgs^  e) ;
+    System::Void m_menuitem_subview_x_Click(System::Object^  sender, System::EventArgs^  e) ;
+    System::Void m_menuitem_subview_y_Click(System::Object^  sender, System::EventArgs^  e) ;
+    System::Void m_menuitem_subview_z_Click(System::Object^  sender, System::EventArgs^  e) ;
 };
 
 
-
-  inline void FormMain_RedrawMainPanel(){
-    FormMain::getInst()->redrawMainPanel();
-  }
   inline void FormMain_SetBkColor(float r, float g, float b){
     FormMain::getInst()->setBkColor(r,g,b);
   }
+
+  inline void RedrawScene(bool redraw_subview = true)
+  {
+    FormMain::getInst()->redrawMainPanel();
+
+    if ( redraw_subview )
+    {
+      FormSubView::getInstX()->RedrawPanel();
+      FormSubView::getInstY()->RedrawPanel();
+      FormSubView::getInstZ()->RedrawPanel();
+    }
+  }
+
+
 
 }
 

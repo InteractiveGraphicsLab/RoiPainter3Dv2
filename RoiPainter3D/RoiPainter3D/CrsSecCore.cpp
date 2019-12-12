@@ -215,25 +215,54 @@ void t_DrawCuboidFrame(const EVec3f &cuboid)
   float y = cuboid[1];
   float z = cuboid[2];
 
-  float vtx[8][3] = {
-    {0,0,0},{x,0,0}, {x,y,0}, {0,y,0},
-    {0,0,z},{x,0,z}, {x,y,z}, {0,y,z}
-  };
-
-  static const int idx[12][2] = {
-    { 0,1 },{ 1,2 },{ 2,3 },{ 3,0 },
-    { 0,4 },{ 1,5 },{ 2,6 },{ 3,7 },
-    { 4,5 },{ 5,6 },{ 6,7 },{ 7,4 },
-  };
-
   glDisable(GL_LIGHTING);
-  glColor3d(1, 1, 0.2);
-  glLineWidth(4);
+  glLineWidth(2);
+  glColor3d(1, 1, 0);
+  glBegin(GL_LINES);
+    glVertex3d(0, 0, 0); glVertex3d(x, 0, 0);
+    glVertex3d(x, 0, 0); glVertex3d(x, y, 0);
+    glVertex3d(x, y, 0); glVertex3d(0, y, 0);
+    glVertex3d(0, y, 0); glVertex3d(0, 0, 0);
+    glVertex3d(0, 0, z); glVertex3d(x, 0, z);
+    glVertex3d(x, 0, z); glVertex3d(x, y, z);
+    glVertex3d(x, y, z); glVertex3d(0, y, z);
+    glVertex3d(0, y, z); glVertex3d(0, 0, z);
+    glVertex3d(0, 0, 0); glVertex3d(0, 0, z);
+    glVertex3d(x, 0, 0); glVertex3d(x, 0, z);
+    glVertex3d(x, y, 0); glVertex3d(x, y, z);
+    glVertex3d(0, y, 0); glVertex3d(0, y, z);
+  glEnd();
 
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer(3, GL_FLOAT, 0, vtx);
-  glDrawElements(GL_LINES, 12 * 2, GL_UNSIGNED_INT, idx);
-  glDisableClientState(GL_VERTEX_ARRAY);
+  glTranslated(-0.1, -0.1, -0.1);
+  glDisable(GL_LIGHTING);
+  glBegin(GL_LINES);
+    glColor3d(1, 0, 0); glVertex3d(0, 0, 0); glVertex3d(10, 0, 0);
+    glColor3d(0, 1, 0); glVertex3d(0, 0, 0); glVertex3d(0, 10, 0);
+    glColor3d(0, 0, 1); glVertex3d(0, 0, 0); glVertex3d(0, 0, 10);
+  glEnd();
+  glTranslated( 0.1,  0.1,  0.1);
+
+  //float vtx[8][3] = {
+  //  {0,0,0},{x,0,0}, {x,y,0}, {0,y,0},
+  //  {0,0,z},{x,0,z}, {x,y,z}, {0,y,z}
+  //};
+
+  //static const int idx[12][2] = {
+  //  { 0,1 },{ 1,2 },{ 2,3 },{ 3,0 },
+  //  { 0,4 },{ 1,5 },{ 2,6 },{ 3,7 },
+  //  { 4,5 },{ 5,6 },{ 6,7 },{ 7,4 },
+  //};
+
+  //glDisable(GL_LIGHTING);
+  //glColor3d(1, 1, 0.2);
+  //glLineWidth(4);
+
+  //glEnableClientState(GL_VERTEX_ARRAY);
+  //glVertexPointer(3, GL_FLOAT, 0, vtx);
+  //glDrawElements(GL_LINES, 12 * 2, GL_UNSIGNED_INT, idx);
+  //glDisableClientState(GL_VERTEX_ARRAY);
+
+
 }
 
 

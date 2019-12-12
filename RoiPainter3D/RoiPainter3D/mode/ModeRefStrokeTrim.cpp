@@ -96,7 +96,7 @@ void ModeRefStrokeTrim::cancelSegmentation()
   if( m_vol_prev ) delete[] m_vol_prev;
   m_vol_prev = 0;
   ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -133,7 +133,7 @@ void ModeRefStrokeTrim::finishSegmentation()
   m_vol_prev = 0;
 
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	FormMain_RedrawMainPanel();
+	RedrawScene();
 }
 
 
@@ -176,7 +176,7 @@ void ModeRefStrokeTrim::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 	m_b_drawingstroke = false;
 	m_stroke2d.clear();
 	m_stroke3d.clear();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -202,7 +202,7 @@ void ModeRefStrokeTrim::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   ogl->BtnUp();
   m_bR = false;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeRefStrokeTrim::MBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -215,7 +215,7 @@ void ModeRefStrokeTrim::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   ogl->BtnUp();
   m_bM = false;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeRefStrokeTrim::MouseMove(const EVec2i &p, OglForCLI *ogl)
@@ -233,7 +233,7 @@ void ModeRefStrokeTrim::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	{
 		ogl->MouseMove( p );
 	}
-  FormMain_RedrawMainPanel();
+  RedrawScene( false );
 }
 
 
@@ -241,9 +241,9 @@ void ModeRefStrokeTrim::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl
 {
   if( !PickToMoveCrossSecByWheeling(p, ogl, zDelta ) )
   {
-    ogl->ZoomCam(zDelta * 0.1f);
+    ogl->ZoomCamByWheel( zDelta );
   }
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeRefStrokeTrim::KeyDown(int nChar) 
@@ -258,7 +258,7 @@ void ModeRefStrokeTrim::KeyDown(int nChar)
 		memcpy( flg3d, m_vol_prev, sizeof( byte ) * num_voxels );
 		ImageCore::GetInst()->m_vol_flag.SetUpdated();
 
-    FormMain_RedrawMainPanel();
+    RedrawScene();
 	}
 }
 

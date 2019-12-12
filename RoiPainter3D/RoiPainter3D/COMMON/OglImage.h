@@ -375,6 +375,7 @@ inline void OglImage2D<CH_RGBA>::SendImageToGPU()
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_resolution[0], m_resolution[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, m_image);
 }
 
+
 inline void OglImage2D<CH_INTES>::SendImageToGPU()
 {
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

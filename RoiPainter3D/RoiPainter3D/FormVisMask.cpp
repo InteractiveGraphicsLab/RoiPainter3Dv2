@@ -98,7 +98,7 @@ System::Void FormVisMask::btnColorPallet_Click  (
   ImageCore::GetInst()->ActiveMask_SetColor( c );
 
   updateList();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -109,7 +109,7 @@ System::Void FormVisMask::checkbox_lock_CheckedChanged(
 {
   bool locked = (checkbox_lock->CheckState == CheckState::Checked);
   ImageCore::GetInst()->ActiveMask_SetLocked( locked );
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -118,7 +118,7 @@ System::Void FormVisMask::trackbar_alpha_Scroll (
     System::EventArgs^  e) 
 {
   ImageCore::GetInst()->ActiveMask_SetAlpha( trackbar_alpha->Value / 100.0);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -138,7 +138,7 @@ System::Void FormVisMask::btnDelete_Click(
   updateList();
 
   updateImageCoreVisVolumes();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -164,7 +164,7 @@ System::Void FormVisMask::btnMargeTo_Click(
   
   updateList();
   updateImageCoreVisVolumes();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -177,7 +177,7 @@ System::Void FormVisMask::btnErode_Click(
   ImageCore::GetInst()->ActiveMask_Erode();
   updateImageCoreVisVolumes();
   updateList();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -189,7 +189,7 @@ System::Void FormVisMask::btnDilate_Click(
   ImageCore::GetInst()->ActiveMask_Dilate();
   updateImageCoreVisVolumes();
   updateList();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -215,7 +215,7 @@ System::Void FormVisMask::btnFillHole_Click(
   ImageCore::GetInst()->FillHole( trgt_ids );
   updateImageCoreVisVolumes();
   updateList();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -273,7 +273,7 @@ System::Void FormVisMask::btnSmartFillHole_Click(
   ImageCore::GetInst()->SmartFillHole(trgt_ids, dilation_size);
   updateList();
   updateImageCoreVisVolumes();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
