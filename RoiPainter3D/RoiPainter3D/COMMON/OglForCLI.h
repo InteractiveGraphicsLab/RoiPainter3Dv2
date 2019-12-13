@@ -226,15 +226,14 @@ public:
     oglMakeCurrent();
 
     
-    //DEBUG TO REMOVE
-    double modelMat[16], projMat[16];
-    int vp[4];
-    glGetDoublev(GL_MODELVIEW_MATRIX, modelMat);
-    glGetDoublev(GL_PROJECTION_MATRIX, projMat);
-    glGetIntegerv(GL_VIEWPORT, vp);
-    std::cout << vp[0] << "  " << vp[1] << "  " << vp[2] << "  " << vp[3] << "!!!!!!!!!!!!!\n";
-
-    //DEBUG TO REMOVE
+    ////DEBUG TO REMOVE
+    //double modelMat[16], projMat[16];
+    //int vp[4];
+    //glGetDoublev(GL_MODELVIEW_MATRIX, modelMat);
+    //glGetDoublev(GL_PROJECTION_MATRIX, projMat);
+    //glGetIntegerv(GL_VIEWPORT, vp);
+    //std::cout << vp[0] << "  " << vp[1] << "  " << vp[2] << "  " << vp[3] << "!!!!!!!!!!!!!\n";
+    ////DEBUG TO REMOVE
 
 
     glViewport(0, 0, screem_width, screen_height);
@@ -266,6 +265,9 @@ public:
 
 
   //for rendering for other panel 
+  int m_tmp_viewport[4];
+
+  
 
   void OnDrawBeginByOtherForm(
     HDC hdc,
@@ -281,13 +283,17 @@ public:
     m_is_rendering = true;
     wglMakeCurrent(hdc, m_hglrc);
 
+    glGetIntegerv(GL_VIEWPORT, m_tmp_viewport);
+
     glViewport(0, 0, screem_width, screen_height);
 
     glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
     glLoadIdentity();
     gluPerspective(fovY, screem_width / (double)screen_height, view_near, view_far);
 
     glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
     glLoadIdentity();
 
     gluLookAt(cam.m_pos[0], cam.m_pos[1], cam.m_pos[2],
@@ -305,16 +311,24 @@ public:
   {
     glFinish();
     SwapBuffers(hdc);
+
+    //Œ³‚Ìî•ñ‚ð–ß‚·
+    glViewport(m_tmp_viewport[0], m_tmp_viewport[1], m_tmp_viewport[2], m_tmp_viewport[3]);
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
     wglMakeCurrent(NULL, NULL);
     m_is_rendering = false;
   }
-
 
 
   inline bool   IsDrawing() const { return m_is_rendering; }
   inline EVec3f GetCamPos() const { return m_camera.m_pos; }
   inline EVec3f GetCamCnt() const { return m_camera.m_cnt; }
   inline EVec3f GetCamUp()  const { return m_camera.m_up ; }
+
   inline void   SetCam(const EVec3f &pos, const EVec3f &cnt, const EVec3f &up) 
   { 
     m_camera.Set(pos, cnt, up);

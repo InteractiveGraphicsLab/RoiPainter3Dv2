@@ -13,7 +13,7 @@ using namespace RoiPainter3D;
 
 FormSubView::FormSubView(FORM_SUB_ID id) : m_form_id(id)
 {
-  std::cout << "FormSubView  " << (int) id << "!!!!!!!!!!!!!!!\n";
+  //std::cout << "FormSubView  " << (int) id << "!!!!!!!!!!!!!!!\n";
 	InitializeComponent();
   m_cam = new OglCameraParam();
 
@@ -53,7 +53,7 @@ FormSubView::FormSubView(FORM_SUB_ID id) : m_form_id(id)
   if (pfmt == 0) return;
   if (!SetPixelFormat(m_dc, pfmt, &pfd)) return;
   
-  std::cout << "DONE\n";
+  //std::cout << "DONE\n";
 } 
 
 

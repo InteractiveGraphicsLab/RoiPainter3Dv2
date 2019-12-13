@@ -319,9 +319,7 @@ void ModeSegVoxelPaint::MouseMove(const EVec2i &p, OglForCLI *ogl)
 		ogl->MouseMove(p);
 	}	
   RedrawScene(true);
-  ‚±‚±‚©‚ç‚â‚é
-  opengl‚ğ‹¤—L‚·‚é‚Æs—ñ‚ª‚¨‚©‚µ‚­‚È‚é‚Ì‚Åpush‚·‚ê‚Î‚¨‚‹‚È‚Í‚¸
-}
+ }
 
 
 
