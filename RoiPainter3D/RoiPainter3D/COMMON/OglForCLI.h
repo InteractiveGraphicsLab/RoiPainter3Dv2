@@ -225,17 +225,6 @@ public:
     m_is_rendering = true;
     oglMakeCurrent();
 
-    
-    ////DEBUG TO REMOVE
-    //double modelMat[16], projMat[16];
-    //int vp[4];
-    //glGetDoublev(GL_MODELVIEW_MATRIX, modelMat);
-    //glGetDoublev(GL_PROJECTION_MATRIX, projMat);
-    //glGetIntegerv(GL_VIEWPORT, vp);
-    //std::cout << vp[0] << "  " << vp[1] << "  " << vp[2] << "  " << vp[3] << "!!!!!!!!!!!!!\n";
-    ////DEBUG TO REMOVE
-
-
     glViewport(0, 0, screem_width, screen_height);
 
     glMatrixMode(GL_PROJECTION);

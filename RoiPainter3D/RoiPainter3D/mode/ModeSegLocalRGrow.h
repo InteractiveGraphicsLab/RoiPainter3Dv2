@@ -35,10 +35,10 @@ public:
 	{
     m_cps.clear();
 		m_cps.push_back(position);
-		m_min_v = min_val;
-		m_max_v = max_val;
+		m_min_v     = min_val;
+		m_max_v     = max_val;
 		m_flg_fore  = b_fore;
-		m_radius  = radius;
+		m_radius    = radius;
 	}
 
   //copy constructure and =operator
@@ -130,9 +130,13 @@ public:
   void CancelSegmentation();
   void RunLocalRegionGrow();
   void AddNewSeed(bool bForeBack);
+  void AddNewSeed(bool bForeBack, EVec3f &pos);
 
 private:
   EVec2i PickSeeds(const EVec3f &rayP, const EVec3f &rayD);
+  void   PickToRemoveSeedCP(const EVec3f &rayP, const EVec3f &rayD);
+
+  void  ExportSeedInfo(std::string fname);
 
 };
 

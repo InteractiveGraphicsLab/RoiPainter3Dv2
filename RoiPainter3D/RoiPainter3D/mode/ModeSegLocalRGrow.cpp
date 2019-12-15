@@ -9,9 +9,11 @@
 #include "FormVisParam.h"
 #include "FormSegLocalRGrow.h"
 #include "climessagebox.h"
+#include "LogCore.h"
 
 #include <deque>
 #include <vector>
+#include <time.h>
 
 using namespace std;
 using namespace RoiPainter3D;
@@ -28,6 +30,7 @@ ModeSegLocalRGrow::ModeSegLocalRGrow() :
 	m_crssec_shader("shader/crssecVtx.glsl", "shader/crssecFlg_LRG.glsl")
 {
   m_bL = m_bR = m_bM = false;
+  m_activeseed_idx = -1;
   m_drag_seedcp_id << -1, -1;
 }
 
@@ -45,6 +48,8 @@ void ModeSegLocalRGrow::StartMode()
   //init vol_flg 0:locked, 1:others
   ImageCore::GetInst()->InitializeVolFlgByLockedMask();
 
+  m_activeseed_idx = -1;
+
   //init field & control point
 	m_b_drawstroke = false;
 	m_stroke.clear();
@@ -61,6 +66,8 @@ void ModeSegLocalRGrow::StartMode()
 
   //Lock/Unlock pitch box
   formVisParam_LockPitchBox();
+
+  LogCore::GetInst()->StartLogger();
 }
 
 
@@ -84,11 +91,62 @@ void ModeSegLocalRGrow::FinishSegmentation()
 		return;
 	}
 
+  //export log
+  time_t currenttime = time(NULL);
+  struct tm *t = localtime(&currenttime);
+  std::string fname = 
+      to_string( t->tm_year+1900 )
+    + to_string( t->tm_mon + 1   )
+    + string((t->tm_mday < 10 ) ? "0" : "") + to_string( t->tm_mday )
+    + string((t->tm_hour < 10 ) ? "0" : "") + to_string( t->tm_hour )
+    + string((t->tm_min  < 10 ) ? "0" : "") + to_string( t->tm_min  )
+    + string((t->tm_sec  < 10 ) ? "0" : "") + to_string( t->tm_sec  )
+    + string("_log.txt");
+
+  LogCore::GetInst()->CloseLogger(fname);
+
+  ExportSeedInfo(fname + string("seedinfo.txt") );
+
+
   m_seeds.clear();
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
   RedrawScene();
 }
+
+
+
+
+void  ModeSegLocalRGrow::ExportSeedInfo(std::string fname)
+{
+  //export 
+  std::ofstream ofs( fname.c_str() );
+
+  if (!ofs){
+    std::cout << "failed to open the file " << fname << "\n";
+    return;
+  }
+
+  ofs << "Seedinfo\n";
+  ofs << "num_seed " << m_seeds.size() << "\n";
+  for ( auto s : m_seeds) 
+  {
+    ofs << "num_cps " << s.m_cps.size() << "\n";
+    ofs << "flg_thresh_  " << s.m_flg_fore << " " 
+                           << s.m_min_v    << " " 
+                           << s.m_max_v    << " " 
+                           << s.m_radius   << "\n";
+
+    for ( auto c : s.m_cps )
+      ofs << c[0] << " " << c[1] << " " << c[2] << "\n";
+  }
+  ofs.close();
+}
+
+
+
+
+
 
 
 void ModeSegLocalRGrow::CancelSegmentation()
@@ -105,22 +163,53 @@ void ModeSegLocalRGrow::CancelSegmentation()
 ///////////////////////////////////////////////////////////////////////
 //Mouse Listener///////////////////////////////////////////////////////
 // current version(現在のもの)
-// Add F/B seed  : Button on Dialog   YET
-// Add seed cp   : shift + L click to add new CP (when one seed is activated)  OK
-// Move seed     : shift + L click & drag                                      OK
-// Remove seed   : shift + R click                                             OK
-// Remove seed cp: shift + R click                                             OK
-// cut strok     : ctrl  + L drag                                              OK
-
-// old(鶴岡君)バージョン
-// Add seed      : L/R double click to add Pos/Neg seed
-// Add seed cp   : shift + L double click to add new CP (when one seed is activated) 
-// Remove seed   : M double click 
-// Remove seed cp: M double click  
-// Move seed     : L click & drag
+// Select seed    : L/R click click                                OK
+// Move CP        : Shift + L/R drag                               OK
+// Add seed 1     : Shift + L/R dblclick when no active seed       OK
+// Add seed 2     : Button on Dialog  ( new! )                     OK 
+// Add seed cp    : shift + L dblclick when active seed exist      OK
+// Remove seed(cp): shift + M double click , click                 OK 
 
 
-void ModeSegLocalRGrow::AddNewSeed(bool bForeSeed)
+
+void ModeSegLocalRGrow::AddNewSeed(bool b_foreseed, EVec3f &cp_position)
+{
+  LogCore::GetInst()->Add("AddNewSeed");
+
+
+  const EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
+  const EVec2i minmax = ImageCore::GetInst()->GetVolMinMax();  
+
+  //get initial threshold
+  short vol_v  = ImageCore::GetInst()->GetVoxelValue(cp_position);
+	short min_v  = b_foreseed ? vol_v - 100 : minmax[0]  ;
+	short max_v  = b_foreseed ? minmax[1]   : vol_v + 100;
+	float radius = b_foreseed ? cuboid[0] * 0.05f : cuboid[0] * 0.02f;
+
+  min_v = max( min_v, (short)minmax[0]);
+  max_v = min( max_v, (short)minmax[1]);
+
+  m_seeds.push_back( LRGSeed( cp_position, min_v, max_v, b_foreseed, radius) );
+	m_activeseed_idx = (int)m_seeds.size() - 1;
+
+  //sort seed (Original code was by Hiryu Kamoshita)
+  //negativeは前半に積む
+  if( m_seeds.back().m_flg_fore == false)
+  {
+    for(int i = (int)m_seeds.size()-1; i > 0 ; --i) 
+	  {
+      //手前がnegativeなら終了
+		  if( !m_seeds[i-1].m_flg_fore ) break;
+      //そうでなければ入れ替え
+      swap(m_seeds[i-1], m_seeds[i] );
+      m_activeseed_idx = i-1;
+	  }
+  }
+}
+
+
+
+void ModeSegLocalRGrow::AddNewSeed(bool b_foreseed)
 {
   //fix position (表示されている planeの中心に配置)
   const EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
@@ -145,72 +234,135 @@ void ModeSegLocalRGrow::AddNewSeed(bool bForeSeed)
   {
     cp_position = cuboid * 0.5;
   }
+  AddNewSeed( b_foreseed, cp_position);
+  
+}
 
-  //get initial threshold
-  short vol_v  = ImageCore::GetInst()->GetVoxelValue(cp_position);
-	short min_v  = bForeSeed ? vol_v - 100 : 0         ;
-	short max_v  = bForeSeed ? 4095       : vol_v + 100;
-	float radius = bForeSeed ? cuboid[0] * 0.05f : cuboid[0] * 0.02f;
 
-  EVec2i minmax = ImageCore::GetInst()->GetVolMinMax();
-  min_v = max( min_v, (short)minmax[0]);
-  max_v = min( max_v, (short)minmax[1]);
 
-  m_seeds.push_back( LRGSeed( cp_position, min_v, max_v, bForeSeed, radius) );
-	m_activeseed_idx = (int)m_seeds.size() - 1;
-
-  //sort seed (Original code was by Hiryu Kamoshita)
-  //negativeは前半に積む
-  if( m_seeds.back().m_flg_fore == false)
+void ModeSegLocalRGrow::PickToRemoveSeedCP(
+    const EVec3f &ray_pos, 
+    const EVec3f &ray_dir)
+{
+	EVec2i seedid_cpid = PickSeeds(ray_pos, ray_dir);
+  int seedId = seedid_cpid[0];
+  int cpId   = seedid_cpid[1];
+	  
+  if(0 <= seedId && seedId < (int)m_seeds.size() ) 
   {
-    for(int i = (int)m_seeds.size()-1; i > 0 ; --i) 
-	  {
-      //手前がnegativeなら終了
-		  if( !m_seeds[i-1].m_flg_fore ) break;
-      //そうでなければ入れ替え
-      swap(m_seeds[i-1], m_seeds[i] );
-      m_activeseed_idx = i-1;
-	  }
-  }
+		m_seeds[ seedId ].m_cps.erase( m_seeds[seedId].m_cps.begin() + cpId );
+    LogCore::GetInst()->Add("RemoveCP");
+    
+    if( m_seeds[ seedId ].m_cps.size() == 0 )
+    {
+		  m_seeds.erase( m_seeds.begin() + seedId );
 
-  formSegLocalRGrow_updateAllItems();
-  RedrawScene();
+      if ( m_activeseed_idx == seedId )
+        m_activeseed_idx = -1;
+      else if ( m_activeseed_idx > seedId )
+        m_activeseed_idx--;
+    }
+    formSegLocalRGrow_updateAllItems();
+    RedrawScene();
+  }
 }
 
 
 
 
+void ModeSegLocalRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
+{
+  LogCore::GetInst()->Add("LBtnDclk");
+
+  //add fore seed
+  if ( !IsShiftKeyOn() ) return;
+  EVec3f ray_pos, ray_dir, pos;
+  ogl->GetCursorRay(p, ray_pos, ray_dir);
+
+  ////既存のcpを触っていたら何もしない
+  //EVec2i pick_id = PickSeeds(ray_pos, ray_dir);
+  //if ( pick_id[0] != -1 ) return;
+
+  if ( PickCrssec(ray_pos, ray_dir, &pos) != CRSSEC_NON)
+  {
+    if ( m_activeseed_idx  == -1 ) {
+      AddNewSeed(true, pos);
+    }else{
+      m_seeds[ m_activeseed_idx ].m_cps.push_back(pos);
+      LogCore::GetInst()->Add("AddCP");
+    }
+    formSegLocalRGrow_updateAllItems();
+  }
+}
+
+
+void ModeSegLocalRGrow::RBtnDclk(const EVec2i &p, OglForCLI *ogl) 
+{
+  LogCore::GetInst()->Add("RBtnDclk");
+
+  //add back seed
+  if ( !IsShiftKeyOn() ) return;
+  EVec3f ray_pos, ray_dir, pos;
+  ogl->GetCursorRay(p, ray_pos, ray_dir);
+
+  ////既存のcpを触っていたら何もしない
+  //EVec2i pick_id = PickSeeds(ray_pos, ray_dir);
+  //if ( pick_id[0] != -1 ) return;
+
+  if ( PickCrssec(ray_pos, ray_dir, &pos) != CRSSEC_NON)
+  {
+    if ( m_activeseed_idx  == -1 ) {
+      AddNewSeed(false, pos);
+    }else{
+      m_seeds[ m_activeseed_idx ].m_cps.push_back(pos);
+      LogCore::GetInst()->Add("AddCP");
+    }
+    formSegLocalRGrow_updateAllItems();
+    RedrawScene();
+  }  
+
+}
+
+
+void ModeSegLocalRGrow::MBtnDclk(const EVec2i &p, OglForCLI *ogl) 
+{
+  LogCore::GetInst()->Add("MBtnDclk");
+
+
+  if( IsShiftKeyOn() ) 
+  {
+    //pick to remove seed
+    EVec3f ray_pos, ray_dir;
+	  ogl->GetCursorRay(p, ray_pos, ray_dir);
+    PickToRemoveSeedCP(ray_pos, ray_dir);
+    RedrawScene();
+  }
+}
+
+
+
 void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
-  m_bL = true;
+  LogCore::GetInst()->Add("LBtnDown");
 
-  if (IsCtrKeyOn() )
+  m_bL = true;
+  
+  if ( IsCtrKeyOn() )
   {
     m_b_drawstroke = true;
     m_stroke.clear();
   }
   else if ( IsShiftKeyOn() )
   {
+    //pick to activate and drag 
     EVec3f ray_pos, ray_dir;
     ogl->GetCursorRay(p, ray_pos, ray_dir);
     m_drag_seedcp_id = PickSeeds(ray_pos, ray_dir);
 
-    if(m_drag_seedcp_id[0] != -1)
-    {
-      //hit --> activate and move
+    if ( m_drag_seedcp_id[0] != -1)
       m_activeseed_idx = m_drag_seedcp_id[0];
-	    formSegLocalRGrow_updateAllItems();
-    }
-    else if( 0 <= m_activeseed_idx && m_activeseed_idx < (int)m_seeds.size() )
-    {
-      //not hit --> pick crossection and add cp
-      EVec3f pos;
-	    if ( PickCrssec(ray_pos, ray_dir, &pos) != CRSSEC_NON)
-	    {
-        m_seeds[ m_activeseed_idx ].m_cps.push_back(pos);
-	    }
-      formSegLocalRGrow_updateAllItems();
-    }
+    
+    formSegLocalRGrow_updateAllItems();
   }
   else
   {
@@ -223,6 +375,9 @@ void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegLocalRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
+  if ( m_drag_seedcp_id[0] != -1)
+    LogCore::GetInst()->Add("MoveCP");
+
   if (m_b_drawstroke)
 	{
     EVec3f cuboid  = ImageCore::GetInst()->GetCuboid();
@@ -241,26 +396,22 @@ void ModeSegLocalRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegLocalRGrow::RBtnDown(const EVec2i &p, OglForCLI *ogl)
 {	
+  LogCore::GetInst()->Add("RBtnDown");
+
+
   m_bR = true;
   
   if( IsShiftKeyOn() )
   {
+    //pick to activate and drag 
     EVec3f ray_pos, ray_dir;
-	  ogl->GetCursorRay(p, ray_pos, ray_dir);
-	  EVec2i seedid_cpid = PickSeeds(ray_pos, ray_dir);
-    int seedId = seedid_cpid[0];
-    int cpId   = seedid_cpid[1];
-	  
-    if(0 <= seedId && seedId < (int)m_seeds.size() ) 
-    {
-		  m_seeds[ seedId ].m_cps.erase( m_seeds[seedId].m_cps.begin() + cpId );
+    ogl->GetCursorRay(p, ray_pos, ray_dir);
+    m_drag_seedcp_id = PickSeeds(ray_pos, ray_dir);
 
-      if( m_seeds[ seedId ].m_cps.size() == 0 )
-      {
-		    m_seeds.erase( m_seeds.begin() + seedId );
-      }
-      formSegLocalRGrow_updateAllItems();
-    }
+    if ( m_drag_seedcp_id[0] != -1)
+      m_activeseed_idx = m_drag_seedcp_id[0];
+    
+    formSegLocalRGrow_updateAllItems();
   }
   else
   {
@@ -284,9 +435,26 @@ void ModeSegLocalRGrow::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 
 void ModeSegLocalRGrow::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
+  LogCore::GetInst()->Add("MBtnDown");
+
   m_bM = true;
-  ogl->BtnDown_Zoom(p);
+
+  if( IsShiftKeyOn() ) 
+  {
+    //pick to remove seed
+    EVec3f ray_pos, ray_dir;
+	  ogl->GetCursorRay(p, ray_pos, ray_dir);
+    PickToRemoveSeedCP(ray_pos, ray_dir);
+    formSegLocalRGrow_updateAllItems();
+    RedrawScene();
+  }
+  else 
+  {
+    ogl->BtnDown_Zoom(p);
+  }
 }
+
+
 
 void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
@@ -294,22 +462,6 @@ void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 	m_bM = false;
 	m_drag_seedcp_id << -1, -1;
   RedrawScene();
-}
-
-
-
-void ModeSegLocalRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
-{
-}
-
-
-void ModeSegLocalRGrow::RBtnDclk(const EVec2i &p, OglForCLI *ogl) 
-{
-}
-
-
-void ModeSegLocalRGrow::MBtnDclk(const EVec2i &p, OglForCLI *ogl) 
-{
 }
 
 
@@ -382,6 +534,14 @@ void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *og
 
 void ModeSegLocalRGrow::KeyDown(int nChar) 
 { 
+  LogCore::GetInst()->Add("KeyDown");
+
+  if ( nChar == 'n' || nChar == 'N' )
+  {
+    m_activeseed_idx = -1;
+    formSegLocalRGrow_updateAllItems();
+  }
+
   RedrawScene(); 
 }
 
@@ -501,6 +661,10 @@ static void s_LocalRegionGrow
 // 255 : pogitive region
 void ModeSegLocalRGrow::RunLocalRegionGrow()
 {
+
+  LogCore::GetInst()->Add("RunLocalRegionGrow");
+
+
   int W,H,D,WH,WHD;
   std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
   const short *vol   = ImageCore::GetInst()->m_vol_orig     ;

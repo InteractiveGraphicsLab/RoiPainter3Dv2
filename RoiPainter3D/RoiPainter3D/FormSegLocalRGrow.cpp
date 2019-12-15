@@ -141,56 +141,6 @@ void FormSegLocalRGrow::setSliderRange(float maxRadius, short minV, short maxV)
 
 
 
-
-
-
-
-
-System::Void FormSegLocalRGrow::trackBar_minV_Scroll(System::Object^  sender, System::EventArgs^  e) 
-{
-  int val = trackBar_minV->Value;
-  textBox_minV->Text = val.ToString();
-
-  int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
-  vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
-  
-  if( 0 <= activeSeedId && activeSeedId < seeds.size())
-    seeds[activeSeedId].m_min_v = val;
-
-}
-
-
-
-System::Void FormSegLocalRGrow::trackBar_maxV_Scroll(System::Object^  sender, System::EventArgs^  e) 
-{
-  int val = trackBar_maxV->Value;
-  textBox_maxV->Text = val.ToString();
-
-  int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
-  vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
-  
-  if( 0 <= activeSeedId && activeSeedId < seeds.size())
-    seeds[activeSeedId].m_max_v = val;
-}
-
-
-
-System::Void FormSegLocalRGrow::trackBar_radius_Scroll(System::Object^  sender, System::EventArgs^  e)
-{
-  float val = trackBar_radius->Value / SPIN_VALUE_RATE;
-  textBox_maxV->Text = val.ToString();
-
-  int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
-  vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
-  
-  if( 0 <= activeSeedId && activeSeedId < seeds.size())
-    seeds[activeSeedId].m_radius = val;
-
-  RedrawScene();
-}
-
-
-
 System::Void FormSegLocalRGrow::btn_runLocalRGrow_Click(System::Object^  sender, System::EventArgs^  e) 
 {
   ModeSegLocalRGrow::GetInst()->RunLocalRegionGrow();
@@ -215,11 +165,152 @@ System::Void FormSegLocalRGrow::btn_finish_Click(System::Object^  sender, System
 System::Void FormSegLocalRGrow::button_addforeseed_Click(System::Object^  sender, System::EventArgs^  e)
 {
   ModeSegLocalRGrow::GetInst()->AddNewSeed(true);
+  formSegLocalRGrow_updateAllItems();
   RedrawScene();
 }
 
 System::Void FormSegLocalRGrow::button_addbackseed_Click(System::Object^  sender, System::EventArgs^  e)
 {
   ModeSegLocalRGrow::GetInst()->AddNewSeed(false);
+  formSegLocalRGrow_updateAllItems();
   RedrawScene();
 }
+
+
+
+
+System::Void FormSegLocalRGrow::trackBar_minV_Scroll(System::Object^  sender, System::EventArgs^  e) 
+{
+  m_trackbarscrolling = true;
+
+  int val = trackBar_minV->Value;
+  textBox_minV->Text = val.ToString();
+
+  int  activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+  vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
+  
+  if( 0 <= activeSeedId && activeSeedId < seeds.size())
+    seeds[activeSeedId].m_min_v = val;
+
+  m_trackbarscrolling = false;
+}
+
+
+
+System::Void FormSegLocalRGrow::trackBar_maxV_Scroll(System::Object^  sender, System::EventArgs^  e) 
+{
+  m_trackbarscrolling = true;
+  int val = trackBar_maxV->Value;
+  textBox_maxV->Text = val.ToString();
+
+  int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+  vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
+  
+  if( 0 <= activeSeedId && activeSeedId < seeds.size())
+    seeds[activeSeedId].m_max_v = val;
+  m_trackbarscrolling = false;
+}
+
+
+
+System::Void FormSegLocalRGrow::trackBar_radius_Scroll(System::Object^  sender, System::EventArgs^  e)
+{
+  m_trackbarscrolling = true;
+  float val = trackBar_radius->Value / SPIN_VALUE_RATE;
+  textBox_radius->Text = val.ToString();
+
+  int &activeSeedId      = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+  vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
+  
+  if( 0 <= activeSeedId && activeSeedId < seeds.size())
+    seeds[activeSeedId].m_radius = val;
+
+  RedrawScene();
+  m_trackbarscrolling = false;
+}
+
+
+
+System::Void FormSegLocalRGrow::textBox_minV_TextChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+  if (m_trackbarscrolling) return;
+
+  int x;
+  if (Int32::TryParse(textBox_minV->Text, x)) 
+  {
+    t_crop( trackBar_minV->Minimum, trackBar_minV->Maximum, x);
+    textBox_minV->Text = (x).ToString();
+    trackBar_minV->Value = x;
+
+    int  active_id         = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+    vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
+    if( 0 <= active_id && active_id < seeds.size()) seeds[active_id].m_min_v = x;
+  }
+  else 
+  {
+    textBox_minV->Text = "0";
+    trackBar_minV->Value = 0;
+  }
+}
+
+
+System::Void FormSegLocalRGrow::textBox_maxV_TextChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+  if (m_trackbarscrolling) return;
+  int x;
+  if (Int32::TryParse(textBox_maxV->Text, x)) 
+  {
+    t_crop( trackBar_maxV->Minimum, trackBar_maxV->Maximum, x);
+    textBox_maxV->Text = (x).ToString();
+    trackBar_maxV->Value = x;
+    
+    int  active_id         = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+    vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
+    if( 0 <= active_id && active_id < seeds.size()) seeds[active_id].m_max_v = x;
+  }
+  else 
+  {
+    textBox_maxV->Text = "0";
+    trackBar_maxV->Value = 0;
+  }
+}
+
+
+System::Void FormSegLocalRGrow::textBox_radius_TextChanged(
+    System::Object^  sender, 
+    System::EventArgs^  e)
+{
+  if (m_trackbarscrolling) return;
+
+  float x_float;
+  if (float::TryParse(textBox_radius->Text, x_float)) 
+  {
+    int x = (int)( x_float * SPIN_VALUE_RATE);
+
+    t_crop( trackBar_radius->Minimum, trackBar_radius->Maximum, x);
+    textBox_radius->Text = (x_float).ToString();
+    trackBar_radius->Value = x;
+
+    int  active_id         = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
+    vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
+    if( 0 <= active_id && active_id < seeds.size()) seeds[active_id].m_radius = x_float;
+    RedrawScene( true );
+  }
+  else 
+  {
+    textBox_radius->Text = "1";
+    trackBar_radius->Value = 1;
+  }
+}
+
+
+
+
+
+
+
+

@@ -117,4 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="m_label1.Text" xml:space="preserve">
+    <value>Add New Seed 
+     1. press "n"- key 
+     2. shift + L/R-double-click 
+     or click Fore/Back Seed Bottun
+Select Seed : shift + L-click 
+       Add CP : shift + L/R-double-click 
+    Move CP : shift + L/R-drag
+    Erase CP : shift + M-click</value>
+  </data>
 </root>
