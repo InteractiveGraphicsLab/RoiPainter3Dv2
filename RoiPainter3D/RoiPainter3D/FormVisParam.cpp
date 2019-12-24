@@ -243,8 +243,9 @@ System::Void FormVisParam::isRendPlaneYZ_CheckedChanged  (System::Object^  sende
 System::Void FormVisParam::isRendPlaneZX_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
 System::Void FormVisParam::isRendGradMag_CheckedChanged  (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
 System::Void FormVisParam::doInterpolation_CheckedChanged(System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
-System::Void FormVisParam::transBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {RedrawScene();}
-System::Void FormVisParam::sliceBar_Scroll(System::Object^  sender, System::EventArgs^  e)        {RedrawScene();}
+System::Void FormVisParam::isRendOtherRoi_CheckedChanged (System::Object^  sender, System::EventArgs^  e){ RedrawScene();}
+System::Void FormVisParam::transBar_Scroll(System::Object^  sender, System::EventArgs^  e) { RedrawScene(); }
+System::Void FormVisParam::sliceBar_Scroll(System::Object^  sender, System::EventArgs^  e) { RedrawScene(); }
 
 System::Void FormVisParam::isWhite_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
   FormMain_SetBkColor(1,1,1);

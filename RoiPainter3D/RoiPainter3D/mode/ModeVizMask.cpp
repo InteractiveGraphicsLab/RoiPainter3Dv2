@@ -188,15 +188,16 @@ void ModeVizMask::DrawScene(
   //Volume 
   if ( formVisParam_bRendVol() )
   {
-    const bool   bPsuedo   = formVisParam_bDoPsued();
-    const float  alpha     = formVisParam_getAlpha();
-    const bool   isOnManip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-    const int    sliceN = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+    const bool   b_pse   = formVisParam_bDoPsued();
+    const float  alpha   = formVisParam_getAlpha();
+    const bool   b_roi   = formVisParam_GetOtherROI();
+    const bool   b_manip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int    n_slice = (int)((b_manip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, cam_pos, bPsuedo, true);
-    t_DrawCuboidSlices(sliceN, cam_pos, cam_cnt, cuboid);
+    m_volumeShader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, cam_pos, b_pse, b_roi);
+    t_DrawCuboidSlices(n_slice, cam_pos, cam_cnt, cuboid);
     m_volumeShader.Unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);

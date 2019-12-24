@@ -325,6 +325,7 @@ void ModeRefStrokeTrim::KeyDown(int nChar)
   if (nChar == 'Z' && m_undo_idx > 0)
 	{
     std::cout<< "undo!!\n";
+    LogCore::GetInst()->Add("UNDO");
 
 #pragma omp parallel for 
     for ( int i=0; i < num_voxels; ++i )
@@ -335,6 +336,7 @@ void ModeRefStrokeTrim::KeyDown(int nChar)
   else if (nChar == 'Y' && m_undo_idx < m_redo_max)
   {
     std::cout<< "Redo!!\n";
+    LogCore::GetInst()->Add("REDO");
 
     m_undo_idx++;    
 #pragma omp parallel for 
@@ -388,15 +390,17 @@ void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
   m_crssec_shader.Unbind();
 
 	//volume rendering ---------------------------------------
-	if ( formVisParam_bRendVol() )
+	if ( formVisParam_bRendVol() && !IsSpaceKeyOn())
 	{
-    const float alpha  = formVisParam_getAlpha();
-    const bool b_on_manipuration = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-    const int  slice_num         = (int)( (b_on_manipuration ? ONMOVE_SLICE_RATE : 1.0 ) * formVisParam_getSliceNum() );
+    const float alpha    = formVisParam_getAlpha();
+    const bool b_otherroi= formVisParam_GetOtherROI();
+    const bool b_manip   = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int  slice_num = (int)( (b_manip ? ONMOVE_SLICE_RATE : 1.0 ) 
+                           * formVisParam_getSliceNum() );
 
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, false, !IsSpaceKeyOn());
+		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, false, b_otherroi);
 		t_DrawCuboidSlices( slice_num, cam_pos, cam_center, cuboid);
 		m_volume_shader.Unbind();
 		glDisable(GL_BLEND);

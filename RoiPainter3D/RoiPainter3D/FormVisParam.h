@@ -78,7 +78,8 @@ namespace RoiPainter3D {
     static FormVisParam^ m_singleton;
     OglImage1D<CH_RGBA> *m_imgTf ; // 1st ch(intensity-->trans), 2nd (grad mag-->trans) 
   private: System::Windows::Forms::CheckBox^  doInterpolation;
-    OglImage1D<CH_RGBA> *m_imgPsu; // func: intensity --> psude color 
+  private: System::Windows::Forms::CheckBox^  isRendOtherRoi;
+           OglImage1D<CH_RGBA> *m_imgPsu; // func: intensity --> psude color 
 
     FormVisParam(void);
     void pitchTextBoxChanged();
@@ -100,9 +101,10 @@ namespace RoiPainter3D {
     bool  bPlaneXY  (){ return isRendPlaneXY->Checked; }
     bool  bPlaneYZ  (){ return isRendPlaneYZ->Checked; }
     bool  bPlaneZX  (){ return isRendPlaneZX->Checked; }
-    bool  bRendVol  (){ return isRendVolume ->Checked;;}
-    bool  bGradMag  (){ return isRendGradMag->Checked;;}
-    bool  bDoPsued  (){ return isRendPseudo ->Checked;;}
+    bool  bRendVol  (){ return isRendVolume ->Checked; }
+    bool  bGradMag  (){ return isRendGradMag->Checked; }
+    bool  bDoPsued  (){ return isRendPseudo ->Checked; }
+    bool  bOtherRoi (){ return isRendOtherRoi->Checked;}
     bool  bOnManip  (){ return m_isMouseOn;}
     bool  doImgInterpolation(){ return doInterpolation->Checked;}
 
@@ -191,6 +193,7 @@ namespace RoiPainter3D {
       this->pictBox2 = (gcnew System::Windows::Forms::PictureBox());
       this->isRendGradMag = (gcnew System::Windows::Forms::CheckBox());
       this->doInterpolation = (gcnew System::Windows::Forms::CheckBox());
+      this->isRendOtherRoi = (gcnew System::Windows::Forms::CheckBox());
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictBox1))->BeginInit();
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->winLevelMaxBar))->BeginInit();
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->winLevelMinBar))->BeginInit();
@@ -202,50 +205,45 @@ namespace RoiPainter3D {
       // label_reso
       // 
       this->label_reso->AutoSize = true;
-      this->label_reso->Location = System::Drawing::Point(16, 11);
-      this->label_reso->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->label_reso->Location = System::Drawing::Point(12, 9);
       this->label_reso->Name = L"label_reso";
-      this->label_reso->Size = System::Drawing::Size(82, 15);
+      this->label_reso->Size = System::Drawing::Size(67, 12);
       this->label_reso->TabIndex = 0;
       this->label_reso->Text = L"size [pixels]";
       // 
       // label_pitch
       // 
       this->label_pitch->AutoSize = true;
-      this->label_pitch->Location = System::Drawing::Point(24, 42);
-      this->label_pitch->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->label_pitch->Location = System::Drawing::Point(18, 34);
       this->label_pitch->Name = L"label_pitch";
-      this->label_pitch->Size = System::Drawing::Size(75, 15);
+      this->label_pitch->Size = System::Drawing::Size(60, 12);
       this->label_pitch->TabIndex = 1;
       this->label_pitch->Text = L"pitch [mm]";
       // 
       // pitchZ
       // 
       this->pitchZ->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->pitchZ->Location = System::Drawing::Point(280, 36);
-      this->pitchZ->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->pitchZ->Location = System::Drawing::Point(210, 29);
       this->pitchZ->Name = L"pitchZ";
-      this->pitchZ->Size = System::Drawing::Size(79, 27);
+      this->pitchZ->Size = System::Drawing::Size(60, 23);
       this->pitchZ->TabIndex = 23;
       this->pitchZ->TextChanged += gcnew System::EventHandler(this, &FormVisParam::pitchZ_TextChanged);
       // 
       // pitchY
       // 
       this->pitchY->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->pitchY->Location = System::Drawing::Point(195, 36);
-      this->pitchY->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->pitchY->Location = System::Drawing::Point(146, 29);
       this->pitchY->Name = L"pitchY";
-      this->pitchY->Size = System::Drawing::Size(79, 27);
+      this->pitchY->Size = System::Drawing::Size(60, 23);
       this->pitchY->TabIndex = 22;
       this->pitchY->TextChanged += gcnew System::EventHandler(this, &FormVisParam::pitchY_TextChanged);
       // 
       // pitchX
       // 
       this->pitchX->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->pitchX->Location = System::Drawing::Point(108, 36);
-      this->pitchX->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->pitchX->Location = System::Drawing::Point(81, 29);
       this->pitchX->Name = L"pitchX";
-      this->pitchX->Size = System::Drawing::Size(79, 27);
+      this->pitchX->Size = System::Drawing::Size(60, 23);
       this->pitchX->TabIndex = 21;
       this->pitchX->TextChanged += gcnew System::EventHandler(this, &FormVisParam::pitchX_TextChanged);
       // 
@@ -253,33 +251,30 @@ namespace RoiPainter3D {
       // 
       this->sizeZ->BackColor = System::Drawing::SystemColors::Info;
       this->sizeZ->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->sizeZ->Location = System::Drawing::Point(283, 4);
-      this->sizeZ->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->sizeZ->Location = System::Drawing::Point(212, 3);
       this->sizeZ->Name = L"sizeZ";
       this->sizeZ->ReadOnly = true;
-      this->sizeZ->Size = System::Drawing::Size(77, 27);
+      this->sizeZ->Size = System::Drawing::Size(59, 23);
       this->sizeZ->TabIndex = 20;
       // 
       // sizeY
       // 
       this->sizeY->BackColor = System::Drawing::SystemColors::Info;
       this->sizeY->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->sizeY->Location = System::Drawing::Point(196, 4);
-      this->sizeY->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->sizeY->Location = System::Drawing::Point(147, 3);
       this->sizeY->Name = L"sizeY";
       this->sizeY->ReadOnly = true;
-      this->sizeY->Size = System::Drawing::Size(77, 27);
+      this->sizeY->Size = System::Drawing::Size(59, 23);
       this->sizeY->TabIndex = 19;
       // 
       // sizeX
       // 
       this->sizeX->BackColor = System::Drawing::SystemColors::Info;
       this->sizeX->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->sizeX->Location = System::Drawing::Point(109, 4);
-      this->sizeX->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->sizeX->Location = System::Drawing::Point(82, 3);
       this->sizeX->Name = L"sizeX";
       this->sizeX->ReadOnly = true;
-      this->sizeX->Size = System::Drawing::Size(77, 27);
+      this->sizeX->Size = System::Drawing::Size(59, 23);
       this->sizeX->TabIndex = 18;
       // 
       // isGray
@@ -288,10 +283,9 @@ namespace RoiPainter3D {
       this->isGray->Checked = true;
       this->isGray->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->isGray->Location = System::Drawing::Point(287, 224);
-      this->isGray->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->isGray->Location = System::Drawing::Point(215, 179);
       this->isGray->Name = L"isGray";
-      this->isGray->Size = System::Drawing::Size(63, 27);
+      this->isGray->Size = System::Drawing::Size(52, 22);
       this->isGray->TabIndex = 67;
       this->isGray->TabStop = true;
       this->isGray->Text = L"gray";
@@ -303,10 +297,9 @@ namespace RoiPainter3D {
       this->isBlack->AutoSize = true;
       this->isBlack->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->isBlack->Location = System::Drawing::Point(204, 224);
-      this->isBlack->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->isBlack->Location = System::Drawing::Point(153, 179);
       this->isBlack->Name = L"isBlack";
-      this->isBlack->Size = System::Drawing::Size(69, 27);
+      this->isBlack->Size = System::Drawing::Size(56, 22);
       this->isBlack->TabIndex = 66;
       this->isBlack->Text = L"black";
       this->isBlack->UseVisualStyleBackColor = true;
@@ -317,10 +310,9 @@ namespace RoiPainter3D {
       this->isWhite->AutoSize = true;
       this->isWhite->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->isWhite->Location = System::Drawing::Point(120, 224);
-      this->isWhite->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->isWhite->Location = System::Drawing::Point(90, 179);
       this->isWhite->Name = L"isWhite";
-      this->isWhite->Size = System::Drawing::Size(71, 27);
+      this->isWhite->Size = System::Drawing::Size(58, 22);
       this->isWhite->TabIndex = 65;
       this->isWhite->Text = L"white";
       this->isWhite->UseVisualStyleBackColor = true;
@@ -333,10 +325,9 @@ namespace RoiPainter3D {
       this->isRendIndi->CheckState = System::Windows::Forms::CheckState::Checked;
       this->isRendIndi->Font = (gcnew System::Drawing::Font(L"メイリオ", 8.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->isRendIndi->Location = System::Drawing::Point(290, 141);
-      this->isRendIndi->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->isRendIndi->Location = System::Drawing::Point(172, 135);
       this->isRendIndi->Name = L"isRendIndi";
-      this->isRendIndi->Size = System::Drawing::Size(92, 25);
+      this->isRendIndi->Size = System::Drawing::Size(75, 21);
       this->isRendIndi->TabIndex = 64;
       this->isRendIndi->Text = L"indicator";
       this->isRendIndi->UseVisualStyleBackColor = true;
@@ -344,10 +335,9 @@ namespace RoiPainter3D {
       // 
       // pictBox1
       // 
-      this->pictBox1->Location = System::Drawing::Point(17, 316);
-      this->pictBox1->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->pictBox1->Location = System::Drawing::Point(13, 253);
       this->pictBox1->Name = L"pictBox1";
-      this->pictBox1->Size = System::Drawing::Size(335, 75);
+      this->pictBox1->Size = System::Drawing::Size(251, 60);
       this->pictBox1->TabIndex = 63;
       this->pictBox1->TabStop = false;
       this->pictBox1->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &FormVisParam::pictBox1_MouseDown);
@@ -360,10 +350,10 @@ namespace RoiPainter3D {
       this->isRendVolume->Checked = true;
       this->isRendVolume->CheckState = System::Windows::Forms::CheckState::Checked;
       this->isRendVolume->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->isRendVolume->Location = System::Drawing::Point(105, 141);
-      this->isRendVolume->Margin = System::Windows::Forms::Padding(5, 6, 5, 6);
+      this->isRendVolume->Location = System::Drawing::Point(68, 113);
+      this->isRendVolume->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
       this->isRendVolume->Name = L"isRendVolume";
-      this->isRendVolume->Size = System::Drawing::Size(82, 25);
+      this->isRendVolume->Size = System::Drawing::Size(67, 21);
       this->isRendVolume->TabIndex = 45;
       this->isRendVolume->Text = L"volume";
       this->isRendVolume->UseVisualStyleBackColor = true;
@@ -375,10 +365,10 @@ namespace RoiPainter3D {
       this->isRendPseudo->Checked = true;
       this->isRendPseudo->CheckState = System::Windows::Forms::CheckState::Checked;
       this->isRendPseudo->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->isRendPseudo->Location = System::Drawing::Point(203, 141);
-      this->isRendPseudo->Margin = System::Windows::Forms::Padding(5, 6, 5, 6);
+      this->isRendPseudo->Location = System::Drawing::Point(135, 113);
+      this->isRendPseudo->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
       this->isRendPseudo->Name = L"isRendPseudo";
-      this->isRendPseudo->Size = System::Drawing::Size(82, 25);
+      this->isRendPseudo->Size = System::Drawing::Size(66, 21);
       this->isRendPseudo->TabIndex = 46;
       this->isRendPseudo->Text = L"pseudo";
       this->isRendPseudo->UseVisualStyleBackColor = true;
@@ -386,10 +376,9 @@ namespace RoiPainter3D {
       // 
       // winLevelMaxBar
       // 
-      this->winLevelMaxBar->Location = System::Drawing::Point(167, 109);
-      this->winLevelMaxBar->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->winLevelMaxBar->Location = System::Drawing::Point(125, 87);
       this->winLevelMaxBar->Name = L"winLevelMaxBar";
-      this->winLevelMaxBar->Size = System::Drawing::Size(223, 56);
+      this->winLevelMaxBar->Size = System::Drawing::Size(167, 45);
       this->winLevelMaxBar->TabIndex = 62;
       this->winLevelMaxBar->TickStyle = System::Windows::Forms::TickStyle::None;
       this->winLevelMaxBar->Scroll += gcnew System::EventHandler(this, &FormVisParam::winLevelMaxBar_Scroll);
@@ -397,10 +386,9 @@ namespace RoiPainter3D {
       // 
       // winLevelMinBar
       // 
-      this->winLevelMinBar->Location = System::Drawing::Point(168, 71);
-      this->winLevelMinBar->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->winLevelMinBar->Location = System::Drawing::Point(126, 57);
       this->winLevelMinBar->Name = L"winLevelMinBar";
-      this->winLevelMinBar->Size = System::Drawing::Size(221, 56);
+      this->winLevelMinBar->Size = System::Drawing::Size(166, 45);
       this->winLevelMinBar->TabIndex = 61;
       this->winLevelMinBar->TickStyle = System::Windows::Forms::TickStyle::None;
       this->winLevelMinBar->Scroll += gcnew System::EventHandler(this, &FormVisParam::winLevelMinBar_Scroll);
@@ -408,20 +396,18 @@ namespace RoiPainter3D {
       // 
       // sliceBar
       // 
-      this->sliceBar->Location = System::Drawing::Point(180, 275);
-      this->sliceBar->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->sliceBar->Location = System::Drawing::Point(135, 220);
       this->sliceBar->Name = L"sliceBar";
-      this->sliceBar->Size = System::Drawing::Size(187, 56);
+      this->sliceBar->Size = System::Drawing::Size(140, 45);
       this->sliceBar->TabIndex = 60;
       this->sliceBar->TickStyle = System::Windows::Forms::TickStyle::None;
       this->sliceBar->Scroll += gcnew System::EventHandler(this, &FormVisParam::sliceBar_Scroll);
       // 
       // transBar
       // 
-      this->transBar->Location = System::Drawing::Point(4, 275);
-      this->transBar->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->transBar->Location = System::Drawing::Point(3, 220);
       this->transBar->Name = L"transBar";
-      this->transBar->Size = System::Drawing::Size(168, 56);
+      this->transBar->Size = System::Drawing::Size(126, 45);
       this->transBar->TabIndex = 59;
       this->transBar->TickStyle = System::Windows::Forms::TickStyle::None;
       this->transBar->Scroll += gcnew System::EventHandler(this, &FormVisParam::transBar_Scroll);
@@ -430,10 +416,9 @@ namespace RoiPainter3D {
       // 
       this->sliceLabel->AutoSize = true;
       this->sliceLabel->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->sliceLabel->Location = System::Drawing::Point(179, 256);
-      this->sliceLabel->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->sliceLabel->Location = System::Drawing::Point(134, 205);
       this->sliceLabel->Name = L"sliceLabel";
-      this->sliceLabel->Size = System::Drawing::Size(42, 21);
+      this->sliceLabel->Size = System::Drawing::Size(33, 17);
       this->sliceLabel->TabIndex = 58;
       this->sliceLabel->Text = L"Slice";
       // 
@@ -441,31 +426,28 @@ namespace RoiPainter3D {
       // 
       this->transLabel->AutoSize = true;
       this->transLabel->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->transLabel->Location = System::Drawing::Point(8, 256);
-      this->transLabel->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->transLabel->Location = System::Drawing::Point(6, 205);
       this->transLabel->Name = L"transLabel";
-      this->transLabel->Size = System::Drawing::Size(48, 21);
+      this->transLabel->Size = System::Drawing::Size(37, 17);
       this->transLabel->TabIndex = 57;
       this->transLabel->Text = L"Trans";
       // 
       // winLevelMaxTextBox
       // 
       this->winLevelMaxTextBox->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->winLevelMaxTextBox->Location = System::Drawing::Point(81, 104);
-      this->winLevelMaxTextBox->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->winLevelMaxTextBox->Location = System::Drawing::Point(61, 83);
       this->winLevelMaxTextBox->Name = L"winLevelMaxTextBox";
       this->winLevelMaxTextBox->ReadOnly = true;
-      this->winLevelMaxTextBox->Size = System::Drawing::Size(83, 27);
+      this->winLevelMaxTextBox->Size = System::Drawing::Size(63, 23);
       this->winLevelMaxTextBox->TabIndex = 56;
       // 
       // winLevelMinTextBox
       // 
       this->winLevelMinTextBox->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->winLevelMinTextBox->Location = System::Drawing::Point(80, 71);
-      this->winLevelMinTextBox->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->winLevelMinTextBox->Location = System::Drawing::Point(60, 57);
       this->winLevelMinTextBox->Name = L"winLevelMinTextBox";
       this->winLevelMinTextBox->ReadOnly = true;
-      this->winLevelMinTextBox->Size = System::Drawing::Size(84, 27);
+      this->winLevelMinTextBox->Size = System::Drawing::Size(64, 23);
       this->winLevelMinTextBox->TabIndex = 55;
       // 
       // winLevelMaxLabel
@@ -473,10 +455,9 @@ namespace RoiPainter3D {
       this->winLevelMaxLabel->AutoSize = true;
       this->winLevelMaxLabel->Font = (gcnew System::Drawing::Font(L"メイリオ", 8, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->winLevelMaxLabel->Location = System::Drawing::Point(40, 108);
-      this->winLevelMaxLabel->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->winLevelMaxLabel->Location = System::Drawing::Point(30, 86);
       this->winLevelMaxLabel->Name = L"winLevelMaxLabel";
-      this->winLevelMaxLabel->Size = System::Drawing::Size(38, 21);
+      this->winLevelMaxLabel->Size = System::Drawing::Size(29, 17);
       this->winLevelMaxLabel->TabIndex = 54;
       this->winLevelMaxLabel->Text = L"Max";
       // 
@@ -485,10 +466,9 @@ namespace RoiPainter3D {
       this->winLevelMinLabel->AutoSize = true;
       this->winLevelMinLabel->Font = (gcnew System::Drawing::Font(L"メイリオ", 8, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->winLevelMinLabel->Location = System::Drawing::Point(43, 75);
-      this->winLevelMinLabel->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->winLevelMinLabel->Location = System::Drawing::Point(32, 60);
       this->winLevelMinLabel->Name = L"winLevelMinLabel";
-      this->winLevelMinLabel->Size = System::Drawing::Size(35, 21);
+      this->winLevelMinLabel->Size = System::Drawing::Size(27, 17);
       this->winLevelMinLabel->TabIndex = 53;
       this->winLevelMinLabel->Text = L"Min";
       // 
@@ -496,10 +476,9 @@ namespace RoiPainter3D {
       // 
       this->winLevelLabel->AutoSize = true;
       this->winLevelLabel->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->winLevelLabel->Location = System::Drawing::Point(5, 92);
-      this->winLevelLabel->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->winLevelLabel->Location = System::Drawing::Point(4, 74);
       this->winLevelLabel->Name = L"winLevelLabel";
-      this->winLevelLabel->Size = System::Drawing::Size(52, 21);
+      this->winLevelLabel->Size = System::Drawing::Size(41, 17);
       this->winLevelLabel->TabIndex = 52;
       this->winLevelLabel->Text = L"WinLv";
       // 
@@ -507,10 +486,9 @@ namespace RoiPainter3D {
       // 
       this->bgColorLabel->AutoSize = true;
       this->bgColorLabel->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->bgColorLabel->Location = System::Drawing::Point(8, 224);
-      this->bgColorLabel->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->bgColorLabel->Location = System::Drawing::Point(6, 179);
       this->bgColorLabel->Name = L"bgColorLabel";
-      this->bgColorLabel->Size = System::Drawing::Size(93, 21);
+      this->bgColorLabel->Size = System::Drawing::Size(74, 17);
       this->bgColorLabel->TabIndex = 51;
       this->bgColorLabel->Text = L"BackGround";
       // 
@@ -518,10 +496,9 @@ namespace RoiPainter3D {
       // 
       this->planeLabel->AutoSize = true;
       this->planeLabel->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->planeLabel->Location = System::Drawing::Point(11, 202);
-      this->planeLabel->Margin = System::Windows::Forms::Padding(4, 0, 4, 0);
+      this->planeLabel->Location = System::Drawing::Point(8, 162);
       this->planeLabel->Name = L"planeLabel";
-      this->planeLabel->Size = System::Drawing::Size(47, 21);
+      this->planeLabel->Size = System::Drawing::Size(37, 17);
       this->planeLabel->TabIndex = 50;
       this->planeLabel->Text = L"Plane";
       // 
@@ -531,10 +508,9 @@ namespace RoiPainter3D {
       this->isRendPlaneZX->Checked = true;
       this->isRendPlaneZX->CheckState = System::Windows::Forms::CheckState::Checked;
       this->isRendPlaneZX->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->isRendPlaneZX->Location = System::Drawing::Point(284, 198);
-      this->isRendPlaneZX->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->isRendPlaneZX->Location = System::Drawing::Point(213, 158);
       this->isRendPlaneZX->Name = L"isRendPlaneZX";
-      this->isRendPlaneZX->Size = System::Drawing::Size(47, 25);
+      this->isRendPlaneZX->Size = System::Drawing::Size(39, 21);
       this->isRendPlaneZX->TabIndex = 49;
       this->isRendPlaneZX->Text = L"zx";
       this->isRendPlaneZX->UseVisualStyleBackColor = true;
@@ -546,10 +522,9 @@ namespace RoiPainter3D {
       this->isRendPlaneYZ->Checked = true;
       this->isRendPlaneYZ->CheckState = System::Windows::Forms::CheckState::Checked;
       this->isRendPlaneYZ->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->isRendPlaneYZ->Location = System::Drawing::Point(203, 198);
-      this->isRendPlaneYZ->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->isRendPlaneYZ->Location = System::Drawing::Point(152, 158);
       this->isRendPlaneYZ->Name = L"isRendPlaneYZ";
-      this->isRendPlaneYZ->Size = System::Drawing::Size(47, 25);
+      this->isRendPlaneYZ->Size = System::Drawing::Size(39, 21);
       this->isRendPlaneYZ->TabIndex = 48;
       this->isRendPlaneYZ->Text = L"yz";
       this->isRendPlaneYZ->UseVisualStyleBackColor = true;
@@ -561,10 +536,9 @@ namespace RoiPainter3D {
       this->isRendPlaneXY->Checked = true;
       this->isRendPlaneXY->CheckState = System::Windows::Forms::CheckState::Checked;
       this->isRendPlaneXY->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->isRendPlaneXY->Location = System::Drawing::Point(120, 198);
-      this->isRendPlaneXY->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->isRendPlaneXY->Location = System::Drawing::Point(90, 158);
       this->isRendPlaneXY->Name = L"isRendPlaneXY";
-      this->isRendPlaneXY->Size = System::Drawing::Size(48, 25);
+      this->isRendPlaneXY->Size = System::Drawing::Size(39, 21);
       this->isRendPlaneXY->TabIndex = 47;
       this->isRendPlaneXY->Text = L"xy";
       this->isRendPlaneXY->UseVisualStyleBackColor = true;
@@ -576,10 +550,10 @@ namespace RoiPainter3D {
       this->isRendFrame->Checked = true;
       this->isRendFrame->CheckState = System::Windows::Forms::CheckState::Checked;
       this->isRendFrame->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->isRendFrame->Location = System::Drawing::Point(17, 141);
-      this->isRendFrame->Margin = System::Windows::Forms::Padding(5, 6, 5, 6);
+      this->isRendFrame->Location = System::Drawing::Point(6, 113);
+      this->isRendFrame->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
       this->isRendFrame->Name = L"isRendFrame";
-      this->isRendFrame->Size = System::Drawing::Size(72, 25);
+      this->isRendFrame->Size = System::Drawing::Size(59, 21);
       this->isRendFrame->TabIndex = 44;
       this->isRendFrame->Text = L"frame";
       this->isRendFrame->UseVisualStyleBackColor = true;
@@ -587,10 +561,9 @@ namespace RoiPainter3D {
       // 
       // pictBox2
       // 
-      this->pictBox2->Location = System::Drawing::Point(17, 399);
-      this->pictBox2->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
+      this->pictBox2->Location = System::Drawing::Point(13, 319);
       this->pictBox2->Name = L"pictBox2";
-      this->pictBox2->Size = System::Drawing::Size(335, 75);
+      this->pictBox2->Size = System::Drawing::Size(251, 60);
       this->pictBox2->TabIndex = 68;
       this->pictBox2->TabStop = false;
       this->pictBox2->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &FormVisParam::pictBox2_MouseDown);
@@ -601,10 +574,10 @@ namespace RoiPainter3D {
       // 
       this->isRendGradMag->AutoSize = true;
       this->isRendGradMag->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->isRendGradMag->Location = System::Drawing::Point(17, 169);
-      this->isRendGradMag->Margin = System::Windows::Forms::Padding(5, 6, 5, 6);
+      this->isRendGradMag->Location = System::Drawing::Point(6, 135);
+      this->isRendGradMag->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
       this->isRendGradMag->Name = L"isRendGradMag";
-      this->isRendGradMag->Size = System::Drawing::Size(63, 25);
+      this->isRendGradMag->Size = System::Drawing::Size(52, 21);
       this->isRendGradMag->TabIndex = 69;
       this->isRendGradMag->Text = L"grad";
       this->isRendGradMag->UseVisualStyleBackColor = true;
@@ -616,21 +589,35 @@ namespace RoiPainter3D {
       this->doInterpolation->Checked = true;
       this->doInterpolation->CheckState = System::Windows::Forms::CheckState::Checked;
       this->doInterpolation->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
-      this->doInterpolation->Location = System::Drawing::Point(105, 169);
-      this->doInterpolation->Margin = System::Windows::Forms::Padding(5, 6, 5, 6);
+      this->doInterpolation->Location = System::Drawing::Point(68, 135);
+      this->doInterpolation->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
       this->doInterpolation->Name = L"doInterpolation";
-      this->doInterpolation->Size = System::Drawing::Size(121, 25);
+      this->doInterpolation->Size = System::Drawing::Size(97, 21);
       this->doInterpolation->TabIndex = 70;
       this->doInterpolation->Text = L"Interpolation";
       this->doInterpolation->UseVisualStyleBackColor = true;
       this->doInterpolation->CheckedChanged += gcnew System::EventHandler(this, &FormVisParam::doInterpolation_CheckedChanged);
       // 
+      // isRendOtherRoi
+      // 
+      this->isRendOtherRoi->AutoSize = true;
+      this->isRendOtherRoi->Font = (gcnew System::Drawing::Font(L"メイリオ", 8));
+      this->isRendOtherRoi->Location = System::Drawing::Point(204, 113);
+      this->isRendOtherRoi->Margin = System::Windows::Forms::Padding(4, 5, 4, 5);
+      this->isRendOtherRoi->Name = L"isRendOtherRoi";
+      this->isRendOtherRoi->Size = System::Drawing::Size(81, 21);
+      this->isRendOtherRoi->TabIndex = 71;
+      this->isRendOtherRoi->Text = L"otherROIs";
+      this->isRendOtherRoi->UseVisualStyleBackColor = true;
+      this->isRendOtherRoi->CheckedChanged += gcnew System::EventHandler(this, &FormVisParam::isRendOtherRoi_CheckedChanged);
+      // 
       // FormVisParam
       // 
-      this->AutoScaleDimensions = System::Drawing::SizeF(8, 15);
+      this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
       this->BackColor = System::Drawing::SystemColors::Info;
-      this->ClientSize = System::Drawing::Size(397, 508);
+      this->ClientSize = System::Drawing::Size(298, 388);
+      this->Controls->Add(this->isRendOtherRoi);
       this->Controls->Add(this->doInterpolation);
       this->Controls->Add(this->isRendIndi);
       this->Controls->Add(this->isRendGradMag);
@@ -667,7 +654,6 @@ namespace RoiPainter3D {
       this->Controls->Add(this->label_pitch);
       this->Controls->Add(this->label_reso);
       this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedDialog;
-      this->Margin = System::Windows::Forms::Padding(4, 4, 4, 4);
       this->Name = L"FormVisParam";
       this->Text = L"FormVisParam";
       (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictBox1))->EndInit();
@@ -695,6 +681,7 @@ namespace RoiPainter3D {
   private: System::Void isRendPlaneXY_CheckedChanged(System::Object^  sender, System::EventArgs^  e); 
   private: System::Void isRendPlaneYZ_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
   private: System::Void isRendPlaneZX_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
+  private: System::Void isRendOtherRoi_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
   private: System::Void doInterpolation_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
   private: System::Void isWhite_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
   private: System::Void isBlack_CheckedChanged(System::Object^  sender, System::EventArgs^  e) ;
@@ -708,7 +695,6 @@ namespace RoiPainter3D {
   private: System::Void pictBox2_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) ;
   private: System::Void pictBox2_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) ;
   private: System::Void pictBox2_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) ;
-
 };
 
 
@@ -719,6 +705,7 @@ namespace RoiPainter3D {
   inline bool  formVisParam_bGradMag   (){return FormVisParam::getInst()->bGradMag();}
   inline bool  formVisParam_bDoPsued   (){return FormVisParam::getInst()->bDoPsued();}
   inline bool  formVisParam_bOnManip   (){return FormVisParam::getInst()->bOnManip();}
+  inline bool  formVisParam_GetOtherROI(){return FormVisParam::getInst()->bOtherRoi();}
   inline float formVisParam_getAlpha   (){return FormVisParam::getInst()->getAlpha();}
   inline int   formVisParam_getSliceNum(){return FormVisParam::getInst()->getSliceNum();}
   inline int   formVisParam_doInterpolation(){return FormVisParam::getInst()->doImgInterpolation();}
