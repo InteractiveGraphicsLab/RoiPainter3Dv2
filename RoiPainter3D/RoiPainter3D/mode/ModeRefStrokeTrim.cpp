@@ -303,14 +303,22 @@ void ModeRefStrokeTrim::MouseMove(const EVec2i &p, OglForCLI *ogl)
 }
 
 
+
 void ModeRefStrokeTrim::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
-  if( !PickToMoveCrossSecByWheeling(p, ogl, zDelta ) )
+  if( PickToMoveCrossSecByWheeling(p, ogl, zDelta ) )
   {
+    LogCore::GetInst()->Add("WHEELCRSSEC"); 
+  }
+  else
+  {
+    LogCore::GetInst()->Add("WHEELZOOM"); 
     ogl->ZoomCamByWheel( zDelta );
   }
   RedrawScene();
 }
+
+
 
 void ModeRefStrokeTrim::KeyDown(int nChar) 
 {
@@ -359,7 +367,7 @@ void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
 
   if (m_b_drawingstroke && m_stroke3d.size() > 1)
 	{
-    t_DrawPolyLine( EVec3f(1,1,0), 4, m_stroke3d, true );
+    t_DrawPolyLine( EVec3f(1,0,1), 4, m_stroke3d, true );
 	}
 	
 	//bind volumes ---------------------------------------

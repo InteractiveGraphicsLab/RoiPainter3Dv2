@@ -41,6 +41,31 @@ typedef Eigen::Matrix4d EMat4d;
 #endif
 
 
+
+
+
+
+//	  | a b | |s|    w1
+//    | c d | |t|  = w2
+inline bool t_solve2by2LinearEquation(const double a, const double b,
+  const double c, const double d, const double w1, const double w2,
+  double &s, double &t)
+{
+  double det = (a*d - b*c);
+  if (det == 0) return false;
+  det = 1.0 / det;
+  s = (d*w1 - b*w2) * det;
+  t = (-c*w1 + a*w2) * det;
+  return true;
+}
+
+
+
+
+
+
+
+
 inline void Trace(const EVec3i &v)
 {
   std::cout << v[0] << " " <<  v[1] << " " << v[2] << "\n";
@@ -93,6 +118,44 @@ inline float t_distRayToPoint(const EVec3f &rayP, const EVec3f &rayD, const EVec
   t = (p - rayP).dot(rayD) / rayD.dot(rayD);
   return (rayP + t * rayD - p).norm();
 }
+
+
+inline float t_distRayToLineSegment(
+  const EVec3f &ray_pos, 
+  const EVec3f &ray_dir, 
+  const EVec3f &x0     ,
+  const EVec3f &x1     , 
+  float &coef1,
+  float &coef2 
+)
+{
+  // h1 = pos + t1 d1
+  // h2 = x0  + t2 d2   d2 = x1-x0
+
+  // d1 ( pos + t1 d1 - x0  - t2 d2) = 0
+  // d2 ( pos + t1 d1 - x0  - t2 d2) = 0
+  
+  EVec3f d1 = ray_dir;
+  EVec3f d2 = x1 - x0;
+
+  float w1 = d1.dot(x0 - ray_pos);
+  float w2 = d2.dot(x0 - ray_pos);
+  double t1,t2;
+  t_solve2by2LinearEquation( d1.dot(d1), -d1.dot(d2), 
+                             d1.dot(d2), -d2.dot(d2), w1, 
+                                                      w2, t1, t2);
+  coef1 = (float)t1;
+  coef2 = (float)t2;
+    
+
+  if ( t2 < 0   ) return t_distRayToPoint(ray_pos, ray_dir, x0);
+  if ( t2 > 1.0f) return t_distRayToPoint(ray_pos, ray_dir, x1);
+ 
+  EVec3f h1 = ray_pos + (float)t1 * d1;
+  EVec3f h2 = x0      + (float)t2 * d2;
+  return (h1-h2).norm();      
+}
+
 
 
 
@@ -409,22 +472,6 @@ inline void t_verts_Smoothing(const int times, std::vector<EVec3f> &verts)
 
 
 
-
-
-
-//	  | a b | |s|    w1
-//    | c d | |t|  = w2
-inline bool t_solve2by2LinearEquation(const double a, const double b,
-  const double c, const double d, const double w1, const double w2,
-  double &s, double &t)
-{
-  double det = (a*d - b*c);
-  if (det == 0) return false;
-  det = 1.0 / det;
-  s = (d*w1 - b*w2) * det;
-  t = (-c*w1 + a*w2) * det;
-  return true;
-}
 
 
 

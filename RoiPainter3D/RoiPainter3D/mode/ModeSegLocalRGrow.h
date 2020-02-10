@@ -132,12 +132,17 @@ public:
   void AddNewSeed(bool bForeBack);
   void AddNewSeed(bool bForeBack, EVec3f &pos);
 
-private:
-  EVec2i PickSeeds(const EVec3f &rayP, const EVec3f &rayD);
-  void   PickToRemoveSeedCP(const EVec3f &rayP, const EVec3f &rayD);
-
+  void  ImportSeedInfo(std::string fname);
   void  ExportSeedInfo(std::string fname);
 
+private:
+  bool   PickActiveSeed    (const EVec3f &rayP, const EVec3f &rayD, EVec3f &pos);
+  EVec2i PickSeedCP        (const EVec3f &rayP, const EVec3f &rayD);
+  bool   PickToRemoveSeedCP(const EVec3f &rayP, const EVec3f &rayD);
+  bool   PickCrssecToaddCP (const EVec3f &rayP, const EVec3f &rayD, const bool b_fore);
+
+
+  int   GetLatestAddedSeedIdx(bool tf);
 };
 
 #pragma managed

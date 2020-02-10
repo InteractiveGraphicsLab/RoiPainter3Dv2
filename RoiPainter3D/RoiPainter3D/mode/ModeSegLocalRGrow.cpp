@@ -21,6 +21,7 @@ using namespace RoiPainter3D;
 #pragma unmanaged
 
 
+
 ModeSegLocalRGrow::~ModeSegLocalRGrow()
 {
 }
@@ -54,7 +55,7 @@ void ModeSegLocalRGrow::StartMode()
 	m_b_drawstroke = false;
 	m_stroke.clear();
   m_seeds .clear();
-  LRGSeed::SetCpRadius( ImageCore::GetInst()->GetPitch()[0] * 2.0f );
+  LRGSeed::SetCpRadius( ImageCore::GetInst()->GetPitch()[0] * 4.0f );
 
   //show dialog
   formSegLocalRGrow_Show();
@@ -145,6 +146,43 @@ void  ModeSegLocalRGrow::ExportSeedInfo(std::string fname)
 
 
 
+void  ModeSegLocalRGrow::ImportSeedInfo(std::string fname)
+{
+  m_activeseed_idx = -1;
+  m_seeds .clear();
+
+  std::ifstream ifs( fname.c_str() );
+ 
+  if (!ifs)
+  {
+    std::cout << "failed to open the file " << fname << "\n";
+  }
+ 
+  std::string buf;
+  int num_seeds; 
+  ifs >> buf; // "Seedinfo\n"
+  ifs >> buf >> num_seeds; // "Seedinfo\n"
+
+  for ( int i=0; i < num_seeds; ++i )
+  {
+    int num_cps;
+    ifs >> buf >> num_cps; // "Seedinfo\n"
+    
+    int flg, minv, maxv;
+    float radius;
+    ifs >> buf >> flg >> minv >> maxv >> radius; 
+    m_seeds.push_back(LRGSeed(EVec3f(0,0,0), minv, maxv, flg, radius));
+    
+    m_seeds.back().m_cps.resize(num_cps);
+    for ( auto& c : m_seeds.back().m_cps)
+    {
+      ifs >> c[0] >> c[1] >> c[2];    
+    }
+  }
+  
+}
+
+
 
 
 
@@ -159,32 +197,52 @@ void ModeSegLocalRGrow::CancelSegmentation()
 
 
 
+int  ModeSegLocalRGrow::GetLatestAddedSeedIdx(bool tf)
+{
+  for ( int i = m_seeds.size() - 1; i >= 0;  --i)
+  {
+    if ( tf && m_seeds[i].m_flg_fore ) return i;
+    if ( !tf && !m_seeds[i].m_flg_fore) return i;
+  }
+  return -1;
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////
 //Mouse Listener///////////////////////////////////////////////////////
 // current version(現在のもの)
-// Select seed    : L/R click click                                OK
-// Move CP        : Shift + L/R drag                               OK
-// Add seed 1     : Shift + L/R dblclick when no active seed       OK
-// Add seed 2     : Button on Dialog  ( new! )                     OK 
-// Add seed cp    : shift + L dblclick when active seed exist      OK
-// Remove seed(cp): shift + M double click , click                 OK 
-
-
-
+// Select seed    : L/R click on CP                   ok
+// Move CP        : L/R drag  on CP                   ok
+// Add seed 1     : L/R dblclick when no active seed  ok
+// Add seed 2     : Button on Dialog  ( new! )        ok 
+// Add seed cp    : L dblclick when active seed exist ok
+// Remove seed(cp): L/R/M double click                ok 
+//wheeling : zoom or modify radius or move slice      ok
 void ModeSegLocalRGrow::AddNewSeed(bool b_foreseed, EVec3f &cp_position)
 {
   LogCore::GetInst()->Add("AddNewSeed");
 
-
   const EVec3f cuboid = ImageCore::GetInst()->GetCuboid();
   const EVec2i minmax = ImageCore::GetInst()->GetVolMinMax();  
+  const short  vol_v  = ImageCore::GetInst()->GetVoxelValue(cp_position);
 
   //get initial threshold
-  short vol_v  = ImageCore::GetInst()->GetVoxelValue(cp_position);
-	short min_v  = b_foreseed ? vol_v - 100 : minmax[0]  ;
-	short max_v  = b_foreseed ? minmax[1]   : vol_v + 100;
-	float radius = b_foreseed ? cuboid[0] * 0.05f : cuboid[0] * 0.02f;
+  int prev_seedidx = GetLatestAddedSeedIdx( b_foreseed );
+  short min_v, max_v;
+  float radius;
+  if ( prev_seedidx != -1 )
+  {
+	  min_v  = m_seeds[prev_seedidx].m_min_v ;
+	  max_v  = m_seeds[prev_seedidx].m_max_v ;
+	  radius = m_seeds[prev_seedidx].m_radius;
+  }
+  else
+  {
+	  min_v  = b_foreseed ? vol_v - 100 : minmax[0]  ;
+	  max_v  = b_foreseed ? minmax[1]   : vol_v + 100;
+	  radius = b_foreseed ? cuboid[0] * 0.05f : cuboid[0] * 0.02f;
+  }
 
   min_v = max( min_v, (short)minmax[0]);
   max_v = min( max_v, (short)minmax[1]);
@@ -240,11 +298,11 @@ void ModeSegLocalRGrow::AddNewSeed(bool b_foreseed)
 
 
 
-void ModeSegLocalRGrow::PickToRemoveSeedCP(
+bool ModeSegLocalRGrow::PickToRemoveSeedCP(
     const EVec3f &ray_pos, 
     const EVec3f &ray_dir)
 {
-	EVec2i seedid_cpid = PickSeeds(ray_pos, ray_dir);
+	EVec2i seedid_cpid = PickSeedCP(ray_pos, ray_dir);
   int seedId = seedid_cpid[0];
   int cpId   = seedid_cpid[1];
 	  
@@ -263,9 +321,38 @@ void ModeSegLocalRGrow::PickToRemoveSeedCP(
         m_activeseed_idx--;
     }
     formSegLocalRGrow_updateAllItems();
-    RedrawScene();
+    return true;
   }
+  return false;
 }
+
+
+
+bool ModeSegLocalRGrow::PickCrssecToaddCP(
+    const EVec3f &ray_pos, 
+    const EVec3f &ray_dir, 
+    const bool b_fore)
+{
+  EVec3f pos;
+
+  if ( PickCrssec(ray_pos, ray_dir, &pos) != CRSSEC_NON)
+  {
+    if ( m_activeseed_idx  == -1 ) 
+    {
+      AddNewSeed(b_fore, pos);
+    }
+    else
+    {
+      m_seeds[ m_activeseed_idx ].m_cps.push_back(pos);
+      LogCore::GetInst()->Add("AddCP");
+    }
+    formSegLocalRGrow_updateAllItems();
+    return true;
+  }  
+  return false;
+}
+
+
 
 
 
@@ -274,53 +361,32 @@ void ModeSegLocalRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 {
   LogCore::GetInst()->Add("LBtnDclk");
 
-  //add fore seed
-  if ( !IsShiftKeyOn() ) return;
-  EVec3f ray_pos, ray_dir, pos;
+  //pickしたシードを削除 or 新しいシードを追加
+  EVec3f ray_pos, ray_dir;
   ogl->GetCursorRay(p, ray_pos, ray_dir);
 
-  ////既存のcpを触っていたら何もしない
-  //EVec2i pick_id = PickSeeds(ray_pos, ray_dir);
-  //if ( pick_id[0] != -1 ) return;
-
-  if ( PickCrssec(ray_pos, ray_dir, &pos) != CRSSEC_NON)
+  if ( !PickToRemoveSeedCP(ray_pos, ray_dir) ) 
   {
-    if ( m_activeseed_idx  == -1 ) {
-      AddNewSeed(true, pos);
-    }else{
-      m_seeds[ m_activeseed_idx ].m_cps.push_back(pos);
-      LogCore::GetInst()->Add("AddCP");
-    }
-    formSegLocalRGrow_updateAllItems();
+    PickCrssecToaddCP(ray_pos, ray_dir, true );
   }
+  RedrawScene();
 }
+
 
 
 void ModeSegLocalRGrow::RBtnDclk(const EVec2i &p, OglForCLI *ogl) 
 {
   LogCore::GetInst()->Add("RBtnDclk");
 
-  //add back seed
-  if ( !IsShiftKeyOn() ) return;
-  EVec3f ray_pos, ray_dir, pos;
+  //pickしたシードを削除 or 新しいシードを追加
+  EVec3f ray_pos, ray_dir;
   ogl->GetCursorRay(p, ray_pos, ray_dir);
 
-  ////既存のcpを触っていたら何もしない
-  //EVec2i pick_id = PickSeeds(ray_pos, ray_dir);
-  //if ( pick_id[0] != -1 ) return;
-
-  if ( PickCrssec(ray_pos, ray_dir, &pos) != CRSSEC_NON)
+  if ( !PickToRemoveSeedCP(ray_pos, ray_dir) ) 
   {
-    if ( m_activeseed_idx  == -1 ) {
-      AddNewSeed(false, pos);
-    }else{
-      m_seeds[ m_activeseed_idx ].m_cps.push_back(pos);
-      LogCore::GetInst()->Add("AddCP");
-    }
-    formSegLocalRGrow_updateAllItems();
-    RedrawScene();
-  }  
-
+    PickCrssecToaddCP(ray_pos, ray_dir, false );
+  }
+  RedrawScene();
 }
 
 
@@ -328,15 +394,11 @@ void ModeSegLocalRGrow::MBtnDclk(const EVec2i &p, OglForCLI *ogl)
 {
   LogCore::GetInst()->Add("MBtnDclk");
 
-
-  if( IsShiftKeyOn() ) 
-  {
-    //pick to remove seed
-    EVec3f ray_pos, ray_dir;
-	  ogl->GetCursorRay(p, ray_pos, ray_dir);
-    PickToRemoveSeedCP(ray_pos, ray_dir);
-    RedrawScene();
-  }
+  //pick to remove seed
+  EVec3f ray_pos, ray_dir;
+	ogl->GetCursorRay(p, ray_pos, ray_dir);
+  PickToRemoveSeedCP(ray_pos, ray_dir);
+  RedrawScene();
 }
 
 
@@ -351,17 +413,17 @@ void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
   {
     m_b_drawstroke = true;
     m_stroke.clear();
+    return;
   }
-  else if ( IsShiftKeyOn() )
-  {
-    //pick to activate and drag 
-    EVec3f ray_pos, ray_dir;
-    ogl->GetCursorRay(p, ray_pos, ray_dir);
-    m_drag_seedcp_id = PickSeeds(ray_pos, ray_dir);
+  
+  //pick to activate and drag 
+  EVec3f ray_pos, ray_dir;
+  ogl->GetCursorRay(p, ray_pos, ray_dir);
 
-    if ( m_drag_seedcp_id[0] != -1)
-      m_activeseed_idx = m_drag_seedcp_id[0];
-    
+  m_drag_seedcp_id = PickSeedCP(ray_pos, ray_dir);
+  if ( m_drag_seedcp_id[0] != -1)
+  {
+    m_activeseed_idx = m_drag_seedcp_id[0];
     formSegLocalRGrow_updateAllItems();
   }
   else
@@ -371,6 +433,7 @@ void ModeSegLocalRGrow::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 
   RedrawScene();
 }
+
 
 
 void ModeSegLocalRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
@@ -397,20 +460,15 @@ void ModeSegLocalRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 void ModeSegLocalRGrow::RBtnDown(const EVec2i &p, OglForCLI *ogl)
 {	
   LogCore::GetInst()->Add("RBtnDown");
-
-
   m_bR = true;
   
-  if( IsShiftKeyOn() )
-  {
-    //pick to activate and drag 
-    EVec3f ray_pos, ray_dir;
-    ogl->GetCursorRay(p, ray_pos, ray_dir);
-    m_drag_seedcp_id = PickSeeds(ray_pos, ray_dir);
+  //pick to activate and drag 
+  EVec3f ray_pos, ray_dir;
+  ogl->GetCursorRay(p, ray_pos, ray_dir);
+  m_drag_seedcp_id = PickSeedCP(ray_pos, ray_dir);
 
-    if ( m_drag_seedcp_id[0] != -1)
-      m_activeseed_idx = m_drag_seedcp_id[0];
-    
+  if ( m_drag_seedcp_id[0] != -1){
+    m_activeseed_idx = m_drag_seedcp_id[0];
     formSegLocalRGrow_updateAllItems();
   }
   else
@@ -439,12 +497,11 @@ void ModeSegLocalRGrow::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 
   m_bM = true;
 
-  if( IsShiftKeyOn() ) 
+  //pick to remove seed
+  EVec3f ray_pos, ray_dir;
+	ogl->GetCursorRay(p, ray_pos, ray_dir);
+  if ( PickToRemoveSeedCP(ray_pos, ray_dir) ) 
   {
-    //pick to remove seed
-    EVec3f ray_pos, ray_dir;
-	  ogl->GetCursorRay(p, ray_pos, ray_dir);
-    PickToRemoveSeedCP(ray_pos, ray_dir);
     formSegLocalRGrow_updateAllItems();
     RedrawScene();
   }
@@ -466,21 +523,82 @@ void ModeSegLocalRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 
 
 
-EVec2i ModeSegLocalRGrow::PickSeeds(const EVec3f &ray_pos, const EVec3f &ray_dir)
+EVec2i ModeSegLocalRGrow::PickSeedCP(const EVec3f &ray_pos, const EVec3f &ray_dir)
 {
+  //cross sectionの後ろは触らない
+  float max_depth = FLT_MAX;
+  EVec3f pos;
+  if ( PickCrssec(ray_pos, ray_dir, &pos) != CRSSEC_NON)
+  {
+    max_depth = (pos - ray_pos).norm();
+  }
+
+
   float CP_RADIUS = LRGSeed::GetCpRadius();
   for(int i = 0; i < (int) m_seeds.size(); ++i)
 	{
 		for(int j = 0; j < (int) m_seeds[i].m_cps.size(); ++j)
 		{
-			if ( t_distRayToPoint(ray_pos, ray_dir, m_seeds[i].m_cps[j] ) < CP_RADIUS )
-			{				
+      const EVec3f p = m_seeds[i].m_cps[j];
+
+			if ( t_distRayToPoint(ray_pos, ray_dir, p ) < CP_RADIUS && 
+           (p-ray_pos).norm() < max_depth ) 
+      {
 				return EVec2i(i,j);
-			}
+      }
 		}
 	}	
 	return EVec2i( -1, -1);
 }
+
+
+
+
+
+bool ModeSegLocalRGrow::PickActiveSeed(const EVec3f &ray_pos, const EVec3f &ray_dir, EVec3f &pos)
+{
+	if ( m_activeseed_idx < 0 || m_seeds.size() <= m_activeseed_idx)
+    return false;
+
+  //cross sectionの後ろは触らない
+  float max_depth = FLT_MAX;
+  EVec3f crssec_pos;
+  if ( PickCrssec(ray_pos, ray_dir, &crssec_pos) != CRSSEC_NON)
+  {
+    max_depth = (crssec_pos - ray_pos).norm();
+  }
+
+
+  LRGSeed &s = m_seeds[m_activeseed_idx];
+
+  for ( const auto &cp : s.m_cps)
+  {
+    if ( t_distRayToPoint(ray_pos, ray_dir, cp) < s.m_radius 
+         && (ray_pos - cp).norm() - s.m_radius < max_depth)
+    {
+      pos = cp;
+      return true; 
+    }
+  }
+
+  
+  for ( int i=1; i < (int)s.m_cps.size(); ++i)
+  {
+    const EVec3f cp1 = s.m_cps[i-1];
+    const EVec3f cp2 = s.m_cps[ i ];
+    float t1, t2; 
+    if ( t_distRayToLineSegment(ray_pos, ray_dir, cp1, cp2, t1, t2) < s.m_radius) 
+    {
+      pos = ( t2 < 0   ) ? cp1 : 
+            ( t2 > 1.0f) ? cp2 : 
+                           ray_pos  + t1 * ray_dir; 
+      if ( (ray_pos - pos).norm() - s.m_radius < max_depth )
+        return true; 
+    }
+  } 
+  return false;
+}
+
 
 
 
@@ -513,20 +631,45 @@ void ModeSegLocalRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
 }
 
 
+
 void ModeSegLocalRGrow::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
+  //active seed があり，それをピックしていればその半径を変更する 
+  //crs sectionを触っていれば移動
+  //そうでなければredraw
+  EVec3f ray_pos, ray_dir, seedpos, crssecpos;
+  ogl->GetCursorRay( p, ray_pos, ray_dir);
+  
+  bool pickseed   = PickActiveSeed(ray_pos, ray_dir , seedpos    );
+  bool pickcrssec = PickCrssec    (ray_pos, ray_dir, &crssecpos );
+  if ( pickseed && pickcrssec)
+  { 
+    //手前を採用
+    EVec3f e = ogl->GetCamPos();
+    if ( (seedpos - e).norm() > (crssecpos-e).norm() )
+      pickseed = false;
 
-	if ( IsShiftKeyOn() && 0 <= m_activeseed_idx && m_activeseed_idx < m_seeds.size() )
-	{
-    //active seed があれば、その半径を変更する (algキーが押されているときは高速) 
+  }
+  
+  
+  if ( pickseed ) 
+  {
+    LogCore::GetInst()->Add("WHEELSEED"); 
+
     float d = IsAltKeyOn() ? (float)(z_delta * 0.1) : (float)(z_delta * 0.001);
     m_seeds[ m_activeseed_idx ].ModifyRadius( d );
     formSegLocalRGrow_updateSliders();
-	}
-	else
-	{
-    PickToMoveCrossSecByWheeling(p, ogl, z_delta );
-	}
+  } 
+  else if( pickcrssec )
+  {
+    PickToMoveCrossSecByWheeling(p, ogl, (short) (3 * z_delta) ) ;
+    LogCore::GetInst()->Add("WHEELCRSSEC"); 
+  }
+  else
+  {
+    LogCore::GetInst()->Add("WHEELZOOM"); 
+    ogl->ZoomCamByWheel( z_delta );
+  }
   RedrawScene();
 }
 
@@ -596,6 +739,7 @@ void ModeSegLocalRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
     const bool  b_manip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
     const int   n_slice = (int)((b_manip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
+
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, b_pse, b_roi);
@@ -606,13 +750,18 @@ void ModeSegLocalRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
 	}
 
   //draw seeds
-  if( !IsSpaceKeyOn() ) 
+  if( !IsSpaceKeyOn() && !IsAltKeyOn()) 
   {
     for( const auto& s : m_seeds) s.Draw( );
 	  if(0 <= m_activeseed_idx && m_activeseed_idx < m_seeds.size())
     {
       m_seeds[m_activeseed_idx].DrawAsActive( );
     }
+  }
+
+  if ( IsAltKeyOn() ) // for figure of the paper 
+  {
+    for( const auto& s : m_seeds) s.DrawAsActive( );
   }
 
 	
@@ -915,7 +1064,10 @@ static void s_LocalRegionGrow
 
 		for (float step_len = 0; step_len < length; step_len += pitch[0] * 0.5f) 
     {
-      Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i(p1 + step_len * dir) );
+      EVec4i voxidx = ImageCore::GetInst()->GetVoxelIndex4i(p1 + step_len * dir);
+    
+      if ( seed.m_min_v <= vol[voxidx[3]] && vol[voxidx[3]] <= seed.m_max_v)
+        Q.push_back( voxidx );
     }
 	}
 
@@ -1017,18 +1169,21 @@ void LRGSeed::DrawAsActive() const
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT  , ambi);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shin);
 
+  glEnable(GL_CULL_FACE );
+  glCullFace(GL_BACK);
+
 	glEnable(GL_LIGHTING);
 	glEnable(GL_BLEND);
-	glDepthMask(false);
-	t_drawSphere(m_cps[0], m_radius);
 
+	//glDepthMask(false);
 	for (int i = 1; i < (int)m_cps.size(); ++i)
-	{
 		t_drawCylinder(m_cps[i-1], m_cps[i], m_radius);
-		t_drawSphere  (m_cps[ i ], m_radius);
-	}
+	//glDepthMask(true);
+  
+	for (int i = 0; i < (int)m_cps.size(); ++i)
+	  t_drawSphere(m_cps[i], m_radius);
 
-	glDepthMask(true);
+
 	glDisable(GL_BLEND);
 	glDisable(GL_LIGHTING);
 }

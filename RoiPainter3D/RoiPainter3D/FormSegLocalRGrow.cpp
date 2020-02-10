@@ -6,6 +6,7 @@
 
 using namespace RoiPainter3D;
 using namespace std;
+using namespace System::Runtime::InteropServices;
 
 static float SPIN_VALUE_RATE = 10.0f;
 
@@ -242,7 +243,10 @@ System::Void FormSegLocalRGrow::textBox_minV_TextChanged(
   {
     t_crop( trackBar_minV->Minimum, trackBar_minV->Maximum, x);
     textBox_minV->Text = (x).ToString();
-    trackBar_minV->Value = x;
+    
+    int minv = trackBar_minV->Minimum;
+    int maxv = trackBar_minV->Maximum;
+    trackBar_minV->Value = t_crop( minv, maxv, x);
 
     int  active_id         = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
     vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
@@ -266,7 +270,12 @@ System::Void FormSegLocalRGrow::textBox_maxV_TextChanged(
   {
     t_crop( trackBar_maxV->Minimum, trackBar_maxV->Maximum, x);
     textBox_maxV->Text = (x).ToString();
-    trackBar_maxV->Value = x;
+ 
+    int minv = trackBar_maxV->Minimum;
+    int maxv = trackBar_maxV->Maximum;
+    trackBar_maxV->Value = t_crop( minv, maxv, x);;
+
+
     
     int  active_id         = ModeSegLocalRGrow::GetInst()->m_activeseed_idx;
     vector<LRGSeed> &seeds = ModeSegLocalRGrow::GetInst()->m_seeds;
@@ -305,6 +314,36 @@ System::Void FormSegLocalRGrow::textBox_radius_TextChanged(
     textBox_radius->Text = "1";
     trackBar_radius->Value = 1;
   }
+}
+
+
+
+System::Void FormSegLocalRGrow::m_btn_loadseeds_Click(System::Object^  sender, System::EventArgs^  e)
+{
+  OpenFileDialog^ dlg = gcnew OpenFileDialog();
+  dlg->Filter = "seed data (*.txt)|*.txt";
+  dlg->Multiselect = false;
+
+  if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return;
+
+  IntPtr mptr = Marshal::StringToHGlobalAnsi(dlg->FileName);
+  std::string fname = static_cast<const char*>(mptr.ToPointer());
+
+  ModeSegLocalRGrow::GetInst()->ImportSeedInfo(fname);
+}
+
+
+System::Void FormSegLocalRGrow::m_btn_saveseeds_Click(System::Object^  sender, System::EventArgs^  e)
+{
+  SaveFileDialog^ dlg = gcnew SaveFileDialog();
+  dlg->Filter = "seed data (*.txt)|*.txt";
+  if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::Cancel) return;
+  IntPtr mptr  = Marshal::StringToHGlobalAnsi(dlg->FileName);
+  std::string fname = static_cast<const char*>(mptr.ToPointer());
+  
+  ModeSegLocalRGrow::GetInst()->ExportSeedInfo(fname);
+
+
 }
 
 

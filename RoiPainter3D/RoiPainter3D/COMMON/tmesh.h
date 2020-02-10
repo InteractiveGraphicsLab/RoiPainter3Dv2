@@ -1482,71 +1482,31 @@ inline void t_drawSphere
   glTranslated(pos[0], pos[1], pos[2]);
 
 
-  //最下部	
 
-  glBegin(GL_TRIANGLE_FAN);
-
-  glNormal3d(0, 0, 1);
-  glVertex3d(0, 0, -radius);
-
-  for (int i = 0; i <= M; i++)
-  {
-    double theta = i * (M_PI * 2 / M);
-    double phi = M_PI / N - M_PI * 0.5;
-    double x = cos(phi) * cos(theta);
-    double y = cos(phi) * sin(theta);
-    double z = sin(phi);
-
-    glNormal3d(x, y, z);
-    glVertex3d(radius * x, radius * y, radius * z);
-  }
-
-  glEnd();
-
-  //内部
-  for (int j = 1; j < N - 1; j++)
+  for (int j = 0; j < N; j++)
   {
     glBegin(GL_TRIANGLE_STRIP);
     for (int i = 0; i <= M; i++)
     {
-      double phi = j * M_PI / N - M_PI * 0.5;
       double theta = i * M_PI * 2 / M;
-      double x = cos(phi) * cos(theta);
-      double y = cos(phi) * sin(theta);
-      double z = sin(phi);
-      glNormal3d(x, y, z);
-      glVertex3d(radius * x, radius * y, radius * z);
+      double phi, x,y,z;
 
       phi = (j + 1) * (M_PI / (double)N) - M_PI * 0.5;
       x = cos(phi) * cos(theta);
       y = cos(phi) * sin(theta);
       z = sin(phi);
-
+      glNormal3d(x, y, z);
+      glVertex3d(radius * x, radius * y, radius * z);
+      
+      phi = j * M_PI / N - M_PI * 0.5;
+      x = cos(phi) * cos(theta);
+      y = cos(phi) * sin(theta);
+      z = sin(phi);
       glNormal3d(x, y, z);
       glVertex3d(radius * x, radius * y, radius * z);
     }
     glEnd();
   }
-
-  //最頂部
-  glBegin(GL_TRIANGLE_FAN);
-
-  glNormal3d(0, 0, 1);
-  glVertex3d(0, 0, radius);
-
-  for (int i = 0; i <= M; i++)
-  {
-    double phi = (N - 1) * M_PI / N - M_PI * 0.5;
-    double theta = i * M_PI * 2 / M;
-    double x = cos(phi) * cos(theta);
-    double y = cos(phi) * sin(theta);
-    double z = sin(phi);
-
-    glNormal3d(x, y, z);
-    glVertex3d(radius * x, radius * y, radius * z);
-  }
-
-  glEnd();
 
   glPopMatrix();
 }
@@ -1585,8 +1545,8 @@ inline void t_drawCylinder
   for (int i = 0; i <= N; ++i)
   {
     glNormal3fv(norm[i].data());
-    glVertex3fv(v1[i].data());
     glVertex3fv(v2[i].data());
+    glVertex3fv(v1[i].data());
   }
   glEnd();
 
