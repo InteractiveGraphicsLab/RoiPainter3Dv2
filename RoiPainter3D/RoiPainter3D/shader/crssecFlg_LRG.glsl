@@ -40,7 +40,9 @@ void main(void)
 		}
 		else if( COEF_1_255_2*3 < imgFlg && imgFlg < COEF_1_255_2*5)
 		{
-			gl_FragColor.z += 0.3;
+			gl_FragColor.x -= 0.3;
+			gl_FragColor.y -= 0.3;
+			gl_FragColor.z += 0.8;
 		}
 		else if( imgFlg < COEF_1_255_2) //flg == 0
 		{

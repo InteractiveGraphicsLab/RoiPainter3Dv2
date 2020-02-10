@@ -119,12 +119,12 @@
   </resheader>
   <data name="m_label1.Text" xml:space="preserve">
     <value>Add New Seed 
-     1. press "n"- key 
-     2. L/R-double-click 
-     or click Fore/Back Seed Bottun
+   1. press "n"- key 
+   2. L/R-double-click 
+   or click Fore/Back Seed Btn
 Select Seed : L-click 
        Add CP : L/R-double-click 
-    Move CP : L/R-drag
-    Erase CP : L/R-double-click</value>
+     Move CP : L/R-drag
+     Erase CP : L/R-double-click</value>
   </data>
 </root>

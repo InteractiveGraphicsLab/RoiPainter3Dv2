@@ -14,6 +14,7 @@
 #include <deque>
 #include <vector>
 #include <time.h>
+#include <map>
 
 using namespace std;
 using namespace RoiPainter3D;
@@ -60,7 +61,7 @@ void ModeSegLocalRGrow::StartMode()
   //show dialog
   formSegLocalRGrow_Show();
 
-  float  max_radius = ImageCore::GetInst()->GetCuboid()[0] / 2;
+  float  max_radius = ImageCore::GetInst()->GetCuboid()[0];
   EVec2i minmax     = ImageCore::GetInst()->GetVolMinMax();
   formSegLocalRGrow_setSliderRange( max_radius, minmax[0], minmax[1]);
   formSegLocalRGrow_updateAllItems();
@@ -150,6 +151,7 @@ void  ModeSegLocalRGrow::ImportSeedInfo(std::string fname)
 {
   m_activeseed_idx = -1;
   m_seeds .clear();
+  auto minmax = ImageCore::GetInst()->GetVolMinMax();
 
   std::ifstream ifs( fname.c_str() );
  
@@ -171,6 +173,8 @@ void  ModeSegLocalRGrow::ImportSeedInfo(std::string fname)
     int flg, minv, maxv;
     float radius;
     ifs >> buf >> flg >> minv >> maxv >> radius; 
+    minv = t_crop(minmax[0], minmax[1], minv);
+    maxv = t_crop(minmax[0], minmax[1], maxv);
     m_seeds.push_back(LRGSeed(EVec3f(0,0,0), minv, maxv, flg, radius));
     
     m_seeds.back().m_cps.resize(num_cps);
@@ -180,6 +184,8 @@ void  ModeSegLocalRGrow::ImportSeedInfo(std::string fname)
     }
   }
   
+  formSegLocalRGrow_updateAllItems();
+
 }
 
 
@@ -761,7 +767,12 @@ void ModeSegLocalRGrow::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
 
   if ( IsAltKeyOn() ) // for figure of the paper 
   {
-    for( const auto& s : m_seeds) s.DrawAsActive( );
+    //è¨Ç≥Ç¢èáÇ…èëÇ≠
+    multimap<float, int> idx_map;
+    for ( int i=0; i < m_seeds.size(); ++i) 
+      idx_map.insert( make_pair( m_seeds[i].m_radius,i ));
+
+    for( const auto& s : idx_map) m_seeds[s.second].DrawAsActive( );
   }
 
 	
@@ -991,6 +1002,39 @@ static void s_calcDistTrans
 		vol_flg [i] = 0;
 	}
 	
+  //sphere !
+  if ( seedPixels.size() == 1 )
+  {
+    EVec3f s( (seedPixels[0][0]+0.5f)*pitch[0],
+              (seedPixels[0][1]+0.5f)*pitch[1],
+              (seedPixels[0][2]+0.5f)*pitch[2] );
+    for ( int z = 0; z < D; ++z )
+    {
+      float zp = (z+0.5f) * pitch[2];
+      if ( std::fabs( s[2]-zp) > max_dist ) continue;
+
+      for ( int y = 0; y < H; ++y )
+      {
+        float yp = (y+0.5f) * pitch[1];
+        if ( std::fabs( s[1]-yp) > max_dist ) continue;
+
+        for ( int x = 0; x < W; ++x )
+        {
+          float xp = (x+0.5f) * pitch[0];
+          if ( std::fabs( s[0]-xp) > max_dist ) continue;
+          vol_dist[x+y*W+z*WH] = sqrt( (xp-s[0])*(xp-s[0]) + 
+                                        (yp-s[1])*(yp-s[1]) + 
+                                        (zp-s[2])*(zp-s[2]) );         
+        }
+      }
+    }
+    
+    delete[] vol_flg;
+    return;
+  }
+
+
+
 	deque<EVec4i> Q1, Q2;
 
 	for (const auto &p : seedPixels)
@@ -1052,7 +1096,8 @@ static void s_LocalRegionGrow
 	deque<EVec4i> Q;
 
 	Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i( seed.m_cps.front() ) );
-	Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i( seed.m_cps.back () ) );
+  if ( Q.size() >= 2)
+	  Q.push_back( ImageCore::GetInst()->GetVoxelIndex4i( seed.m_cps.back () ) );
 
   float len = pitch.norm() * 2;
 	for (int i = 1; i < seed.m_cps.size(); ++i)
@@ -1070,7 +1115,6 @@ static void s_LocalRegionGrow
         Q.push_back( voxidx );
     }
 	}
-
 
 	//2 distance transform
 	const byte    VALUE    = seed.m_flg_fore ? 255 : 2;
@@ -1161,9 +1205,13 @@ void LRGSeed::DrawAsActive() const
 	float b = (m_flg_fore == 1) ? 0 : 1.0f;
 
 	float spec[4] = { 1,1,1,0.3f };
-	float diff[4] = { r,0,b,0.3f };
-	float ambi[4] = { 0.3f*r,0,0.3f*b,0.3f };
+	//float diff[4] = { r,0,b,0.3f };
+	float diff[4] = { r,0,b,0.5f };
+	//float ambi[4] = { 0.3f*r,0,0.3f*b,0.3f };
+	float ambi[4] = { 2.0f*r,0,2.0f*b,1.0f };
 	float shin[1] = { 64.0f };
+
+
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR , spec);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE  , diff);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT  , ambi);

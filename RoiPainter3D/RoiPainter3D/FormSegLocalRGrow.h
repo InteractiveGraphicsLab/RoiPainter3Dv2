@@ -92,7 +92,7 @@ namespace RoiPainter3D {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-      System::Windows::Forms::DataGridViewCellStyle^  dataGridViewCellStyle4 = (gcnew System::Windows::Forms::DataGridViewCellStyle());
+      System::Windows::Forms::DataGridViewCellStyle^  dataGridViewCellStyle2 = (gcnew System::Windows::Forms::DataGridViewCellStyle());
       System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(FormSegLocalRGrow::typeid));
       this->maskList = (gcnew System::Windows::Forms::DataGridView());
       this->seedColumn = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
@@ -141,7 +141,7 @@ namespace RoiPainter3D {
       this->maskList->RowHeadersVisible = false;
       this->maskList->RowTemplate->Height = 21;
       this->maskList->SelectionMode = System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
-      this->maskList->Size = System::Drawing::Size(109, 412);
+      this->maskList->Size = System::Drawing::Size(109, 399);
       this->maskList->TabIndex = 26;
       this->maskList->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &FormSegLocalRGrow::maskList_CellContentClick);
       this->maskList->SelectionChanged += gcnew System::EventHandler(this, &FormSegLocalRGrow::maskList_SelectionChanged);
@@ -158,11 +158,11 @@ namespace RoiPainter3D {
       // fbColumn
       // 
       this->fbColumn->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::Fill;
-      dataGridViewCellStyle4->BackColor = System::Drawing::Color::White;
-      dataGridViewCellStyle4->ForeColor = System::Drawing::Color::Black;
-      dataGridViewCellStyle4->SelectionBackColor = System::Drawing::Color::Transparent;
-      dataGridViewCellStyle4->SelectionForeColor = System::Drawing::Color::Black;
-      this->fbColumn->DefaultCellStyle = dataGridViewCellStyle4;
+      dataGridViewCellStyle2->BackColor = System::Drawing::Color::White;
+      dataGridViewCellStyle2->ForeColor = System::Drawing::Color::Black;
+      dataGridViewCellStyle2->SelectionBackColor = System::Drawing::Color::Transparent;
+      dataGridViewCellStyle2->SelectionForeColor = System::Drawing::Color::Black;
+      this->fbColumn->DefaultCellStyle = dataGridViewCellStyle2;
       this->fbColumn->FillWeight = 80;
       this->fbColumn->HeaderText = L"F/B";
       this->fbColumn->Name = L"fbColumn";
@@ -178,7 +178,7 @@ namespace RoiPainter3D {
       this->m_label1->Location = System::Drawing::Point(125, 8);
       this->m_label1->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->m_label1->Name = L"m_label1";
-      this->m_label1->Size = System::Drawing::Size(209, 144);
+      this->m_label1->Size = System::Drawing::Size(187, 144);
       this->m_label1->TabIndex = 28;
       this->m_label1->Text = resources->GetString(L"m_label1.Text");
       // 
@@ -187,7 +187,7 @@ namespace RoiPainter3D {
       this->m_label3->AutoSize = true;
       this->m_label3->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->m_label3->Location = System::Drawing::Point(125, 215);
+      this->m_label3->Location = System::Drawing::Point(125, 203);
       this->m_label3->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->m_label3->Name = L"m_label3";
       this->m_label3->Size = System::Drawing::Size(30, 18);
@@ -199,7 +199,7 @@ namespace RoiPainter3D {
       this->m_label4->AutoSize = true;
       this->m_label4->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->m_label4->Location = System::Drawing::Point(124, 261);
+      this->m_label4->Location = System::Drawing::Point(124, 249);
       this->m_label4->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->m_label4->Name = L"m_label4";
       this->m_label4->Size = System::Drawing::Size(34, 18);
@@ -211,7 +211,7 @@ namespace RoiPainter3D {
       this->m_label5->AutoSize = true;
       this->m_label5->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->m_label5->Location = System::Drawing::Point(121, 308);
+      this->m_label5->Location = System::Drawing::Point(121, 296);
       this->m_label5->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->m_label5->Name = L"m_label5";
       this->m_label5->Size = System::Drawing::Size(43, 18);
@@ -224,7 +224,7 @@ namespace RoiPainter3D {
       this->m_label6->Enabled = false;
       this->m_label6->Font = (gcnew System::Drawing::Font(L"メイリオ", 9.75F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->m_label6->Location = System::Drawing::Point(166, 167);
+      this->m_label6->Location = System::Drawing::Point(166, 155);
       this->m_label6->Margin = System::Windows::Forms::Padding(2, 0, 2, 0);
       this->m_label6->Name = L"m_label6";
       this->m_label6->Size = System::Drawing::Size(110, 20);
@@ -235,7 +235,7 @@ namespace RoiPainter3D {
       // 
       this->btn_cancel->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_cancel->Location = System::Drawing::Point(12, 427);
+      this->btn_cancel->Location = System::Drawing::Point(16, 413);
       this->btn_cancel->Margin = System::Windows::Forms::Padding(2);
       this->btn_cancel->Name = L"btn_cancel";
       this->btn_cancel->Size = System::Drawing::Size(94, 38);
@@ -248,7 +248,7 @@ namespace RoiPainter3D {
       // 
       this->btn_finish->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_finish->Location = System::Drawing::Point(110, 427);
+      this->btn_finish->Location = System::Drawing::Point(114, 413);
       this->btn_finish->Margin = System::Windows::Forms::Padding(2);
       this->btn_finish->Name = L"btn_finish";
       this->btn_finish->Size = System::Drawing::Size(202, 38);
@@ -261,10 +261,10 @@ namespace RoiPainter3D {
       // 
       this->btn_runLocalRGrow->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->btn_runLocalRGrow->Location = System::Drawing::Point(140, 353);
+      this->btn_runLocalRGrow->Location = System::Drawing::Point(127, 342);
       this->btn_runLocalRGrow->Margin = System::Windows::Forms::Padding(2);
       this->btn_runLocalRGrow->Name = L"btn_runLocalRGrow";
-      this->btn_runLocalRGrow->Size = System::Drawing::Size(169, 30);
+      this->btn_runLocalRGrow->Size = System::Drawing::Size(189, 30);
       this->btn_runLocalRGrow->TabIndex = 32;
       this->btn_runLocalRGrow->Text = L"Run Local Region Grow";
       this->btn_runLocalRGrow->UseVisualStyleBackColor = true;
@@ -272,7 +272,7 @@ namespace RoiPainter3D {
       // 
       // textBox_minV
       // 
-      this->textBox_minV->Location = System::Drawing::Point(165, 215);
+      this->textBox_minV->Location = System::Drawing::Point(165, 203);
       this->textBox_minV->Margin = System::Windows::Forms::Padding(2);
       this->textBox_minV->Name = L"textBox_minV";
       this->textBox_minV->Size = System::Drawing::Size(76, 19);
@@ -281,7 +281,7 @@ namespace RoiPainter3D {
       // 
       // textBox_maxV
       // 
-      this->textBox_maxV->Location = System::Drawing::Point(165, 261);
+      this->textBox_maxV->Location = System::Drawing::Point(165, 249);
       this->textBox_maxV->Margin = System::Windows::Forms::Padding(2);
       this->textBox_maxV->Name = L"textBox_maxV";
       this->textBox_maxV->Size = System::Drawing::Size(76, 19);
@@ -290,7 +290,7 @@ namespace RoiPainter3D {
       // 
       // textBox_radius
       // 
-      this->textBox_radius->Location = System::Drawing::Point(164, 308);
+      this->textBox_radius->Location = System::Drawing::Point(164, 296);
       this->textBox_radius->Margin = System::Windows::Forms::Padding(2);
       this->textBox_radius->Name = L"textBox_radius";
       this->textBox_radius->Size = System::Drawing::Size(76, 19);
@@ -299,7 +299,7 @@ namespace RoiPainter3D {
       // 
       // trackBar_minV
       // 
-      this->trackBar_minV->Location = System::Drawing::Point(127, 235);
+      this->trackBar_minV->Location = System::Drawing::Point(127, 223);
       this->trackBar_minV->Margin = System::Windows::Forms::Padding(2);
       this->trackBar_minV->Name = L"trackBar_minV";
       this->trackBar_minV->Size = System::Drawing::Size(191, 45);
@@ -309,7 +309,7 @@ namespace RoiPainter3D {
       // 
       // trackBar_maxV
       // 
-      this->trackBar_maxV->Location = System::Drawing::Point(127, 280);
+      this->trackBar_maxV->Location = System::Drawing::Point(127, 268);
       this->trackBar_maxV->Margin = System::Windows::Forms::Padding(2);
       this->trackBar_maxV->Name = L"trackBar_maxV";
       this->trackBar_maxV->Size = System::Drawing::Size(191, 45);
@@ -319,7 +319,7 @@ namespace RoiPainter3D {
       // 
       // trackBar_radius
       // 
-      this->trackBar_radius->Location = System::Drawing::Point(128, 327);
+      this->trackBar_radius->Location = System::Drawing::Point(128, 315);
       this->trackBar_radius->Margin = System::Windows::Forms::Padding(2);
       this->trackBar_radius->Name = L"trackBar_radius";
       this->trackBar_radius->Size = System::Drawing::Size(190, 45);
@@ -332,7 +332,7 @@ namespace RoiPainter3D {
       this->button_addforeseed->Enabled = false;
       this->button_addforeseed->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->button_addforeseed->Location = System::Drawing::Point(131, 183);
+      this->button_addforeseed->Location = System::Drawing::Point(131, 171);
       this->button_addforeseed->Margin = System::Windows::Forms::Padding(2);
       this->button_addforeseed->Name = L"button_addforeseed";
       this->button_addforeseed->Size = System::Drawing::Size(87, 24);
@@ -346,7 +346,7 @@ namespace RoiPainter3D {
       this->button_addbackseed->Enabled = false;
       this->button_addbackseed->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->button_addbackseed->Location = System::Drawing::Point(222, 183);
+      this->button_addbackseed->Location = System::Drawing::Point(222, 171);
       this->button_addbackseed->Margin = System::Windows::Forms::Padding(2);
       this->button_addbackseed->Name = L"button_addbackseed";
       this->button_addbackseed->Size = System::Drawing::Size(87, 24);
@@ -359,7 +359,7 @@ namespace RoiPainter3D {
       // 
       this->m_btn_loadseeds->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->m_btn_loadseeds->Location = System::Drawing::Point(124, 392);
+      this->m_btn_loadseeds->Location = System::Drawing::Point(124, 376);
       this->m_btn_loadseeds->Margin = System::Windows::Forms::Padding(2);
       this->m_btn_loadseeds->Name = L"m_btn_loadseeds";
       this->m_btn_loadseeds->Size = System::Drawing::Size(94, 29);
@@ -372,7 +372,7 @@ namespace RoiPainter3D {
       // 
       this->m_btn_saveseeds->Font = (gcnew System::Drawing::Font(L"メイリオ", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
         static_cast<System::Byte>(128)));
-      this->m_btn_saveseeds->Location = System::Drawing::Point(222, 393);
+      this->m_btn_saveseeds->Location = System::Drawing::Point(222, 377);
       this->m_btn_saveseeds->Margin = System::Windows::Forms::Padding(2);
       this->m_btn_saveseeds->Name = L"m_btn_saveseeds";
       this->m_btn_saveseeds->Size = System::Drawing::Size(94, 29);
@@ -385,7 +385,7 @@ namespace RoiPainter3D {
       // 
       this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
       this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-      this->ClientSize = System::Drawing::Size(334, 469);
+      this->ClientSize = System::Drawing::Size(334, 458);
       this->Controls->Add(this->m_btn_saveseeds);
       this->Controls->Add(this->m_btn_loadseeds);
       this->Controls->Add(this->btn_runLocalRGrow);
