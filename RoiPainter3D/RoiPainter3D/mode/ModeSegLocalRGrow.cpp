@@ -1205,8 +1205,8 @@ void LRGSeed::DrawAsActive() const
 	float b = (m_flg_fore == 1) ? 0 : 1.0f;
 
 	float spec[4] = { 1,1,1,0.3f };
-	//float diff[4] = { r,0,b,0.3f };
-	float diff[4] = { r,0,b,0.5f };
+	float diff[4] = { r,0,b,0.3f };
+	//float diff[4] = { r,0,b,0.5f };
 	//float ambi[4] = { 0.3f*r,0,0.3f*b,0.3f };
 	float ambi[4] = { 2.0f*r,0,2.0f*b,1.0f };
 	float shin[1] = { 64.0f };
