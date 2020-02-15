@@ -160,9 +160,9 @@ System::Void FormSubView::m_panel_MouseMove(
 
   int dx = e->X - m_mouse_x;
   int dy = e->Y - m_mouse_y;
-  if ( m_bL ) m_cam->RotateCamera(dx,dy);
+  if ( m_bL ) m_cam->TranslateCamera(dx,dy);
   if ( m_bM ) m_cam->ZoomCamera(dy);
-  if ( m_bR ) m_cam->TranslateCamera(dx,dy);
+  if ( m_bR ) m_cam->RotateCamera(dx,dy);
 
   m_mouse_x = e->X;
   m_mouse_y = e->Y;
