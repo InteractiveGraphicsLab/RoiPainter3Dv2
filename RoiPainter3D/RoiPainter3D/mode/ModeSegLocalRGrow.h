@@ -35,10 +35,10 @@ public:
 	{
     m_cps.clear();
 		m_cps.push_back(position);
-		m_min_v = min_val;
-		m_max_v = max_val;
+		m_min_v     = min_val;
+		m_max_v     = max_val;
 		m_flg_fore  = b_fore;
-		m_radius  = radius;
+		m_radius    = radius;
 	}
 
   //copy constructure and =operator
@@ -130,10 +130,19 @@ public:
   void CancelSegmentation();
   void RunLocalRegionGrow();
   void AddNewSeed(bool bForeBack);
+  void AddNewSeed(bool bForeBack, EVec3f &pos);
+
+  void  ImportSeedInfo(std::string fname);
+  void  ExportSeedInfo(std::string fname);
 
 private:
-  EVec2i PickSeeds(const EVec3f &rayP, const EVec3f &rayD);
+  bool   PickActiveSeed    (const EVec3f &rayP, const EVec3f &rayD, EVec3f &pos);
+  EVec2i PickSeedCP        (const EVec3f &rayP, const EVec3f &rayD);
+  bool   PickToRemoveSeedCP(const EVec3f &rayP, const EVec3f &rayD);
+  bool   PickCrssecToaddCP (const EVec3f &rayP, const EVec3f &rayD, const bool b_fore);
 
+
+  int   GetLatestAddedSeedIdx(bool tf);
 };
 
 #pragma managed

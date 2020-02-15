@@ -71,34 +71,34 @@ System::Void FormSegRGrow::trackBar_max_Scroll(System::Object^  sender, System::
 System::Void FormSegRGrow::btn_thresholding_Click(System::Object^  sender, System::EventArgs^  e) 
 { 
   ModeSegRGrow::GetInst()->RunThresholding( (short)trackbar_min->Value, (short)trackbar_max->Value);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 System::Void FormSegRGrow::btn_rgrow6_Click(System::Object^  sender, System::EventArgs^    e) 
 {
   ModeSegRGrow::GetInst()->RunRegionGrow6((short)trackbar_min->Value, (short)trackbar_max->Value);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 System::Void FormSegRGrow::btn_rgrow26_Click(System::Object^  sender, System::EventArgs^   e)
 {
   ModeSegRGrow::GetInst()->RunRegionGrow26((short)trackbar_min->Value, (short)trackbar_max->Value);
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 System::Void FormSegRGrow::btn_erode_Click(System::Object^  sender, System::EventArgs^     e) {
   ModeSegRGrow::GetInst()->RunErosion();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 System::Void FormSegRGrow::btn_dilate_Click(System::Object^  sender, System::EventArgs^    e) {
   ModeSegRGrow::GetInst()->RunDilation();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 System::Void FormSegRGrow::btn_fillhole_Click(System::Object^  sender, System::EventArgs^  e) {
   ModeSegRGrow::GetInst()->RunFillHole();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 } 
 System::Void FormSegRGrow::btn_finish_Click(System::Object^  sender, System::EventArgs^    e) {
   ModeSegRGrow::GetInst()->FinishSegmentation();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 System::Void FormSegRGrow::trackBar_maxiteration_Scroll(System::Object^  sender, System::EventArgs^  e) 

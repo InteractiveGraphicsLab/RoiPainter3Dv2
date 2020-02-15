@@ -16,7 +16,9 @@ class ModeRefStrokeTrim : public ModeInterface
 	bool m_b_drawingstroke;
 	int  m_trgt_maskid ;
 
-	byte  *m_vol_prev;
+  int  m_undo_idx, m_redo_max;
+  unsigned short *m_undo_vol;
+
 	std::vector<EVec2i> m_stroke2d;
 	std::vector<EVec3f> m_stroke3d;
 

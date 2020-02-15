@@ -110,7 +110,7 @@ void ModeSegRGrow::LBtnUp(const EVec2i &p, OglForCLI *ogl)
   m_bL = m_b_drawstroke = false;
 	m_drag_cp_id = -1;
 	ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeSegRGrow::RBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -123,7 +123,7 @@ void ModeSegRGrow::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bR = false;
 	ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeSegRGrow::MBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -136,7 +136,7 @@ void ModeSegRGrow::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = false;
 	ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -156,7 +156,7 @@ void ModeSegRGrow::LBtnDclk(const EVec2i &p, OglForCLI *ogl)
 	  CRSSEC_ID id = PickCrssec(ray_pos, ray_dir, &pos);
 	  if (id != CRSSEC_NON) m_cp_centers.push_back( pos );
   }
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -174,7 +174,6 @@ void ModeSegRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
   if ( m_b_drawstroke )
   {
     m_stroke.push_back(ray_pos + 0.1f * ray_dir);
-    FormMain_RedrawMainPanel();
   }
   else if ( m_drag_cp_id != -1)
 	{
@@ -186,7 +185,7 @@ void ModeSegRGrow::MouseMove(const EVec2i &p, OglForCLI *ogl)
 		ogl->MouseMove(p);
 	}
 
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 }
 
 
@@ -194,9 +193,9 @@ void ModeSegRGrow::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
   if( !PickToMoveCrossSecByWheeling(p, ogl, z_delta ) )
   {
-    ogl->ZoomCam(z_delta * 0.1f);
+    ogl->ZoomCamByWheel( z_delta );
   }
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -217,13 +216,13 @@ int ModeSegRGrow::PickControlPoints(
 
 void ModeSegRGrow::KeyDown(int nChar) 
 {
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
 void ModeSegRGrow::KeyUp(int nChar) 
 {
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -264,18 +263,19 @@ void ModeSegRGrow::DrawScene(
   m_crssec_shader.Unbind();
 
   //volume rendering
-  const bool   b_draw_vol= formVisParam_bRendVol();
-  const bool   b_psuedo  = formVisParam_bDoPsued();
-  const float  alpha     = formVisParam_getAlpha();
-  const bool b_on_manip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-  const int  num_slice   = (int)((b_on_manip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
-  if (b_draw_vol && !IsSpaceKeyOn())
+  if (formVisParam_bRendVol() && !IsSpaceKeyOn())
   {
+    const bool   b_pse   = formVisParam_bDoPsued();
+    const bool   b_roi   = formVisParam_GetOtherROI();
+    const float  alpha   = formVisParam_getAlpha();
+    const bool   b_manip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int    n_slice = (int)((b_manip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, cam_pos, b_psuedo, !IsSpaceKeyOn());
-    t_DrawCuboidSlices(num_slice, cam_pos, cam_center, cuboid);
+    m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, cam_pos, b_pse, b_roi );
+    t_DrawCuboidSlices(n_slice, cam_pos, cam_center, cuboid);
     m_volume_shader.Unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -311,7 +311,7 @@ void ModeSegRGrow::RunThresholding(short min_v, short max_v)
 
 	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -374,7 +374,7 @@ void ModeSegRGrow::RunRegionGrow6(short minv, short maxv)
 	
   ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 
   std::cout << "runRegionGrow6...DONE\n\n";
 
@@ -462,7 +462,7 @@ void ModeSegRGrow::RunRegionGrow26(short minV, short maxV)
 	
   ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 	std::cout << "runRegionGrow26...DONE\n\n";
 }
 
@@ -471,7 +471,7 @@ void ModeSegRGrow::RunDilation()
 {
 	t_Dilate3D( ImageCore::GetInst()->m_vol_flag );
 	m_b_roi_update = true;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -479,7 +479,7 @@ void ModeSegRGrow::RunErosion()
 {
 	t_Erode3D( ImageCore::GetInst()->m_vol_flag );
 	m_b_roi_update = true;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -507,7 +507,7 @@ void ModeSegRGrow::RunFillHole()
 
 	ImageCore::GetInst()->m_vol_flag.SetUpdated();
 	m_b_roi_update = true;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -535,6 +535,7 @@ void ModeSegRGrow::FinishSegmentation()
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	m_b_roi_update = false;
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
+  RedrawScene();
 }
 
 

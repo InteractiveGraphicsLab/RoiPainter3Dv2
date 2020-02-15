@@ -138,18 +138,18 @@ bool t_initializeShader
 
 void GlslShaderVolume::Bind
 (
-  int UnitID_vol,//3D 
+  int UnitID_vol ,//3D 
   int UnitID_gMag,//3D 
-  int UnitID_flg,//3D 
+  int UnitID_flg ,//3D 
   int UnitID_mask,//3D
-  int UnitID_tf,//1D
-  int UnitID_psu,//1D
+  int UnitID_tf  ,//1D
+  int UnitID_psu ,//1D
   int UnitID_mskC,//1D
-  float   alpha,
-  EVec3i   reso,
-  EVec3f camPos,
-  bool doPsuedo,
-  bool   doHL
+  float   alpha  ,
+  EVec3i   reso  ,
+  EVec3f camPos  ,
+  bool doPsuedo  ,
+  bool visOthorRois
 )
 {
   if (!m_b_initialized)
@@ -158,21 +158,19 @@ void GlslShaderVolume::Bind
     m_b_initialized = true;
   }
   glUseProgram(m_gl_program);
-  glUniform1i(glGetUniformLocation(m_gl_program, "u_img3_vol"), UnitID_vol);
+  glUniform1i(glGetUniformLocation(m_gl_program, "u_img3_vol" ), UnitID_vol);
   glUniform1i(glGetUniformLocation(m_gl_program, "u_img3_gMag"), UnitID_gMag);
-  glUniform1i(glGetUniformLocation(m_gl_program, "u_img3_flg"), UnitID_flg);
+  glUniform1i(glGetUniformLocation(m_gl_program, "u_img3_flg" ), UnitID_flg);
   glUniform1i(glGetUniformLocation(m_gl_program, "u_img3_mask"), UnitID_mask);
-  glUniform1i(glGetUniformLocation(m_gl_program, "u_img1_tf"), UnitID_tf);
-  glUniform1i(glGetUniformLocation(m_gl_program, "u_img1_psu"), UnitID_psu);
+  glUniform1i(glGetUniformLocation(m_gl_program, "u_img1_tf"  ), UnitID_tf);
+  glUniform1i(glGetUniformLocation(m_gl_program, "u_img1_psu" ), UnitID_psu);
   glUniform1i(glGetUniformLocation(m_gl_program, "u_img1_mskC"), UnitID_mskC);
-  glUniform1f(glGetUniformLocation(m_gl_program, "u_alpha"), alpha);
-  glUniform1i(glGetUniformLocation(m_gl_program, "u_doPsuedo"), doPsuedo ? 1 : 0);
-  glUniform1i(glGetUniformLocation(m_gl_program, "u_doHL"), doHL ? 1 : 0);
+  glUniform1f(glGetUniformLocation(m_gl_program, "u_alpha"    ), alpha);
+  glUniform1i(glGetUniformLocation(m_gl_program, "u_doPsuedo" ), doPsuedo ? 1 : 0);
+  glUniform1i(glGetUniformLocation(m_gl_program, "u_doOtherROIs"), visOthorRois ? 1 : 0);
   glUniform4f(glGetUniformLocation(m_gl_program, "u_texCdOfst"), (GLfloat)1.0 / reso[0], (GLfloat)1.0 / reso[1], (GLfloat)1.0 / reso[2], 0);
-  glUniform4f(glGetUniformLocation(m_gl_program, "u_eyePos"), (GLfloat)camPos[0], (GLfloat)camPos[1], (GLfloat)camPos[2], 0);
+  glUniform4f(glGetUniformLocation(m_gl_program, "u_eyePos"   ), (GLfloat)camPos[0], (GLfloat)camPos[1], (GLfloat)camPos[2], 0);
 }
-
-
 
 
 

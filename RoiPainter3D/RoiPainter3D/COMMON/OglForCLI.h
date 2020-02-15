@@ -34,6 +34,97 @@
 
 #pragma unmanaged
 
+
+
+
+class OglCameraParam
+{
+public:
+  EVec3f m_pos; //camera position
+  EVec3f m_cnt; //camera focus point
+  EVec3f m_up ; //camera Up (y-axis) direction 
+
+  OglCameraParam()
+  {
+    m_pos = EVec3f(0, 0, 10);
+    m_cnt = EVec3f(0, 0, 0 );
+    m_up  = EVec3f(0, 1, 0 );
+  }
+
+  OglCameraParam( const OglCameraParam &src) {
+    Copy(src);
+  }
+
+  OglCameraParam &operator=(const OglCameraParam &src)
+  {
+    Copy(src);
+    return *this;
+  }
+
+  void Copy (const OglCameraParam &src)
+  {
+    m_pos = src.m_pos;
+    m_cnt = src.m_cnt;
+    m_up  = src.m_up ;
+  }
+
+  
+  //camera rotation/zoom/translate by mouse operation 
+  // (mouse_dx, mouse_dy) : mouse offsets in 2D
+  //  
+  void RotateCamera( int mouse_dx, int mouse_dy)
+  {
+    float theta = -mouse_dx / 200.0f;
+    float phi   = -mouse_dy / 200.0f;
+
+    EVec3f x_dir = ((m_cnt - m_pos).cross(m_up)).normalized();
+    Eigen::AngleAxisf rotTheta(theta, m_up);
+    Eigen::AngleAxisf rotPhi  (  phi, x_dir      );
+    m_up  = rotPhi * rotTheta * m_up;
+    m_pos = rotPhi * rotTheta * (m_pos - m_cnt) + m_cnt;
+  }
+
+  void ZoomCamera( int mouse_dy)
+  {
+    EVec3f newEyeP = m_pos + mouse_dy / 80.0f * (m_cnt - m_pos);
+    if ((newEyeP - m_cnt).norm() > 0.02f) m_pos = newEyeP;
+  }
+  
+  void TranslateCamera(int mouse_dx, int mouse_dy)
+  {
+    float c = (m_pos - m_cnt).norm() / 900.0f;
+    EVec3f x_dir = ((m_pos - m_cnt).cross(m_up)).normalized();
+    EVec3f t = c * mouse_dx * x_dir + c * mouse_dy * m_up;
+    m_pos += t;
+    m_cnt += t;
+  }
+
+  void ZoomCameraByWheel(short z_delta)
+  {
+    EVec3f rayD = (m_cnt - m_pos);
+    float  len = rayD.norm();
+    
+    float offset = z_delta * 0.1f;
+
+    if (offset > len) return;
+    rayD /= len;
+    m_pos = m_pos + offset * rayD;
+  }
+
+  void Set(const EVec3f &pos, const EVec3f &cnt, const EVec3f up)
+  { 
+    m_pos = pos;
+    m_cnt = cnt;
+    m_up  = up ;
+  }
+  
+};
+
+
+
+
+
+
 class OglForCLI
 {
 private:
@@ -42,10 +133,9 @@ private:
   HDC   m_hdc;
   HGLRC m_hglrc;
 
-  // Camera position/center/Up direction 
-  EVec3f m_cam_pos;
-  EVec3f m_cam_cnt;
-  EVec3f m_cam_up ;
+  // Camera position/center/Up direction
+  OglCameraParam m_camera; 
+  
 
   // View Size
   bool   m_is_rendering;
@@ -64,9 +154,9 @@ public:
   {
     if (dc == 0) return;
 
-    m_cam_pos = EVec3f(0, 0, 10);
-    m_cam_cnt = EVec3f(0, 0, 0 );
-    m_cam_up  = EVec3f(0, 1, 0 );
+    m_camera.m_pos = EVec3f(0, 0, 10);
+    m_camera.m_cnt = EVec3f(0, 0, 0 );
+    m_camera.m_up  = EVec3f(0, 1, 0 );
     m_background_color = EVec4f(0, 0, 0, 0.5);
 
     m_is_rendering = false;
@@ -144,9 +234,9 @@ public:
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    gluLookAt(m_cam_pos[0], m_cam_pos[1], m_cam_pos[2],
-              m_cam_cnt[0], m_cam_cnt[1], m_cam_cnt[2],
-              m_cam_up [0], m_cam_up [1], m_cam_up [2]);
+    gluLookAt(m_camera.m_pos[0], m_camera.m_pos[1], m_camera.m_pos[2],
+              m_camera.m_cnt[0], m_camera.m_cnt[1], m_camera.m_cnt[2],
+              m_camera.m_up [0], m_camera.m_up [1], m_camera.m_up [2]);
     glClearColor( m_background_color[0], 
                   m_background_color[1], 
                   m_background_color[2], 
@@ -163,16 +253,76 @@ public:
   }
 
 
+  //for rendering for other panel 
+  int m_tmp_viewport[4];
+
+  
+
+  void OnDrawBeginByOtherForm(
+    HDC hdc,
+    int    screem_width, 
+    int    screen_height, 
+    OglCameraParam cam,
+    double fovY = 45.0, 
+    double view_near = 0.02, 
+    double view_far = 700.0)
+  {
+    if (m_is_rendering) return;
+
+    m_is_rendering = true;
+    wglMakeCurrent(hdc, m_hglrc);
+
+    glGetIntegerv(GL_VIEWPORT, m_tmp_viewport);
+
+    glViewport(0, 0, screem_width, screen_height);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluPerspective(fovY, screem_width / (double)screen_height, view_near, view_far);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    gluLookAt(cam.m_pos[0], cam.m_pos[1], cam.m_pos[2],
+              cam.m_cnt[0], cam.m_cnt[1], cam.m_cnt[2],
+              cam.m_up [0], cam.m_up [1], cam.m_up [2]);
+    glClearColor( m_background_color[0], 
+                  m_background_color[1], 
+                  m_background_color[2], 
+                  m_background_color[3]);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ACCUM_BUFFER_BIT);
+  }
+
+
+  void OnDrawEndByOtherForm(HDC hdc)
+  {
+    glFinish();
+    SwapBuffers(hdc);
+
+    //Œ³‚Ìî•ñ‚ð–ß‚·
+    glViewport(m_tmp_viewport[0], m_tmp_viewport[1], m_tmp_viewport[2], m_tmp_viewport[3]);
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    wglMakeCurrent(NULL, NULL);
+    m_is_rendering = false;
+  }
+
+
   inline bool   IsDrawing() const { return m_is_rendering; }
-  inline EVec3f GetCamPos() const { return m_cam_pos; }
-  inline EVec3f GetCamCnt() const { return m_cam_cnt  ; }
-  inline EVec3f GetCamUp()  const { return m_cam_up   ; }
+  inline EVec3f GetCamPos() const { return m_camera.m_pos; }
+  inline EVec3f GetCamCnt() const { return m_camera.m_cnt; }
+  inline EVec3f GetCamUp()  const { return m_camera.m_up ; }
+
   inline void   SetCam(const EVec3f &pos, const EVec3f &cnt, const EVec3f &up) 
   { 
-    m_cam_pos = pos; 
-    m_cam_cnt = cnt; 
-    m_cam_up  = up;
+    m_camera.Set(pos, cnt, up);
   }
+
   inline void  SetBgColor(EVec4f bg) 
   { 
     m_background_color = bg; 
@@ -213,54 +363,23 @@ public:
   {
     if (m_mousebtn_state == BTN_NON) return;
 
-    float dX = (float)(p[0] - m_mouse_position[0]);
-    float dY = (float)(p[1] - m_mouse_position[1]);
+    int dX = p[0] - m_mouse_position[0];
+    int dY = p[1] - m_mouse_position[1];
 
-    if (m_mousebtn_state == BTN_ROT)
-    {
-      float theta = -dX / 200.0f;
-      float phi = -dY / 200.0f;
+    if ( m_mousebtn_state == BTN_ROT)
+      m_camera.RotateCamera(dX, dY);
+    if ( m_mousebtn_state == BTN_ZOOM)
+      m_camera.ZoomCamera(dY);
+    if ( m_mousebtn_state == BTN_TRANS)
+      m_camera.TranslateCamera(dX,dY);
 
-      EVec3f x_dir = ((m_cam_cnt - m_cam_pos).cross(m_cam_up)).normalized();
-      Eigen::AngleAxisf rotTheta(theta, m_cam_up);
-      Eigen::AngleAxisf rotPhi  (  phi, x_dir      );
-      m_cam_up    = rotPhi * rotTheta * m_cam_up;
-      m_cam_pos = rotPhi * rotTheta * (m_cam_pos - m_cam_cnt) + m_cam_cnt;
-    }
-    else if (m_mousebtn_state == BTN_ZOOM)
-    {
-      EVec3f newEyeP = m_cam_pos + dY / 80.0f * (m_cam_cnt - m_cam_pos);
-      if ((newEyeP - m_cam_cnt).norm() > 0.02f) m_cam_pos = newEyeP;
-    }
-    else if (m_mousebtn_state == BTN_TRANS)
-    {
-      float c = (m_cam_pos - m_cam_cnt).norm() / 900.0f;
-      EVec3f x_dir = ((m_cam_pos - m_cam_cnt).cross(m_cam_up)).normalized();
-      EVec3f t = c * dX * x_dir + c * dY * m_cam_up;
-      m_cam_pos += t;
-      m_cam_cnt += t;
-    }
     m_mouse_position = p;
   }
 
-  /*
 
-  void OnDestroy()
+  void ZoomCamByWheel(short z_delta)
   {
-    oglMakeCurrent();
-    wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(m_hRC);
-    if (m_pDC) delete m_pDC;
-  }
-*/
-  void ZoomCam(float distance)
-  {
-    EVec3f rayD = (m_cam_cnt - m_cam_pos);
-    float  len = rayD.norm();
-
-    if (distance > len) return;
-    rayD /= len;
-    m_cam_pos = m_cam_pos + distance * rayD;
+    m_camera.ZoomCameraByWheel(z_delta);
   }
 
 
@@ -321,6 +440,8 @@ public:
     rayDir << (float)(x2 - x1), (float)(y2 - y1), (float)(z2 - z1);
     rayDir.normalize();
   }
+
+
 
   inline void GetCursorRay(const EVec2i &pt, EVec3f &rayPos, EVec3f &rayDir) const
   {
@@ -384,5 +505,56 @@ private:
   }
 
 };
+
+
+
+
+
+
+
+/*
+inline void t_DrawCuboidFrame(const EVec3f &c)
+{
+  glDisable(GL_LIGHTING);
+  glLineWidth(2);
+  glColor3d(1, 1, 0);
+  glBegin(GL_LINES);
+    glVertex3d(   0,    0,    0); glVertex3d(c[0],    0,    0);
+    glVertex3d(c[0],    0,    0); glVertex3d(c[0], c[1],    0);
+    glVertex3d(c[0], c[1],    0); glVertex3d(   0, c[1],    0);
+    glVertex3d(   0, c[1],    0); glVertex3d(   0,    0,    0);
+    glVertex3d(   0,    0, c[2]); glVertex3d(c[0],    0, c[2]);
+    glVertex3d(c[0],    0, c[2]); glVertex3d(c[0], c[1], c[2]);
+    glVertex3d(c[0], c[1], c[2]); glVertex3d(   0, c[1], c[2]);
+    glVertex3d(   0, c[1], c[2]); glVertex3d(   0,    0, c[2]);
+    glVertex3d(   0,    0,    0); glVertex3d(   0,    0, c[2]);
+    glVertex3d(c[0],    0,    0); glVertex3d(c[0],    0, c[2]);
+    glVertex3d(c[0], c[1],    0); glVertex3d(c[0], c[1], c[2]);
+    glVertex3d(   0, c[1],    0); glVertex3d(   0, c[1], c[2]);
+  glEnd();
+
+  glTranslated(-0.1, -0.1, -0.1);
+  glDisable(GL_LIGHTING);
+  glBegin(GL_LINES);
+    glColor3d(1, 0, 0); glVertex3d(0, 0, 0); glVertex3d(10, 0, 0);
+    glColor3d(0, 1, 0); glVertex3d(0, 0, 0); glVertex3d(0, 10, 0);
+    glColor3d(0, 0, 1); glVertex3d(0, 0, 0); glVertex3d(0, 0, 10);
+  glEnd();
+  glTranslated( 0.1,  0.1,  0.1);
+}
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
 
 #pragma managed

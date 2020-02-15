@@ -24,7 +24,7 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>RoiPainter3D</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -203,6 +203,9 @@
     <ClInclude Include="FormStackOrder.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="FormSubView.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="FormVisMask.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -213,6 +216,7 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="ImageCore.h" />
+    <ClInclude Include="LogCore.h" />
     <ClInclude Include="MaskData.h" />
     <ClInclude Include="ModeCore.h" />
     <ClInclude Include="ModeInterface.h" />
@@ -250,10 +254,12 @@
     <ClCompile Include="FormSegThreshfieldPaint.cpp" />
     <ClCompile Include="FormSegVoxelPaint.cpp" />
     <ClCompile Include="FormStackOrder.cpp" />
+    <ClCompile Include="FormSubView.cpp" />
     <ClCompile Include="FormVisMask.cpp" />
     <ClCompile Include="FormVisNorm.cpp" />
     <ClCompile Include="FormVisParam.cpp" />
     <ClCompile Include="ImageCore.cpp" />
+    <ClCompile Include="LogCore.cpp" />
     <ClCompile Include="ModeCore.cpp" />
     <ClCompile Include="ModeInterface.cpp" />
     <ClCompile Include="mode\GlslShader.cpp" />
@@ -303,6 +309,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormStackOrder.resx">
       <DependentUpon>FormStackOrder.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormSubView.resx">
+      <DependentUpon>FormSubView.h</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormVisMask.resx">
       <DependentUpon>FormVisMask.h</DependentUpon>

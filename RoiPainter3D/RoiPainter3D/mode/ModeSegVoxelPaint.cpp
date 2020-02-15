@@ -142,7 +142,7 @@ void ModeSegVoxelPaint::FinishSegmentation()
 void ModeSegVoxelPaint::CancelSegmentation()
 {
     ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-    FormMain_RedrawMainPanel();
+    RedrawScene();
 }
 
 
@@ -250,7 +250,7 @@ void ModeSegVoxelPaint::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 	m_paint_voxels.clear();
 	m_bL = m_b_paintmode = m_b_lassomode = false;
 	ogl->BtnUp();
-	FormMain_RedrawMainPanel();
+	RedrawScene();
 }
 
 
@@ -276,16 +276,16 @@ void ModeSegVoxelPaint::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 
 	m_lasso.clear();
 	m_paint_voxels.clear();
-	m_bL = m_b_paintmode = m_b_lassomode = false;
+	m_bR = m_b_paintmode = m_b_lassomode = false;
 	ogl->BtnUp();
-	FormMain_RedrawMainPanel();
+	RedrawScene();
 }
 
 void ModeSegVoxelPaint::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = false;
   ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -318,8 +318,8 @@ void ModeSegVoxelPaint::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	{
 		ogl->MouseMove(p);
 	}	
-  FormMain_RedrawMainPanel();
-}
+  RedrawScene(true);
+ }
 
 
 
@@ -327,10 +327,10 @@ void ModeSegVoxelPaint::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *og
 {
   if( !PickToMoveCrossSecByWheeling(p, ogl, z_delta) )
   {
-    ogl->ZoomCam(z_delta * 0.1f);
+    ogl->ZoomCamByWheel( z_delta );
   }
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -342,11 +342,11 @@ void ModeSegVoxelPaint::MBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
 
 
 void ModeSegVoxelPaint::KeyDown(int nChar) {
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeSegVoxelPaint::KeyUp(int nChar) {
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -412,13 +412,8 @@ void ModeSegVoxelPaint::DrawScene
   const bool   bZX = FormVisParam_bPlaneZX();
   const bool   bDrawVol = formVisParam_bRendVol();
   const bool   bGradMag = formVisParam_bGradMag();
-  const bool   bPsuedo  = formVisParam_bDoPsued();
-  const float  alpha    = formVisParam_getAlpha();
   const EVec3i reso     = ImageCore::GetInst()->GetResolution();
   const EVec3f pitch    = ImageCore::GetInst()->GetPitch();
-
-  const bool isOnManip  = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-  const int  sliceN     = (int)((isOnManip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
   
   const bool image_interpolation = formVisParam_doInterpolation();
@@ -449,10 +444,17 @@ void ModeSegVoxelPaint::DrawScene
   
   if (bDrawVol && !IsSpaceKeyOn())
   {
+    const bool  b_pse   = formVisParam_bDoPsued();
+    const float alpha   = formVisParam_getAlpha();
+    const bool  b_roi   = formVisParam_GetOtherROI();
+    const bool  b_manip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int   n_slice = (int)((b_manip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+
+
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, bPsuedo, !IsSpaceKeyOn());
-    t_DrawCuboidSlices(sliceN, camP, camF, cuboid);
+    m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, b_pse, b_roi);
+    t_DrawCuboidSlices(n_slice, camP, camF, cuboid);
     m_volume_shader.Unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);

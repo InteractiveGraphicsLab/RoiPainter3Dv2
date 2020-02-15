@@ -206,6 +206,7 @@ void ModeSegParallelWires::FinishSegmentation()
   
   ImageCore::GetInst()->StoreForegroundAsNewMask();
   ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
+	RedrawScene();	
 }
 
 
@@ -222,7 +223,7 @@ void ModeSegParallelWires::CancelSegmentation()
   m_wires_zx.clear();
 
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	FormMain_RedrawMainPanel();	
+	RedrawScene();	
 }
 
 
@@ -265,7 +266,7 @@ void ModeSegParallelWires::LBtnDown  (const EVec2i &p, OglForCLI *ogl)
       m_draging_cpid << wireidx, idx;
     }
 
-    FormMain_RedrawMainPanel();
+    RedrawScene();
   }
   else
   {
@@ -296,7 +297,7 @@ void ModeSegParallelWires::RBtnDown  (const EVec2i &p, OglForCLI *ogl)
     {
       m_wires_zx[ m_planezx_idx ].PickToEraseCtrlPt( rayp, rayd );
     }
-    FormMain_RedrawMainPanel();
+    RedrawScene();
   }
   else
   {
@@ -328,7 +329,7 @@ void ModeSegParallelWires::MBtnDown  (const EVec2i &p, OglForCLI *ogl)
       m_wires_zx[ m_planezx_idx ].PickToEraseCtrlPt( rayp, rayd );
     }
 
-    FormMain_RedrawMainPanel();
+    RedrawScene();
 
   }
   else
@@ -385,7 +386,7 @@ void ModeSegParallelWires::MouseMove (const EVec2i &p, OglForCLI *ogl)
 		ogl->MouseMove(p);
   }
 
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 
 }
 
@@ -433,7 +434,7 @@ void ModeSegParallelWires::MouseWheel(
     CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
   } 
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -477,7 +478,7 @@ void ModeSegParallelWires::KeyDown(int nChar)
       float zx_pos = (m_planezx_idx + 0.5f) * (1.0f / H);
       CrssecCore::GetInst()->SetPlaneZxPosition( zx_pos );
     } 
-    FormMain_RedrawMainPanel();
+    RedrawScene();
   }
 
 }
@@ -563,17 +564,18 @@ void ModeSegParallelWires::DrawScene(
 
   const bool b_rend_vol = formVisParam_bRendVol();
 
-  if (b_rend_vol)
+  if (b_rend_vol && !IsShiftKeyOn() )
   {
-    const bool  b_psuedo  = formVisParam_bDoPsued();
-    const float alpha     = formVisParam_getAlpha();
-    const bool  b_onmanip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-    const int   num_slice = (int)((b_onmanip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
+    const bool  b_pse   = formVisParam_bDoPsued();
+    const bool  b_roi   = formVisParam_GetOtherROI();
+    const float alpha   = formVisParam_getAlpha();
+    const bool  b_manip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int   n_slice = (int)((b_manip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
     glDisable(GL_DEPTH_TEST);
     glEnable (GL_BLEND);
-    m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, b_psuedo, false);
-    t_DrawCuboidSlices(num_slice, camP, camF, cuboid);
+    m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha, reso, camP, b_pse, b_roi );
+    t_DrawCuboidSlices( n_slice, camP, camF, cuboid);
     m_volume_shader.Unbind();
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);

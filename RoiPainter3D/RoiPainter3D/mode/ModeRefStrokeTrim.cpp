@@ -11,15 +11,44 @@
 #include "FormMaskIDselection.h"
 #include "climessagebox.h"
 
+
+#include "time.h"
+#include "LogCore.h"
+
 using namespace RoiPainter3D;
 using namespace std;
 
 #pragma unmanaged
 
 
+
+/*
+memo undoの仕組み
+
+1) ストロークが書かれたら
+    1) m_undo_idx を 1進める
+    2) m_redo_max に m_undo_idx を代入
+    3) m_undo_vol 内の m_redo_idx以上の画素値を0に
+    4) m_undo_vol 内の 削除された画素に m_undo_idxを代入
+
+2) Undo実行
+    1) m_undo_vol 内の m_undo_idx画素を 削除前の状態に
+    2) m_undo_idxを1戻す
+
+3) Redo実行
+    1) m_undo_idx < m_redo_idxのときのみ実行可
+    2) m_undo_idxを1進める
+    3) m_undo_vol 内の m_undo_idx画素を 削除
+*/
+
+
+
+
+
+
 ModeRefStrokeTrim::~ModeRefStrokeTrim()
 {
-	if( m_vol_prev ) delete[] m_vol_prev;
+	if( m_undo_vol ) delete[] m_undo_vol;
 }
 
 
@@ -29,7 +58,10 @@ ModeRefStrokeTrim::ModeRefStrokeTrim() :
 {
   m_bL = m_bR = m_bM = m_b_drawingstroke = false;
   m_b_modified = false;
-  m_vol_prev = 0;
+
+  m_undo_vol = 0;
+  m_undo_idx = 0;
+  m_redo_max = 0;
 }
 
 
@@ -80,12 +112,17 @@ void ModeRefStrokeTrim::StartMode()
 	
   ImageCore::GetInst()->m_vol_flag.SetUpdated();
 
-	if( m_vol_prev ) delete[] m_vol_prev;
-	m_vol_prev = new byte[nun_voxels];
-	memcpy(m_vol_prev, &(msk3d[0]), sizeof(byte)*nun_voxels);
+  
+  if ( m_undo_vol ) delete[] m_undo_vol;
+  m_undo_vol = new unsigned short[nun_voxels];
+	memset(m_undo_vol, 0, sizeof(unsigned short)*nun_voxels);
+  m_undo_idx = 0;  
+  m_redo_max = 0;
 
   //Lock/Unlock pitch box
   formVisParam_UnlockPitchBox();
+
+  LogCore::GetInst()->StartLogger();
 }
 
 
@@ -93,15 +130,34 @@ void ModeRefStrokeTrim::StartMode()
 
 void ModeRefStrokeTrim::cancelSegmentation()
 {
-  if( m_vol_prev ) delete[] m_vol_prev;
-  m_vol_prev = 0;
+  if( m_undo_vol ) delete[] m_undo_vol;
+  m_undo_vol = 0;
+
   ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
+
+
 
 
 void ModeRefStrokeTrim::finishSegmentation()
 {
+  //export log
+  time_t currenttime = time(NULL);
+  struct tm *t = localtime(&currenttime);
+  std::string fname = 
+      to_string( t->tm_year+1900 )
+    + to_string( t->tm_mon + 1   )
+    + string((t->tm_mday < 10 ) ? "0" : "") + to_string( t->tm_mday )
+    + string((t->tm_hour < 10 ) ? "0" : "") + to_string( t->tm_hour )
+    + string((t->tm_min  < 10 ) ? "0" : "") + to_string( t->tm_min  )
+    + string((t->tm_sec  < 10 ) ? "0" : "") + to_string( t->tm_sec  )
+    + string("_trimming_log.txt");
+  LogCore::GetInst()->CloseLogger(fname);
+
+
+
+
 	const int num_voxels = ImageCore::GetInst()->GetNumVoxels();
 	byte  *msk3d = ImageCore::GetInst()->m_vol_mask.GetVolumePtr();
 	byte  *flg3d = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
@@ -129,11 +185,11 @@ void ModeRefStrokeTrim::finishSegmentation()
 
 	m_b_modified = false;
 
-  if( m_vol_prev ) delete[] m_vol_prev;
-  m_vol_prev = 0;
+  if( m_undo_vol ) delete[] m_undo_vol;
+  m_undo_vol = 0;
 
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	FormMain_RedrawMainPanel();
+	RedrawScene();
 }
 
 
@@ -147,6 +203,8 @@ void ModeRefStrokeTrim::MBtnDclk(const EVec2i &p, OglForCLI *ogl) {}
 
 void ModeRefStrokeTrim::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
+  LogCore::GetInst()->Add("LBtnDown");
+
   m_bL = true;
 	m_stroke2d.clear();
 	m_stroke3d.clear();
@@ -169,19 +227,25 @@ void ModeRefStrokeTrim::LBtnDown(const EVec2i &p, OglForCLI *ogl)
 
 void ModeRefStrokeTrim::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
-  if( m_b_drawingstroke ) UpdateVolFlgByStroke(ogl);
+  if( m_b_drawingstroke ) {
+    UpdateVolFlgByStroke(ogl);
+    LogCore::GetInst()->Add("DRAW_TRIMSTROKE");
+  }
 
 	ogl->BtnUp();
 	m_bL = false;
 	m_b_drawingstroke = false;
 	m_stroke2d.clear();
 	m_stroke3d.clear();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
 void ModeRefStrokeTrim::RBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
+  LogCore::GetInst()->Add("RBtnDown");
+
+
   if (m_bL && m_b_drawingstroke)
 	{
     //cancel current trimming stroke
@@ -202,11 +266,13 @@ void ModeRefStrokeTrim::RBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   ogl->BtnUp();
   m_bR = false;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeRefStrokeTrim::MBtnDown(const EVec2i &p, OglForCLI *ogl)
 {
+  LogCore::GetInst()->Add("MBtnDown");
+
   ogl->BtnDown_Zoom(p); 
   m_bM = true ; 
 }
@@ -215,7 +281,7 @@ void ModeRefStrokeTrim::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   ogl->BtnUp();
   m_bM = false;
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeRefStrokeTrim::MouseMove(const EVec2i &p, OglForCLI *ogl)
@@ -233,33 +299,62 @@ void ModeRefStrokeTrim::MouseMove(const EVec2i &p, OglForCLI *ogl)
 	{
 		ogl->MouseMove( p );
 	}
-  FormMain_RedrawMainPanel();
+  RedrawScene( false );
 }
+
 
 
 void ModeRefStrokeTrim::MouseWheel(const EVec2i &p, short zDelta, OglForCLI *ogl)
 {
-  if( !PickToMoveCrossSecByWheeling(p, ogl, zDelta ) )
+  if( PickToMoveCrossSecByWheeling(p, ogl, zDelta ) )
   {
-    ogl->ZoomCam(zDelta * 0.1f);
+    LogCore::GetInst()->Add("WHEELCRSSEC"); 
   }
-  FormMain_RedrawMainPanel();
+  else
+  {
+    LogCore::GetInst()->Add("WHEELZOOM"); 
+    ogl->ZoomCamByWheel( zDelta );
+  }
+  RedrawScene();
 }
+
+
 
 void ModeRefStrokeTrim::KeyDown(int nChar) 
 {
-  if (nChar == 'Z')
+  LogCore::GetInst()->Add("KeyDown");
+
+  if ( nChar != 'Z' && nChar != 'Y' ) return;
+
+  byte* flg3d    = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
+  int num_voxels = ImageCore::GetInst()->GetNumVoxels();
+
+
+  if (nChar == 'Z' && m_undo_idx > 0)
 	{
-    // 変更前の状態を一個だけ持っておく実装（今後複数回のundoに対応したい）
     std::cout<< "undo!!\n";
+    LogCore::GetInst()->Add("UNDO");
 
-		byte* flg3d    = ImageCore::GetInst()->m_vol_flag.GetVolumePtr();
-		int num_voxels = ImageCore::GetInst()->GetNumVoxels();
-		memcpy( flg3d, m_vol_prev, sizeof( byte ) * num_voxels );
-		ImageCore::GetInst()->m_vol_flag.SetUpdated();
+#pragma omp parallel for 
+    for ( int i=0; i < num_voxels; ++i )
+      if ( m_undo_vol[i] == m_undo_idx ) flg3d[i] = 255;
 
-    FormMain_RedrawMainPanel();
-	}
+    m_undo_idx--;
+  }
+  else if (nChar == 'Y' && m_undo_idx < m_redo_max)
+  {
+    std::cout<< "Redo!!\n";
+    LogCore::GetInst()->Add("REDO");
+
+    m_undo_idx++;    
+#pragma omp parallel for 
+    for ( int i=0; i < num_voxels; ++i )
+      if ( m_undo_vol[i] == m_undo_idx ) flg3d[i] = 1;
+
+  }
+ 
+	ImageCore::GetInst()->m_vol_flag.SetUpdated();
+  RedrawScene();
 }
 
 
@@ -272,7 +367,7 @@ void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
 
   if (m_b_drawingstroke && m_stroke3d.size() > 1)
 	{
-    t_DrawPolyLine( EVec3f(1,1,0), 4, m_stroke3d, true );
+    t_DrawPolyLine( EVec3f(1,0,1), 4, m_stroke3d, true );
 	}
 	
 	//bind volumes ---------------------------------------
@@ -303,15 +398,17 @@ void ModeRefStrokeTrim::DrawScene(const EVec3f &cuboid, const EVec3f &cam_pos, c
   m_crssec_shader.Unbind();
 
 	//volume rendering ---------------------------------------
-	if ( formVisParam_bRendVol() )
+	if ( formVisParam_bRendVol() && !IsSpaceKeyOn())
 	{
-    const float alpha  = formVisParam_getAlpha();
-    const bool b_on_manipuration = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
-    const int  slice_num         = (int)( (b_on_manipuration ? ONMOVE_SLICE_RATE : 1.0 ) * formVisParam_getSliceNum() );
+    const float alpha    = formVisParam_getAlpha();
+    const bool b_otherroi= formVisParam_GetOtherROI();
+    const bool b_manip   = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
+    const int  slice_num = (int)( (b_manip ? ONMOVE_SLICE_RATE : 1.0 ) 
+                           * formVisParam_getSliceNum() );
 
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, false, !IsSpaceKeyOn());
+		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, false, b_otherroi);
 		t_DrawCuboidSlices( slice_num, cam_pos, cam_center, cuboid);
 		m_volume_shader.Unbind();
 		glDisable(GL_BLEND);
@@ -354,9 +451,17 @@ void ModeRefStrokeTrim::UpdateVolFlgByStroke( OglForCLI *ogl)
   std::tie(W,H,D,WH,WHD) = ImageCore::GetInst()->GetResolution5();
 
 	byte *flg3d = ImageCore::GetInst()->m_vol_flag.GetVolumePtr() ;
+  
+  //prepare undo 
+  m_undo_idx += 1;
+  m_redo_max  = m_undo_idx;
 
-  memcpy( m_vol_prev, &flg3d[0], sizeof( byte ) * WHD );
-
+#pragma omp parallel for
+  for ( int i = 0; i < WHD; ++i)
+  {
+    if ( m_undo_vol[i] >= m_undo_idx)
+      m_undo_vol[i] = 0;
+  }
 
   //get projection information
 	if( !ogl->IsDrawing() ) ogl->oglMakeCurrent();
@@ -415,7 +520,12 @@ void ModeRefStrokeTrim::UpdateVolFlgByStroke( OglForCLI *ogl)
 				gluProject(	posx,  posy, posz,  model_mat, projection_mat, viewport, &px, &py, &pz);
 
 				if( 0<= px && px <= viewport[2]-1 && 
-					  0<= py && py <= viewport[3]-1 && screen_img[ (int)px + (int)py*viewport[2] ] == 255 ) flg3d[I] = 1;
+					  0<= py && py <= viewport[3]-1 && 
+            screen_img[ (int)px + (int)py*viewport[2] ] == 255 ) 
+        {
+          flg3d[I] = 1;
+          m_undo_vol[I] = m_undo_idx;
+        }
 			}	
 		}
 	}

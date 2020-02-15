@@ -148,7 +148,7 @@ void ModeSegGCut::FinishSegmemntation ()
 
 	ImageCore::GetInst()->StoreForegroundAsNewMask();
 	ModeCore ::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	FormMain_RedrawMainPanel();	
+	RedrawScene();	
 }
 
 
@@ -159,7 +159,7 @@ void ModeSegGCut::CancelSegmentation ()
 	m_cps_fore.clear();
 	m_cps_back.clear();
 	ModeCore::GetInst()->ModeSwitch( MODE_VIS_MASK );
-	FormMain_RedrawMainPanel();	
+	RedrawScene();	
 }
 
 
@@ -168,7 +168,7 @@ void ModeSegGCut::ClearAllCPs()
 {
   m_cps_fore.clear();
 	m_cps_back.clear();
-	FormMain_RedrawMainPanel();	
+	RedrawScene();	
 }
 
 
@@ -210,7 +210,7 @@ void ModeSegGCut::LBtnUp(const EVec2i &p, OglForCLI *ogl)
 	m_b_paint_cps = false;
   m_b_draw_cutsrtoke = false;
 	ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -233,7 +233,7 @@ void ModeSegGCut::RBtnUp(const EVec2i &p, OglForCLI *ogl)
   m_bR = false;
   m_b_paint_cps = false;
   ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 void ModeSegGCut::MBtnDown(const EVec2i &p, OglForCLI *ogl)
@@ -254,7 +254,7 @@ void ModeSegGCut::MBtnUp(const EVec2i &p, OglForCLI *ogl)
 {
   m_bM = m_b_paint_cps = false;
 	ogl->BtnUp();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -312,7 +312,7 @@ void ModeSegGCut::MouseMove(const EVec2i &p, OglForCLI *ogl)
 		ogl->MouseMove(p);
 	}
 
-  FormMain_RedrawMainPanel();
+  RedrawScene(false);
 }
 
 
@@ -320,21 +320,21 @@ void ModeSegGCut::MouseWheel(const EVec2i &p, short z_delta, OglForCLI *ogl)
 {
   if( !PickToMoveCrossSecByWheeling(p, ogl, z_delta ) )
   { 
-    ogl->ZoomCam(z_delta * 0.1f);
+    ogl->ZoomCamByWheel( z_delta );
   }
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
 
 void ModeSegGCut::KeyDown(int nChar) 
 {
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 void ModeSegGCut::KeyUp(int nChar) 
 {
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -379,14 +379,15 @@ void ModeSegGCut::DrawScene (
 
 	if ( b_draw_vol && !IsSpaceKeyOn())
 	{
-    const bool  b_psuedo  = formVisParam_bDoPsued();
+    const bool  b_psu     = formVisParam_bDoPsued();
+    const bool  b_roi     = formVisParam_GetOtherROI();
     const float alpha     = formVisParam_getAlpha();
     const bool  b_onmanip = formVisParam_bOnManip() || m_bL || m_bR || m_bM;
     const int   num_slice = (int)((b_onmanip ? ONMOVE_SLICE_RATE : 1.0) * formVisParam_getSliceNum());
 
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
-		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, b_psuedo, !IsSpaceKeyOn() );
+		m_volume_shader.Bind(0, 1, 2, 3, 4, 5, 6, alpha * 0.1f, reso, cam_pos, b_psu, b_roi);
 		t_DrawCuboidSlices(num_slice, cam_pos, cam_center, cuboid);
 		m_volume_shader.Unbind();
 		glDisable(GL_BLEND);
@@ -944,7 +945,7 @@ void ModeSegGCut::RunGraphCutWsdLv(float lambda)
 
 	delete[] minCut ;
 
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 
@@ -1059,7 +1060,7 @@ void ModeSegGCut::RunGraphCutVoxLv(float lambda, int band_width, bool b_genband_
 	delete[] mincut;
 	delete[] vol_nodeid;
 	ImageCore::GetInst()->m_vol_flag.SetUpdated();
-  FormMain_RedrawMainPanel();
+  RedrawScene();
 }
 
 

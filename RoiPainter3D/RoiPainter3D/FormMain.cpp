@@ -4,6 +4,7 @@
 #include "ModeCore.h"
 #include "ViewAngleCore.h"
 
+#include "FormSubView.h"
 #include "FormVisParam.h"
 #include "FormVisNorm.h"
 #include "FormVisMask.h"
@@ -151,7 +152,7 @@ bool FormMain::pickViewAngleIndicator(const EVec2i p)
   camC = 0.5 * cuboid;
   camP = camC + ((float)D) * camP;
   m_ogl->SetCam(camP, camC, camY);
-  FormMain_RedrawMainPanel();
+  redrawMainPanel();
   return true;
 }
 
@@ -223,53 +224,11 @@ void FormMain::initializeOtherForms()
 
 
 
-static void t_drawFrame(const EVec3f &c)
-{
-  glDisable(GL_LIGHTING);
-  glLineWidth(2);
-  glColor3d(1, 1, 0);
-  glBegin(GL_LINES);
-    glVertex3d(   0,    0,    0); glVertex3d(c[0],    0,    0);
-    glVertex3d(c[0],    0,    0); glVertex3d(c[0], c[1],    0);
-    glVertex3d(c[0], c[1],    0); glVertex3d(   0, c[1],    0);
-    glVertex3d(   0, c[1],    0); glVertex3d(   0,    0,    0);
-    glVertex3d(   0,    0, c[2]); glVertex3d(c[0],    0, c[2]);
-    glVertex3d(c[0],    0, c[2]); glVertex3d(c[0], c[1], c[2]);
-    glVertex3d(c[0], c[1], c[2]); glVertex3d(   0, c[1], c[2]);
-    glVertex3d(   0, c[1], c[2]); glVertex3d(   0,    0, c[2]);
-    glVertex3d(   0,    0,    0); glVertex3d(   0,    0, c[2]);
-    glVertex3d(c[0],    0,    0); glVertex3d(c[0],    0, c[2]);
-    glVertex3d(c[0], c[1],    0); glVertex3d(c[0], c[1], c[2]);
-    glVertex3d(   0, c[1],    0); glVertex3d(   0, c[1], c[2]);
-  glEnd();
-
-  glTranslated(-0.1, -0.1, -0.1);
-  glDisable(GL_LIGHTING);
-  glBegin(GL_LINES);
-    glColor3d(1, 0, 0); glVertex3d(0, 0, 0); glVertex3d(10, 0, 0);
-    glColor3d(0, 1, 0); glVertex3d(0, 0, 0); glVertex3d(0, 10, 0);
-    glColor3d(0, 0, 1); glVertex3d(0, 0, 0); glVertex3d(0, 0, 10);
-  glEnd();
-  glTranslated( 0.1,  0.1,  0.1);
-}
 
 
 
-static void initializeLights()
-{
-  //initialize lights	
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_LIGHT1);
-  glEnable(GL_LIGHT2);
-  float p0[4] = {  1000,  1000, -1000, 1 };
-  float p1[4] = { -1000,  1000, -1000, 1 };
-  float p2[4] = {  1000, -1000, -1000, 1 };
-  glLightfv(GL_LIGHT0, GL_POSITION, p0);
-  glLightfv(GL_LIGHT1, GL_POSITION, p1);
-  glLightfv(GL_LIGHT2, GL_POSITION, p2);
 
-}
+
 
 
 
@@ -297,9 +256,19 @@ void FormMain::redrawMainPanel()
   const int    viewH    = FormMainPanel->Height;
 
   m_ogl->OnDrawBegin(viewW, viewH, 45.0, nearDist, farDist);
-  initializeLights();
+  //initialize lights	
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT1);
+  glEnable(GL_LIGHT2);
+  float p0[4] = {  1000,  1000, -1000, 1 };
+  float p1[4] = { -1000,  1000, -1000, 1 };
+  float p2[4] = {  1000, -1000, -1000, 1 };
+  glLightfv(GL_LIGHT0, GL_POSITION, p0);
+  glLightfv(GL_LIGHT1, GL_POSITION, p1);
+  glLightfv(GL_LIGHT2, GL_POSITION, p2);
 
-  if (FormVisParam::getInst()->bRendFrame()) t_drawFrame(cuboid);
+  if (FormVisParam::getInst()->bRendFrame()) t_DrawCuboidFrame(cuboid);
 
   ModeCore::GetInst()->DrawScene(cuboid, m_ogl->GetCamPos(), m_ogl->GetCamCnt());
 
@@ -685,6 +654,56 @@ System::Void FormMain::segmentationParallelWiresToolStripMenuItem_Click(System::
 
 
 
+System::Void FormMain::m_menuitem_subview_x_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+  m_menuitem_subview_x->Checked = !m_menuitem_subview_x->Checked;
+
+  if ( m_menuitem_subview_x->Checked ) {
+    FormSubViewX_Show();
+    FormSubViewX_InitCamera();
+  }
+  else {
+    FormSubViewX_Hide();
+  }
+
+}
+
+System::Void FormMain::m_menuitem_subview_y_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+  m_menuitem_subview_y->Checked = !m_menuitem_subview_y->Checked;
+
+  if ( m_menuitem_subview_y->Checked ) {
+    FormSubViewY_Show();
+    FormSubViewY_InitCamera();
+  }
+  else {
+    FormSubViewY_Hide();
+  }
+
+}
+
+
+
+System::Void FormMain::m_menuitem_subview_z_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+
+  m_menuitem_subview_z->Checked = !m_menuitem_subview_z->Checked;
+
+  if ( m_menuitem_subview_z->Checked ) {
+    FormSubViewZ_Show();
+    FormSubViewZ_InitCamera();
+  }
+  else{
+    FormSubViewZ_Hide();
+  }
+
+}
 
 
 

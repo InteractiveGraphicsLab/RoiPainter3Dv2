@@ -4,12 +4,15 @@ uniform sampler3D u_img3_flg ;
 uniform sampler3D u_img3_mask;
 uniform sampler1D u_img1_tf  ;
 uniform sampler1D u_img1_psu ;
+uniform sampler1D u_img1_mskC;
 
 uniform float     u_alpha      ;
 uniform int       u_doPsuedo   ;
-uniform int       u_doHL       ;
+uniform int       u_doOtherROIs;
 uniform vec4      u_texCdOfst  ; //(x,y,z,0)
 uniform vec4      u_eyePos     ;
+
+
 
 varying vec4 worldCoord;
 
@@ -48,33 +51,42 @@ const float THRESH_FORE    = COEF_1_255 * 254.0 + COEF_1_255_2;
 
 void main(void)
 {
-    float imgI   = texture3D( u_img3_vol, gl_TexCoord[0].xyz ).x;
-	float imgFlg = texture3D( u_img3_flg, gl_TexCoord[0].xyz ).x;
-    float imgGM  = texture3D( u_img3_gMag, gl_TexCoord[0].xyz ).x;
+  float imgI   = texture3D( u_img3_vol, gl_TexCoord[0].xyz ).x;
+  float imgFlg = texture3D( u_img3_flg, gl_TexCoord[0].xyz ).x;
+  float imgGM  = texture3D( u_img3_gMag, gl_TexCoord[0].xyz ).x;
 
-	gl_FragColor.w   = u_alpha * texture1D( u_img1_tf, imgI ).x * 
-	                             texture1D( u_img1_tf, imgGM).y ;
+  gl_FragColor.xyz = u_doPsuedo ? texture1D( u_img1_psu, imgI ).xyz : 
+                                  vec3( imgI, imgI, imgI );
+	gl_FragColor.w = u_alpha * texture1D( u_img1_tf, imgI ).x * 
+                             texture1D( u_img1_tf, imgGM).y ;
 
+  bool isForeVoxel = imgFlg > 1-COEF_1_255;
+  bool isBackVoxel = COEF_1_255_2*3 < imgFlg && imgFlg < COEF_1_255_2*5;
 
-	if( u_doHL && imgFlg > 1-COEF_1_255)
+	if( isForeVoxel )
 	{
 		gl_FragColor.xyz = vec3(0,1,0);
 		gl_FragColor.w = 1.0;
 	}
-	else if( u_doHL && COEF_1_255_2*3 < imgFlg && imgFlg < COEF_1_255_2*5)
+	else if( isBackVoxel )
 	{
 		gl_FragColor.xyz = vec3(0,0,1);
 		gl_FragColor.w = 0.3;
 	}
-    else if( u_doPsuedo )
-	{
-		gl_FragColor.xyz = texture1D( u_img1_psu, imgI ).xyz;
-	}
-    else 
-	    gl_FragColor.xyz = vec3( imgI, imgI, imgI );
+  else if ( u_doOtherROIs )
+  {
+    float maskID  = texture3D( u_img3_mask, gl_TexCoord[0].xyz );
+    if (maskID > COEF_1_255_2 )
+    {
+      //mask color
+      vec4  color   = texture1D( u_img1_mskC, maskID + COEF_1_255_2).xyzw;
+      gl_FragColor.xyz = 0.8 * color.xyz + 0.2 * vec3( imgI, imgI, imgI );
+      gl_FragColor.w   = 0.5;//color.w ;
+    }
+  }  
 
-    vec3 N = calcGradDir( imgI, gl_TexCoord[0].xyz ) ;
-    gl_FragColor.xyz = phogShading( worldCoord, gl_FragColor.xyz, N );
+  vec3 N = calcGradDir( imgI, gl_TexCoord[0].xyz ) ;
+  gl_FragColor.xyz = phogShading( worldCoord, gl_FragColor.xyz, N );
 
 }
 
