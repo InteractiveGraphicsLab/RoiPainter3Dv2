@@ -176,7 +176,8 @@ public:
   void ExportMaskIDsAsOneMesh   ( std::set<int> mask_ids, const char *fname );
   void ExportAllMaskIdAsBmpSlice( const char *fname );
   void ExportOneMaskIdAsBmpSlice( int mask_id, const char *fname);
-
+  void ExportVolumeAsBmpSlice   ( const char* fname, int xy_yz_zx /*0,1,2*/ );
+  
 
 
 private:

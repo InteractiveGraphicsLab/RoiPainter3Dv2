@@ -1064,6 +1064,16 @@ void ImageCore::ExportMaskIDsAsOneMesh   ( std::set<int> mask_ids, const char *f
 }
 
 
+static std::string GenBmpSliceName(std::string base, int idx )
+{
+  string fname = string(base);                     
+  if      ( idx < 10  ) fname += string("000");
+  else if ( idx < 100 ) fname += string("00") ;
+  else if ( idx < 1000) fname += string("0")  ;
+  fname += std::to_string( idx ) + string(".bmp");
+  return fname;
+}
+
 
 void ImageCore::ExportAllMaskIdAsBmpSlice( const char *fname )
 { 
@@ -1085,16 +1095,72 @@ void ImageCore::ExportAllMaskIdAsBmpSlice( const char *fname )
         img[4*(x + y*W) + 2] = c[2];
       }
     }
-    string bmp_name = string(fname);                     
-
-    if      ( z < 10  ) bmp_name += string("000");
-    else if ( z < 100 ) bmp_name += string("00") ;
-    else if ( z < 1000) bmp_name += string("0")  ;
-    bmp_name += std::to_string(z) + string(".bmp");
-    
-    img.SaveAs( bmp_name.c_str() );
+    img.SaveAs( GenBmpSliceName( fname, z).c_str() );
   }
 }
+
+
+
+void ImageCore::ExportVolumeAsBmpSlice( 
+    const char* fname, 
+    int xy_yz_zx )
+{
+  int W, H, D, WH, WHD;
+  std::tie(W,H,D,WH,WHD) = GetResolution5();
+
+  OGLImage2D4 img;
+
+  if ( xy_yz_zx == 0 )
+  {
+    img.Allocate(W,H);
+    for ( int z = 0; z < D; ++z )
+    {
+      for ( int y = 0; y < H; ++y )
+      {
+        for ( int x = 0; x < W; ++x )
+        {
+          img.SetIntensity(x,y, m_vol[x + y*W + z*WH]);
+        }
+      }
+      img.SaveAs( GenBmpSliceName( fname, z).c_str() );
+    }
+  }
+  else if ( xy_yz_zx == 1 )
+  {
+    img.Allocate(D,H);
+    for ( int x = 0; x < W; ++x )
+    {
+      for ( int z = 0; z < D; ++z )
+      {
+        for ( int y = 0; y < H; ++y )
+        {
+          img.SetIntensity(z,y, m_vol[x + y*W + z*WH]);
+        }
+      }
+      img.SaveAs( GenBmpSliceName( fname, x).c_str() );
+    }
+  }
+  else
+  {
+    img.Allocate(D,W);
+    for ( int y = 0; y < H; ++y )
+    {
+      for ( int z = 0; z < D; ++z )
+      {
+        for ( int x = 0; x < W; ++x )
+        {
+          img.SetIntensity(z,x, m_vol[x + y*W + z*WH]);
+        }
+      }
+      img.SaveAs( GenBmpSliceName( fname, y).c_str() );
+    }
+
+  }
+}
+
+
+
+
 
 
 

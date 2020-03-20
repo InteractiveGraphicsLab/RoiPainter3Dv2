@@ -358,8 +358,8 @@ public:
     m_is_updated = true;
   }
 
-
   void SetGrayValue_normalize( float* image );
+  void SetIntensity(const int x, const int y, byte c);
 
   bool IsAllocated() { return m_image ? true : false; }
 private:
@@ -424,6 +424,14 @@ inline void OglImage2D<CH_RGBA>::SetGrayValue_normalize(float* image)
   }
 }
 
+inline void OglImage2D<CH_RGBA>::SetIntensity(
+    const int x, 
+    const int y, 
+    byte c)
+{
+  int i = 4 * ( x + y * m_resolution[0]); 
+  m_image[i] = m_image[i+1] = m_image[i+2] = c;
+}
 
 
 
