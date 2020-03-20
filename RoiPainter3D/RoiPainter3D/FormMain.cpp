@@ -574,6 +574,44 @@ System::Void FormMain::exportAROIAsBmpImage_Click(
 }
 
 
+System::Void FormMain::exportVolumeXyToolStripMenuItem_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e)
+{
+  string filter = "Export bmp file name (*)|*";
+  string fname;
+  if( !t_showSaveFileDlg( filter.c_str(), fname) ) return;
+  
+  ImageCore::GetInst()->ExportVolumeAsBmpSlice( fname.c_str(), 0 );
+}
+
+
+System::Void FormMain::exportVolumeYzToolStripMenuItem_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e)
+{
+  string filter = "Export bmp file name (*)|*";
+  string fname;
+  if( !t_showSaveFileDlg( filter.c_str(), fname) ) return;
+  
+  ImageCore::GetInst()->ExportVolumeAsBmpSlice( fname.c_str(), 1 );
+}
+
+
+System::Void FormMain::exportVolumeZxToolStripMenuItem_Click(
+    System::Object^  sender, 
+    System::EventArgs^  e) 
+{
+  string filter = "Export bmp file name (*)|*";
+  string fname;
+  if( !t_showSaveFileDlg( filter.c_str(), fname) ) return;
+  
+  ImageCore::GetInst()->ExportVolumeAsBmpSlice( fname.c_str(), 2 );
+}
+
+
+
+
 
 //
 System::Void FormMain::exportVolumeAsTraw3dssToolStripMenuItem_Click(
