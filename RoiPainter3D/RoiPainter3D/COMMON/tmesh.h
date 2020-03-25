@@ -116,8 +116,8 @@ public:
       m_vRingPs = new std::vector<int>[m_vSize];
       for (int i = 0; i < m_vSize; ++i)
       {
-        for (const auto &k : m_vRingVs[i]) m_vRingVs[i].push_back(k);
-        for (const auto &k : m_vRingPs[i]) m_vRingPs[i].push_back(k);
+        m_vRingVs[i] = v.m_vRingVs[i];
+        m_vRingPs[i] = v.m_vRingPs[i];
       }
     }
 
